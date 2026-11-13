@@ -105,15 +105,6 @@ void MainWindow::setupUi() {
     m_btnSettings->setCursor(Qt::PointingHandCursor);
     connect(m_btnSettings, &QPushButton::clicked, this, &MainWindow::onOpenSettingsDialog);
 
-    // Botão Teste de Chamada com sino dourado
-    m_btnTestIncoming = new QPushButton(m_headerFrame);
-    m_btnTestIncoming->setIcon(IconHelper::createBellIcon(QColor("#F1C40F"), 18));
-    m_btnTestIncoming->setIconSize(QSize(18, 18));
-    m_btnTestIncoming->setFixedSize(36, 32);
-    m_btnTestIncoming->setToolTip("Simular Chamada Recebida");
-    m_btnTestIncoming->setCursor(Qt::PointingHandCursor);
-    connect(m_btnTestIncoming, &QPushButton::clicked, this, &MainWindow::onSimulateIncomingCall);
-
     // Botão vermelho de Sair definitivo
     m_btnExit = new QPushButton("Sair", m_headerFrame);
     m_btnExit->setObjectName("exitButton");
@@ -122,12 +113,11 @@ void MainWindow::setupUi() {
     m_btnExit->setCursor(Qt::PointingHandCursor);
     connect(m_btnExit, &QPushButton::clicked, this, &MainWindow::onQuitApplication);
 
-    // Layout do Header sem o ícone VX e sem o botão de alternar tema
+    // Layout do Header
     headerLayout->addWidget(m_comboPresence);
     headerLayout->addStretch();
     headerLayout->addWidget(m_btnAccounts);
     headerLayout->addWidget(m_btnSettings);
-    headerLayout->addWidget(m_btnTestIncoming);
     headerLayout->addWidget(m_btnExit);
 
     rootLayout->addWidget(m_headerFrame);
@@ -183,9 +173,6 @@ void MainWindow::setupTrayIcon() {
         activateWindow();
         raise();
     });
-
-    auto actionSim = m_trayMenu->addAction("Simular Chamada");
-    connect(actionSim, &QAction::triggered, this, &MainWindow::onSimulateIncomingCall);
 
     m_trayMenu->addSeparator();
 
@@ -424,10 +411,6 @@ void MainWindow::onOpenSettingsDialog() {
     SettingsDialog dlg(this);
     dlg.exec();
     m_recordingsWidget->refreshList();
-}
-
-void MainWindow::onSimulateIncomingCall() {
-    SipManager::instance().triggerSimulatedIncomingCall("1042", "Suporte TI Corporativo");
 }
 
 void MainWindow::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason) {

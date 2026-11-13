@@ -45,7 +45,6 @@ private slots:
 
 private:
     void setupUi();
-    void populateSampleData();
 
     QTableView *m_tableView{nullptr};
     QStandardItemModel *m_model{nullptr};

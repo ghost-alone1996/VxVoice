@@ -256,19 +256,7 @@ QList<SipAccountConfig> SettingsManager::accounts() const {
     int size = m_settings.beginReadArray("Accounts");
     if (size == 0) {
         m_settings.endArray();
-        SipAccountConfig sample;
-        sample.id = "acc_primary";
-        sample.accountName = "Ramal Principal (1001)";
-        sample.server = "pbx.empresa.local";
-        sample.port = 5060;
-        sample.username = "1001";
-        sample.password = "1001pass";
-        sample.domain = "empresa.local";
-        sample.transport = "UDP";
-        sample.profileId = "prof_default";
-        sample.isDefault = true;
-        sample.isEnabled = true;
-        return { sample };
+        return list;
     }
 
     for (int i = 0; i < size; ++i) {
@@ -285,6 +273,12 @@ QList<SipAccountConfig> SettingsManager::accounts() const {
         acc.profileId = m_settings.value("profileId", "prof_default").toString();
         acc.isDefault = m_settings.value("isDefault", false).toBool();
         acc.isEnabled = m_settings.value("isEnabled", true).toBool();
+
+        // Ignora contas fictícias de teste geradas durante desenvolvimento
+        if (acc.id == "acc_primary" && acc.username == "1001" && acc.server == "pbx.empresa.local") {
+            continue;
+        }
+
         list.append(acc);
     }
     m_settings.endArray();

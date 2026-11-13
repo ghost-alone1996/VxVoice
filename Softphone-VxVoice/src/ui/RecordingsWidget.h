@@ -43,7 +43,6 @@ private slots:
 
 private:
     void setupUi();
-    void ensureDemoRecordingsExist();
 
     QLineEdit *m_searchEdit{nullptr};
     QTableView *m_tableView{nullptr};

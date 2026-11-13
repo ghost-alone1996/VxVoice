@@ -537,13 +537,15 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.3.0):</b><br>"
+        "<b>Novidades e Correções (v1.4.0 - Versão de Produção):</b><br>"
         "<ul>"
-        "<li><b>Priorização Dinâmica de Codecs:</b> Botões explícitos para mover codecs para cima ou para baixo, determinando a preferência no PJSIP.</li>"
-        "<li><b>Teste de Voz Interativo:</b> Gravação e reprodução de áudio em tempo real para validação de clareza do microfone.</li>"
-        "<li><b>Detecção Nativa de Dispositivos USB:</b> Enumeração de headsets e placas de som USB (ex: JBL Quantum 400) com botão de atualização dinâmica.</li>"
-        "<li><b>Design System Multi-Temas:</b> Abas, bina e botões de contato com proporções perfeitas em todos os temas.</li>"
-        "<li><b>Atualizações Automáticas via Git:</b> Sincronização direta com o repositório Git.</li>"
+        "<li><b>Pronto para Produção:</b> Remoção completa de mocks, dados de teste e atalhos de simulação de chamadas.</li>"
+        "<li><b>Sinalização SIP Real:</b> Conexão e encerramento de chamadas estritamente via protocolo SIP e backend PJSIP.</li>"
+        "<li><b>Persistência Limpa:</b> Inicialização sem ramais fictícios ou contatos demo; sincronização com contas reais do usuário.</li>"
+        "<li><b>Priorização Dinâmica de Codecs:</b> Reordenação de prioridade de codecs com botões Mover para Cima e Mover para Baixo.</li>"
+        "<li><b>Detecção Nativa de Dispositivos USB:</b> Detecção a quente de dispositivos e fones de ouvido USB.</li>"
+        "<li><b>Diagnóstico de Áudio:</b> Testes de microfone (gravação de 3s e reprodução) e alto-falantes integrados nas preferências.</li>"
+        "<li><b>Atualizações Automáticas:</b> Suporte a sincronização direta com repositório Git.</li>"
         "</ul>"
     );
 

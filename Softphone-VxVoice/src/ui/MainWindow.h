@@ -37,7 +37,6 @@ private slots:
 
     void onOpenAccountsDialog();
     void onOpenSettingsDialog();
-    void onSimulateIncomingCall();
     void onSaveContactFromHistory(const QString &name, const QString &number);
 
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -55,7 +54,6 @@ private:
     QComboBox *m_comboPresence{nullptr}; // Posicionado no topo
     QPushButton *m_btnAccounts{nullptr};  // Ícone de bonequinho / usuário
     QPushButton *m_btnSettings{nullptr};  // Ícone de engrenagem
-    QPushButton *m_btnTestIncoming{nullptr}; // Ícone de sino
     QPushButton *m_btnExit{nullptr};      // Botão vermelho de Sair
 
     // Tabs

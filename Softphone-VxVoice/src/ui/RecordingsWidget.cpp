@@ -11,7 +11,6 @@
 RecordingsWidget::RecordingsWidget(QWidget *parent)
     : QWidget(parent) {
     setupUi();
-    ensureDemoRecordingsExist();
     refreshList();
 }
 
@@ -101,71 +100,33 @@ void RecordingsWidget::setupUi() {
     mainLayout->addLayout(btnLayout);
 }
 
-void RecordingsWidget::ensureDemoRecordingsExist() {
-    QString path = SettingsManager::instance().recordingPath();
-    QDir dir(path);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-
-    if (dir.entryList(QStringList() << "*.wav" << "*.mp3", QDir::Files).isEmpty()) {
-        QFile demo1(path + "/rec_1042_SuporteTI_20261112_2130.wav");
-        if (demo1.open(QIODevice::WriteOnly)) {
-            demo1.write("RIFF....WAVEfmt ....data....");
-            demo1.close();
-        }
-
-        QFile demo2(path + "/rec_1001_CarlosSilva_20261112_2215.mp3");
-        if (demo2.open(QIODevice::WriteOnly)) {
-            demo2.write("ID3....");
-            demo2.close();
-        }
-
-        QFile demo3(path + "/rec_1010_RobertoAlbuquerque_20261112_2245.wav");
-        if (demo3.open(QIODevice::WriteOnly)) {
-            demo3.write("RIFF....WAVEfmt ....data....");
-            demo3.close();
-        }
-    }
-}
-
 void RecordingsWidget::refreshList() {
     m_sourceModel->removeRows(0, m_sourceModel->rowCount());
     m_items.clear();
 
     QString path = SettingsManager::instance().recordingPath();
     QDir dir(path);
-    if (!dir.exists()) return;
+    if (!dir.exists()) {
+        dir.mkpath(".");
+        return;
+    }
 
     QFileInfoList list = dir.entryInfoList(QStringList() << "*.wav" << "*.mp3", QDir::Files, QDir::Time);
     for (const auto &info : list) {
         QString fileName = info.fileName();
-        QString contactNumber = "1000";
-        QString contactName = "Contato";
-        QString callType = "↙ Recebida";
-        QString duration = "02:15";
+        QString contactNumber = "";
+        QString contactName = info.baseName();
+        QString callType = "Chamada Gravada";
+        QString duration = "--:--";
 
-        // Faz o parsing do nome de arquivo padronizado para vincular com contato e histórico
-        // Ex: rec_1042_SuporteTI_...
-        if (fileName.contains("1042")) {
-            contactNumber = "1042";
-            contactName = "Suporte TI";
-            callType = "↙ Recebida";
-            duration = "03:24";
-        } else if (fileName.contains("1001")) {
-            contactNumber = "1001";
-            contactName = "Carlos Silva";
-            callType = "↗ Efetuada";
-            duration = "01:45";
-        } else if (fileName.contains("1010")) {
-            contactNumber = "1010";
-            contactName = "Roberto Albuquerque";
-            callType = "↗ Efetuada";
-            duration = "04:10";
-        } else {
-            contactNumber = "Ramal SIP";
-            contactName = fileName.section('_', 1, 1);
-            if (contactName.isEmpty()) contactName = "Gravação";
+        // Ex: rec_<numero>_<nome>_<timestamp>.wav
+        QStringList parts = info.baseName().split('_');
+        if (parts.size() >= 3 && parts[0] == "rec") {
+            contactNumber = parts[1];
+            contactName = parts[2];
+        } else if (parts.size() >= 2) {
+            contactNumber = parts[0];
+            contactName = parts[1];
         }
 
         double kb = info.size() / 1024.0;
@@ -173,12 +134,13 @@ void RecordingsWidget::refreshList() {
                                         : QString("%1 KB").arg(qMax(1.0, kb), 0, 'f', 0);
 
         QList<QStandardItem*> row;
-        auto itemContact = new QStandardItem(QString("%1 (%2)").arg(contactName, contactNumber));
+        QString displayTitle = contactNumber.isEmpty() ? contactName : QString("%1 (%2)").arg(contactName, contactNumber);
+        auto itemContact = new QStandardItem(displayTitle);
         itemContact->setData(info.absoluteFilePath(), Qt::UserRole);
         itemContact->setData(contactNumber, Qt::UserRole + 1);
 
         auto itemType = new QStandardItem(callType);
-        itemType->setForeground(callType.contains("Recebida") ? QColor("#27AE60") : QColor("#3498DB"));
+        itemType->setForeground(QColor("#3498DB"));
 
         auto itemDate = new QStandardItem(info.lastModified().toString("dd/MM/yyyy hh:mm"));
         auto itemDuration = new QStandardItem(duration);

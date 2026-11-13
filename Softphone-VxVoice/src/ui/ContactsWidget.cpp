@@ -38,7 +38,7 @@ void ContactEditDialog::setupUi() {
     m_editNumber->setPlaceholderText("Ex: +55 (11) 98765-4321");
 
     m_editExtension = new QLineEdit(this);
-    m_editExtension->setPlaceholderText("Ex: 1042");
+    m_editExtension->setPlaceholderText("Ex: 1001");
 
     m_editEmail = new QLineEdit(this);
     m_editEmail->setPlaceholderText("Ex: roberto@empresa.com.br");

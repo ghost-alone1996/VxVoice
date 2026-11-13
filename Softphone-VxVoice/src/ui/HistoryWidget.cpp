@@ -11,7 +11,6 @@
 HistoryWidget::HistoryWidget(QWidget *parent)
     : QWidget(parent) {
     setupUi();
-    populateSampleData();
 }
 
 void HistoryWidget::setupUi() {
@@ -87,13 +86,6 @@ void HistoryWidget::addRecord(HistoryCallType type, const QString &number, const
 
     row << itemType << itemContact << itemTime << itemDuration << itemRec;
     m_model->insertRow(0, row);
-}
-
-void HistoryWidget::populateSampleData() {
-    addRecord(HistoryCallType::Incoming, "1042", "Suporte TI", "03:24");
-    addRecord(HistoryCallType::Outgoing, "2001", "Diretoria", "01:15");
-    addRecord(HistoryCallType::Missed, "08007070", "Cliente Externo", "00:00");
-    addRecord(HistoryCallType::Incoming, "1002", "Recepção Central", "00:45");
 }
 
 void HistoryWidget::onItemDoubleClicked(const QModelIndex &index) {

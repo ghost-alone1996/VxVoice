@@ -96,20 +96,16 @@ void ContactsManager::loadContacts() {
         c.extension = settings.value("extension").toString();
         c.email = settings.value("email").toString();
         c.company = settings.value("company").toString();
+
+        // Descarta contatos fictícios legados de teste
+        if ((c.extension == "1042" && c.name.contains("Suporte TI")) ||
+            (c.extension == "1001" && c.name == "Carlos Silva" && c.company == "Matriz SP")) {
+            continue;
+        }
+
         m_contacts.append(c);
     }
     settings.endArray();
-
-    // Se a base estiver vazia, popula contatos corporativos padrão
-    if (m_contacts.isEmpty()) {
-        m_contacts.append({"Suporte TI Corporativo", "+55 11 98888-0000", "1042", "suporte@empresa.com.br", "TI Infra"});
-        m_contacts.append({"Carlos Silva", "+55 11 98888-1111", "1001", "carlos.silva@empresa.com.br", "Matriz SP"});
-        m_contacts.append({"Mariana Souza", "+55 11 97777-2222", "1002", "mariana@suporte.com.br", "Suporte Central"});
-        m_contacts.append({"Roberto Albuquerque", "+55 21 96666-3333", "1010", "roberto@eng.com.br", "Engenharia"});
-        m_contacts.append({"Fernanda Lima", "+55 31 95555-4444", "1025", "rh@empresa.com.br", "Recursos Humanos"});
-        m_contacts.append({"Lucas Mendes", "+55 41 94444-5555", "2000", "lucas.ti@rede.com.br", "TI Infra"});
-        saveContacts();
-    }
 }
 
 void ContactsManager::saveContacts() {

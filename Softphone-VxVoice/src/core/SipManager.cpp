@@ -66,17 +66,6 @@ void SipManager::makeCall(const QString &destination) {
     m_activeCallId = callId;
 
     emit callStateChanged(callId, CallState::Calling, QString("Discando para %1...").arg(destination));
-
-    // Simula a resposta da chamada após 2 segundos se for ambiente de teste
-    QTimer::singleShot(1500, this, [this, callId]() {
-        if (m_calls.contains(callId) && m_calls[callId].state == CallState::Calling) {
-            m_calls[callId].state = CallState::Confirmed;
-            emit callStateChanged(callId, CallState::Confirmed, "Chamada Conectada");
-            if (!m_callDurationTimer->isActive()) {
-                m_callDurationTimer->start();
-            }
-        }
-    });
 }
 
 void SipManager::answerCall(const QString &callId) {
@@ -258,20 +247,6 @@ SipManager::CallData SipManager::activeCall() const {
         return m_calls.value(m_activeCallId);
     }
     return CallData();
-}
-
-void SipManager::triggerSimulatedIncomingCall(const QString &number, const QString &name) {
-    QString callId = QString("inc_%1").arg(QDateTime::currentMSecsSinceEpoch());
-    CallData call;
-    call.callId = callId;
-    call.remoteNumber = number;
-    call.remoteName = name;
-    call.state = CallState::Incoming;
-    m_calls.insert(callId, call);
-    m_activeCallId = callId;
-
-    emit incomingCall(callId, number, name);
-    emit callStateChanged(callId, CallState::Incoming, QString("Chamada recebida de %1 (%2)").arg(name, number));
 }
 
 void SipManager::onCallTimerTick() {

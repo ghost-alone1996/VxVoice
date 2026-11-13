@@ -102,9 +102,6 @@ public:
     bool hasActiveCall() const;
     CallData activeCall() const;
 
-    // Simulation helpers (for rapid interface testing without physical PBX)
-    void triggerSimulatedIncomingCall(const QString &number, const QString &name);
-
 signals:
     void incomingCall(const QString &callId, const QString &callerId, const QString &callerName);
     void callStateChanged(const QString &callId, SipManager::CallState state, const QString &stateText);
