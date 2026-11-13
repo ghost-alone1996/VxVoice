@@ -542,13 +542,11 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.3):</b><br>"
+        "<b>Novidades e Correções (v1.4.4):</b><br>"
         "<ul>"
-        "<li><b>Aba de Log SIP Corporativo:</b> Visualizador de diagnóstico em tempo real dos pacotes e eventos SIP (REGISTER, INVITE, 200 OK, BYE, RTP e erros de conexão) com filtros e exportação.</li>"
-        "<li><b>Busca Inteligente nos Contatos:</b> Autocomplete e busca em tempo real no discador por nome ou ramal.</li>"
-        "<li><b>Botão Backspace Aprimorado:</b> Ícone vetorial nativo com suporte a exclusão unitária e limpeza total por clique longo.</li>"
-        "<li><b>Licença Open Source:</b> Licenciado sob os termos da GNU General Public License v3.0 (GPLv3).</li>"
-        "<li><b>Ícone do Executável:</b> Ícone oficial VxVoice integrado nativamente nas janelas e executável.</li>"
+        "<li><b>Seleção Inteligente de Destino em Contatos:</b> Ao ligar para contatos que possuem ramal e número telefônico cadastrados, uma janela intuitiva permite escolher entre chamar o ramal SIP ou o telefone externo.</li>"
+        "<li><b>Estabilidade de Chamadas PJSIP:</b> Eliminação de encerramento inesperado ao iniciar novas chamadas e proteção de concorrência na engine SIP.</li>"
+        "<li><b>Atualizador de Sistema Aprimorado:</b> Suporte a script Debian de pré-remoção (prerm) e atualização direta do pacote .deb sem necessidade de desinstalar previamente.</li>"
         "</ul>"
     );
 

@@ -79,6 +79,7 @@ private:
     void setupUi();
     void populateInitialContacts();
     void updateCompanyFilterList();
+    void initiateContactCall(const ContactInfo &c);
 
     QLineEdit *m_searchEdit{nullptr};
     QComboBox *m_comboCompanyFilter{nullptr};

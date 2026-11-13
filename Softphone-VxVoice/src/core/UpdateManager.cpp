@@ -6,7 +6,7 @@
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "1.4.3"
+#define VXVOICE_VERSION "1.4.4"
 #endif
 
 UpdateManager& UpdateManager::instance() {
@@ -146,8 +146,41 @@ void UpdateManager::applyUpdate() {
             this, [this, process](int exitCode, QProcess::ExitStatus exitStatus) {
         process->deleteLater();
         if (exitStatus == QProcess::NormalExit && exitCode == 0) {
-            emit updateCompleted(true, "Atualização concluída com sucesso! Reinicie o aplicativo para aplicar.");
-            emit statusChanged("Atualização concluída com sucesso.");
+            // Busca o pacote .deb mais recente gerado no workspace
+            QString debPath;
+            QStringList searchDirs = { m_repoPath, m_repoPath + "/build", QFileInfo(m_repoPath).dir().absolutePath() };
+            for (const auto &sdir : searchDirs) {
+                QDir d(sdir);
+                auto debFiles = d.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
+                if (!debFiles.isEmpty()) {
+                    debPath = debFiles.first().absoluteFilePath();
+                    break;
+                }
+            }
+
+            if (!debPath.isEmpty() && QFile::exists("/usr/bin/pkexec")) {
+                emit statusChanged("Instalando pacote com privilégios de administrador...");
+                auto instProc = new QProcess(this);
+                connect(instProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                        this, [this, instProc, debPath](int instCode, QProcess::ExitStatus instStatus) {
+                    instProc->deleteLater();
+                    if (instStatus == QProcess::NormalExit && instCode == 0) {
+                        emit updateCompleted(true, QString("VxVoice atualizado com sucesso no sistema operacional!\n\nPacote instalado: %1\n\nReinicie o aplicativo para carregar a nova versão.")
+                                             .arg(QFileInfo(debPath).fileName()));
+                        emit statusChanged("Atualização e instalação concluídas com sucesso.");
+                    } else {
+                        emit updateCompleted(false, QString("Atualização baixada. Para instalar no sistema, execute no terminal:\n\nsudo dpkg -i %1").arg(debPath));
+                        emit statusChanged("Aguardando instalação do pacote.");
+                    }
+                });
+                instProc->start("pkexec", {"dpkg", "-i", debPath});
+            } else if (!debPath.isEmpty()) {
+                emit updateCompleted(true, QString("Atualizações sincronizadas com sucesso!\n\nPara atualizar o pacote instalado no sistema, execute:\nsudo dpkg -i %1").arg(debPath));
+                emit statusChanged("Atualização concluída.");
+            } else {
+                emit updateCompleted(true, "Atualização Git concluída com sucesso! Reinicie o aplicativo para aplicar.");
+                emit statusChanged("Atualização concluída com sucesso.");
+            }
         } else {
             QString err = QString::fromUtf8(process->readAllStandardError());
             emit updateCompleted(false, "Erro ao puxar atualizações: " + err);

@@ -1,4 +1,5 @@
 #include "ContactsWidget.h"
+#include "SelectContactNumberDialog.h"
 #include "IconHelper.h"
 #include "SipManager.h"
 #include <QHeaderView>
@@ -381,6 +382,33 @@ void ContactsWidget::onDeleteContactClicked() {
     }
 }
 
+void ContactsWidget::initiateContactCall(const ContactInfo &c) {
+    QString ext = c.extension.trimmed();
+    QString num = c.number.trimmed();
+    bool hasExt = !ext.isEmpty();
+    bool hasNum = !num.isEmpty();
+
+    if (!hasExt && !hasNum) {
+        QMessageBox::warning(this, "Contato sem Número",
+                             QString("O contato '%1' não possui ramal ou número de telefone cadastrado.").arg(c.name));
+        return;
+    }
+
+    if (hasExt && hasNum && ext != num) {
+        SelectContactNumberDialog dlg(c, this);
+        if (dlg.exec() == QDialog::Accepted) {
+            QString chosen = dlg.selectedNumber();
+            if (!chosen.isEmpty()) {
+                emit callRequested(chosen);
+            }
+        }
+        return;
+    }
+
+    QString target = hasExt ? ext : num;
+    emit callRequested(target);
+}
+
 void ContactsWidget::onCallClicked() {
     auto selected = m_tableView->selectionModel()->selectedRows();
     if (selected.isEmpty()) return;
@@ -389,11 +417,7 @@ void ContactsWidget::onCallClicked() {
     int row = sourceIdx.row();
     if (row < 0 || row >= m_contacts.size()) return;
 
-    const auto &c = m_contacts[row];
-    QString target = !c.extension.isEmpty() ? c.extension : c.number;
-    if (!target.isEmpty()) {
-        emit callRequested(target);
-    }
+    initiateContactCall(m_contacts[row]);
 }
 
 void ContactsWidget::onEmailClicked() {
@@ -416,11 +440,7 @@ void ContactsWidget::onItemDoubleClicked(const QModelIndex &index) {
     int row = sourceIdx.row();
     if (row < 0 || row >= m_contacts.size()) return;
 
-    const auto &c = m_contacts[row];
-    QString target = !c.extension.isEmpty() ? c.extension : c.number;
-    if (!target.isEmpty()) {
-        emit callRequested(target);
-    }
+    initiateContactCall(m_contacts[row]);
 }
 
 void ContactsWidget::onSelectionChanged() {

@@ -2,6 +2,7 @@
 #include "ContactsManager.h"
 #include "ThemeManager.h"
 #include "IconHelper.h"
+#include "SelectContactNumberDialog.h"
 #include <QInputDialog>
 #include <QDateTime>
 #include <QShortcut>
@@ -509,6 +510,28 @@ void CallWidget::onBackspaceClicked() {
 }
 
 void CallWidget::onCallButtonClicked() {
+    QString rawInput = m_numberDisplay->text().trimmed();
+
+    // Se o usuário digitou o nome direto de um contato que possui ramal e número cadastrados
+    for (const auto &c : ContactsManager::instance().contacts()) {
+        if (c.name.compare(rawInput, Qt::CaseInsensitive) == 0 &&
+            !c.extension.trimmed().isEmpty() && !c.number.trimmed().isEmpty() &&
+            c.extension.trimmed() != c.number.trimmed()) {
+            SelectContactNumberDialog dlg(c, this);
+            if (dlg.exec() == QDialog::Accepted) {
+                QString chosen = dlg.selectedNumber();
+                if (!chosen.isEmpty()) {
+                    m_numberDisplay->setText(chosen);
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+            break;
+        }
+    }
+
     QString num = currentNumber();
     if (num.isEmpty()) return;
 

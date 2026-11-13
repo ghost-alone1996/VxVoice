@@ -335,10 +335,11 @@ void SipManager::makeCall(const QString &destination) {
 
     try {
         if (m_currentCall) {
-            pj::CallOpParam prm;
-            prm.statusCode = PJSIP_SC_DECLINE;
-            try { m_currentCall->hangup(prm); } catch (...) {}
-            delete m_currentCall;
+            try {
+                pj::CallOpParam prm;
+                prm.statusCode = PJSIP_SC_DECLINE;
+                m_currentCall->hangup(prm);
+            } catch (...) {}
             m_currentCall = nullptr;
         }
 

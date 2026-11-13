@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 1.4.3
+    VERSION 1.4.4
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -40,6 +40,7 @@ set(SOURCES
     src/ui/SettingsDialog.cpp
     src/ui/AccountsDialog.cpp
     src/ui/CallNotificationPopup.cpp
+    src/ui/SelectContactNumberDialog.cpp
     src/ui/IconHelper.cpp
 )
 
@@ -59,6 +60,7 @@ set(HEADERS
     src/ui/SettingsDialog.h
     src/ui/AccountsDialog.h
     src/ui/CallNotificationPopup.h
+    src/ui/SelectContactNumberDialog.h
     src/ui/IconHelper.h
 )
 
@@ -158,6 +160,10 @@ if(UNIX AND NOT APPLE)
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF) # Definido explícito para compatibilidade ampla
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.31), libqt6widgets6t64 | libqt6widgets6, libqt6network6t64 | libqt6network6, libqt6gui6t64 | libqt6gui6, libqt6core6t64 | libqt6core6")
     set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "VxVoice Softphone Corporativo SIP de alta fidelidade desenvolvido em C++ e Qt6 com backend PJSIP.")
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/debian/prerm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/debian/postinst"
+    )
 endif()
 
 # Windows Packaging: WiX Toolset gerando instalador corporativo .msi para GPO
