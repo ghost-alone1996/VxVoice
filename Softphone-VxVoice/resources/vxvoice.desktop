@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=VxVoice
+GenericName=SIP Softphone
+Comment=Enterprise SIP Softphone Client with PJSIP and Qt6
+Exec=VxVoice %u
+Icon=vxvoice
+Terminal=false
+Type=Application
+Categories=Network;Telephony;AudioVideo;
+MimeType=x-scheme-handler/sip;x-scheme-handler/sips;x-scheme-handler/tel;
+Keywords=SIP;VoIP;Softphone;Telephony;Call;
+StartupNotify=true

@@ -1,0 +1,25 @@
+# Build directories
+build/
+Softphone-VxVoice/build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Packages
+*.deb
+*.tar.gz
+*.msi
+*.rpm
+
+# IDE
+.vscode/
+.idea/
+
+# Autogen & cache
+*.o
+*.a
+*.so
+moc_*
+qrc_*
+ui_*

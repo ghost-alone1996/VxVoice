@@ -1,0 +1,128 @@
+#include "ContactsManager.h"
+#include <QSettings>
+
+ContactsManager& ContactsManager::instance() {
+    static ContactsManager s_instance;
+    return s_instance;
+}
+
+ContactsManager::ContactsManager(QObject *parent)
+    : QObject(parent) {
+    loadContacts();
+}
+
+QList<ContactEntry> ContactsManager::contacts() const {
+    return m_contacts;
+}
+
+void ContactsManager::addContact(const ContactEntry &contact) {
+    m_contacts.append(contact);
+    saveContacts();
+    emit contactsChanged();
+}
+
+void ContactsManager::updateContact(int index, const ContactEntry &contact) {
+    if (index >= 0 && index < m_contacts.size()) {
+        m_contacts[index] = contact;
+        saveContacts();
+        emit contactsChanged();
+    }
+}
+
+void ContactsManager::removeContact(int index) {
+    if (index >= 0 && index < m_contacts.size()) {
+        m_contacts.removeAt(index);
+        saveContacts();
+        emit contactsChanged();
+    }
+}
+
+static QString normalizeDigits(const QString &input) {
+    QString out;
+    for (const QChar &ch : input) {
+        if (ch.isDigit()) {
+            out.append(ch);
+        }
+    }
+    return out;
+}
+
+QString ContactsManager::findContactNameByNumber(const QString &numberOrExt) const {
+    QString q = numberOrExt.trimmed();
+    if (q.isEmpty()) return QString();
+
+    QString qDigits = normalizeDigits(q);
+
+    // 1. Busca exata por ramal ou número
+    for (const auto &c : m_contacts) {
+        if (c.extension.compare(q, Qt::CaseInsensitive) == 0) {
+            return c.name;
+        }
+        if (c.number.compare(q, Qt::CaseInsensitive) == 0) {
+            return c.name;
+        }
+    }
+
+    // 2. Busca por dígitos normalizados (ex: ramal ou telefone formatado)
+    if (!qDigits.isEmpty()) {
+        for (const auto &c : m_contacts) {
+            QString extDigits = normalizeDigits(c.extension);
+            if (!extDigits.isEmpty() && extDigits == qDigits) {
+                return c.name;
+            }
+
+            QString numDigits = normalizeDigits(c.number);
+            if (!numDigits.isEmpty()) {
+                if (numDigits == qDigits || numDigits.endsWith(qDigits) || qDigits.endsWith(numDigits)) {
+                    return c.name;
+                }
+            }
+        }
+    }
+
+    return QString();
+}
+
+void ContactsManager::loadContacts() {
+    QSettings settings("VxVoice", "Softphone");
+    int size = settings.beginReadArray("Contacts");
+    m_contacts.clear();
+
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        ContactEntry c;
+        c.name = settings.value("name").toString();
+        c.number = settings.value("number").toString();
+        c.extension = settings.value("extension").toString();
+        c.email = settings.value("email").toString();
+        c.company = settings.value("company").toString();
+        m_contacts.append(c);
+    }
+    settings.endArray();
+
+    // Se a base estiver vazia, popula contatos corporativos padrão
+    if (m_contacts.isEmpty()) {
+        m_contacts.append({"Suporte TI Corporativo", "+55 11 98888-0000", "1042", "suporte@empresa.com.br", "TI Infra"});
+        m_contacts.append({"Carlos Silva", "+55 11 98888-1111", "1001", "carlos.silva@empresa.com.br", "Matriz SP"});
+        m_contacts.append({"Mariana Souza", "+55 11 97777-2222", "1002", "mariana@suporte.com.br", "Suporte Central"});
+        m_contacts.append({"Roberto Albuquerque", "+55 21 96666-3333", "1010", "roberto@eng.com.br", "Engenharia"});
+        m_contacts.append({"Fernanda Lima", "+55 31 95555-4444", "1025", "rh@empresa.com.br", "Recursos Humanos"});
+        m_contacts.append({"Lucas Mendes", "+55 41 94444-5555", "2000", "lucas.ti@rede.com.br", "TI Infra"});
+        saveContacts();
+    }
+}
+
+void ContactsManager::saveContacts() {
+    QSettings settings("VxVoice", "Softphone");
+    settings.beginWriteArray("Contacts");
+    for (int i = 0; i < m_contacts.size(); ++i) {
+        settings.setArrayIndex(i);
+        settings.setValue("name", m_contacts[i].name);
+        settings.setValue("number", m_contacts[i].number);
+        settings.setValue("extension", m_contacts[i].extension);
+        settings.setValue("email", m_contacts[i].email);
+        settings.setValue("company", m_contacts[i].company);
+    }
+    settings.endArray();
+}
+

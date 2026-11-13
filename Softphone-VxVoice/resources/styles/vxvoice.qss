@@ -1,0 +1,480 @@
+/* ===================================================================
+   VxVoice - Official Purple Corporate Theme
+   Base Palette: #171226, #201835, #2D1F4B, #8E44AD, #9B59B6
+   Action Accents: Call = #27AE60, Hangup = #C0392B, Exit = #C0392B
+   =================================================================== */
+
+* {
+    color: #F5EEF8;
+}
+
+QMainWindow, QDialog, QWidget#centralWidget {
+    background-color: #171226;
+    color: #F5EEF8;
+    font-family: "Segoe UI", "Inter", "Roboto", "Helvetica Neue", sans-serif;
+    font-size: 13px;
+}
+
+/* Tooltips Corporativos Nítidos e Legíveis */
+QToolTip {
+    background-color: #2D1F4B;
+    color: #FFFFFF;
+    border: 1px solid #9B59B6;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+/* Toolbars & Headers */
+QFrame#headerFrame {
+    background-color: #110D1D;
+    border-bottom: 1px solid #3E2A5D;
+    padding: 6px 10px;
+}
+
+/* Card de Informações Superiores do Discador */
+QFrame#callInfoFrame {
+    background-color: #1E1632;
+    border: 1px solid #3E2A5D;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+QLabel {
+    color: #F5EEF8;
+    background: transparent;
+}
+
+QLabel#titleLabel {
+    font-size: 16px;
+    font-weight: bold;
+    color: #9B59B6;
+}
+
+QLineEdit#callerIdDisplay {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FFFFFF;
+    background-color: #120D1F;
+    border: 1px solid #3E2A5D;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+QLineEdit#callerIdDisplay:focus {
+    border: 1px solid #9B59B6;
+}
+
+/* Tab Widget */
+QTabWidget::pane {
+    border: 1px solid #3E2A5D;
+    background-color: #1E1632;
+    border-radius: 4px;
+}
+
+QTabBar::tab {
+    background-color: #110D1D;
+    color: #D2B4DE;
+    padding: 8px 8px;
+    font-weight: 600;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    background-color: #261B40;
+    color: #D7BDE2;
+    border-bottom: 2px solid #9B59B6;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #201736;
+    color: #FFFFFF;
+}
+
+/* Standard Push Buttons */
+QPushButton {
+    background-color: #261B40;
+    color: #F5EEF8;
+    border: 1px solid #4A326F;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background-color: #332356;
+    border-color: #9B59B6;
+    color: #FFFFFF;
+}
+
+QPushButton:pressed {
+    background-color: #19112B;
+}
+
+QPushButton:disabled {
+    background-color: #171124;
+    color: #6C557D;
+    border-color: #2D1F44;
+}
+
+/* Exit Button (Red) */
+QPushButton#exitButton {
+    background-color: #C0392B;
+    color: #FFFFFF;
+    border: 1px solid #922B21;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-weight: bold;
+}
+
+QPushButton#exitButton:hover {
+    background-color: #E74C3C;
+    border-color: #C0392B;
+}
+
+QPushButton#exitButton:pressed {
+    background-color: #922B21;
+}
+
+/* Primary Action Buttons */
+QPushButton#primaryButton {
+    background-color: #8E44AD;
+    color: #FFFFFF;
+    border: 1px solid #7D3C98;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-weight: bold;
+}
+
+QPushButton#primaryButton:hover {
+    background-color: #9B59B6;
+}
+
+QPushButton#primaryButton:pressed {
+    background-color: #6C3483;
+}
+
+/* Keypad Dial Buttons */
+QPushButton.dialBtn {
+    background-color: #22183A;
+    color: #FFFFFF;
+    border: 1px solid #3E2A5D;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: bold;
+    min-height: 40px;
+}
+
+QPushButton.dialBtn:hover {
+    background-color: #2F2150;
+    border-color: #9B59B6;
+}
+
+QPushButton.dialBtn:pressed {
+    background-color: #160F26;
+}
+
+/* Call & Hangup Mandatory Colors */
+QPushButton#callButton {
+    background-color: #27AE60;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid #1E8449;
+    border-radius: 6px;
+    min-height: 40px;
+    padding: 6px 16px;
+}
+
+QPushButton#callButton:hover {
+    background-color: #2ECC71;
+    border-color: #27AE60;
+}
+
+QPushButton#callButton:pressed {
+    background-color: #1E8449;
+}
+
+/* Botões da Barra de Ações de Contatos */
+QPushButton#contactCallButton, QPushButton#contactEmailButton, QPushButton#contactEditButton, QPushButton#contactDeleteButton {
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 4px 6px;
+}
+
+QPushButton#contactCallButton {
+    background-color: #27AE60;
+    color: #FFFFFF;
+    border: 1px solid #1E8449;
+}
+
+QPushButton#contactCallButton:hover {
+    background-color: #2ECC71;
+}
+
+QPushButton#contactCallButton:pressed {
+    background-color: #1E8449;
+}
+
+QPushButton#contactCallButton:disabled {
+    background-color: #171124;
+    color: #6C557D;
+    border-color: #2D1F44;
+}
+
+QPushButton#contactEmailButton {
+    background-color: #2980B9;
+    color: #FFFFFF;
+    border: 1px solid #1F618D;
+}
+
+QPushButton#contactEmailButton:hover {
+    background-color: #3498DB;
+}
+
+QPushButton#contactEmailButton:pressed {
+    background-color: #1F618D;
+}
+
+QPushButton#contactEmailButton:disabled {
+    background-color: #171124;
+    color: #6C557D;
+    border-color: #2D1F44;
+}
+
+QPushButton#contactEditButton {
+    background-color: #201736;
+    color: #D2B4DE;
+    border: 1px solid #3E2A5D;
+}
+
+QPushButton#contactEditButton:hover {
+    background-color: #2A1F45;
+    border-color: #9B59B6;
+}
+
+QPushButton#contactEditButton:disabled {
+    background-color: #171124;
+    color: #6C557D;
+    border-color: #2D1F44;
+}
+
+QPushButton#contactDeleteButton {
+    background-color: #4A1525;
+    color: #FADBD8;
+    border: 1px solid #641E16;
+}
+
+QPushButton#contactDeleteButton:hover {
+    background-color: #C0392B;
+    color: #FFFFFF;
+}
+
+QPushButton#contactDeleteButton:disabled {
+    background-color: #171124;
+    color: #6C557D;
+    border-color: #2D1F44;
+}
+
+QPushButton#hangupButton {
+    background-color: #C0392B;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid #922B21;
+    border-radius: 6px;
+    min-height: 40px;
+    padding: 6px 16px;
+}
+
+QPushButton#hangupButton:hover {
+    background-color: #E74C3C;
+    border-color: #C0392B;
+}
+
+QPushButton#hangupButton:pressed {
+    background-color: #922B21;
+}
+
+/* In-Call Action Control Buttons */
+QPushButton.inCallBtn {
+    background-color: #261B40;
+    color: #F5EEF8;
+    border: 1px solid #4A326F;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+QPushButton.inCallBtn:hover {
+    background-color: #332356;
+    border-color: #9B59B6;
+    color: #FFFFFF;
+}
+
+QPushButton.inCallBtn:checked {
+    background-color: #E67E22;
+    border-color: #D35400;
+    color: #FFFFFF;
+}
+
+/* Active Call Dialog Custom Styles */
+QFrame#activeCallCard {
+    background-color: #201835;
+    border: 1px solid #4A326F;
+    border-radius: 12px;
+}
+
+QLabel#activeCallBadge {
+    font-size: 12px;
+    font-weight: bold;
+    color: #9B59B6;
+    background: transparent;
+}
+
+QLabel#activeCallName {
+    font-size: 18px;
+    font-weight: bold;
+    color: #F5EEF8;
+    background: transparent;
+}
+
+QLabel#activeCallNumber {
+    font-size: 14px;
+    color: #D2B4DE;
+    background: transparent;
+}
+
+QLabel#activeCallCompany {
+    font-size: 12px;
+    color: #BB8FCE;
+    font-weight: 600;
+    background: transparent;
+}
+
+QLabel#activeCallStatus {
+    font-size: 13px;
+    color: #F39C12;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#activeCallTimer {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2ECC71;
+    background: transparent;
+    margin-top: 4px;
+}
+
+/* Input Fields & Combos */
+QLineEdit, QSpinBox, QComboBox {
+    background-color: #120D1F;
+    color: #F5EEF8;
+    border: 1px solid #3E2A5D;
+    border-radius: 5px;
+    padding: 6px 8px;
+    selection-background-color: #8E44AD;
+}
+
+QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
+    border: 1px solid #9B59B6;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left: 1px solid #3E2A5D;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #1E1632;
+    color: #F5EEF8;
+    selection-background-color: #8E44AD;
+    border: 1px solid #3E2A5D;
+}
+
+/* Lists and Tables */
+QTableView, QListView, QListWidget {
+    background-color: #120D1F;
+    color: #F5EEF8;
+    border: 1px solid #3E2A5D;
+    border-radius: 5px;
+    gridline-color: #22183A;
+    selection-background-color: #2D1F4B;
+    selection-color: #D7BDE2;
+}
+
+QHeaderView::section {
+    background-color: #1E1632;
+    color: #F5EEF8;
+    padding: 6px;
+    border: none;
+    border-bottom: 1px solid #3E2A5D;
+    font-weight: bold;
+}
+
+/* Sliders */
+QSlider::groove:horizontal {
+    height: 6px;
+    background: #3E2A5D;
+    border-radius: 3px;
+}
+
+QSlider::sub-page:horizontal {
+    background: #8E44AD;
+    border-radius: 3px;
+}
+
+QSlider::handle:horizontal {
+    background: #F5EEF8;
+    border: 1px solid #BB8FCE;
+    width: 14px;
+    margin-top: -4px;
+    margin-bottom: -4px;
+    border-radius: 7px;
+}
+
+QSlider::handle:horizontal:hover {
+    background: #9B59B6;
+}
+
+/* Checkbox & Radio Buttons */
+QCheckBox, QRadioButton, QGroupBox {
+    color: #F5EEF8;
+    spacing: 8px;
+    font-size: 13px;
+}
+
+QCheckBox:disabled, QRadioButton:disabled {
+    color: #7D6B90;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #4A326F;
+    border-radius: 3px;
+    background-color: #120D1F;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #9B59B6;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #8E44AD;
+    border-color: #6C3483;
+}
+
+/* Popup Notification Widget */
+QFrame#notificationCard {
+    background-color: #1B132C;
+    border: 2px solid #9B59B6;
+    border-radius: 10px;
+}
