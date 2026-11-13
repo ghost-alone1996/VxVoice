@@ -13,6 +13,7 @@ public:
     static QIcon createBellIcon(const QColor &color = QColor("#F1C40F"), int size = 20);
     static QIcon createPhoneIcon(const QColor &color = Qt::white, int size = 24);
     static QIcon createCloseIcon(const QColor &color = Qt::white, int size = 24);
+    static QIcon createBackspaceIcon(const QColor &color = Qt::white, int size = 24);
     static QPixmap createUserAvatarPixmap(const QColor &bgColor, const QColor &fgColor, int size = 80);
 };
 

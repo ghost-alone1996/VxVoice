@@ -8,10 +8,10 @@ int main(int argc, char *argv[]) {
 
     // Application metadata
     QApplication::setApplicationName("VxVoice");
-    QApplication::setApplicationDisplayName("VxVoice Softphone");
+    QApplication::setApplicationDisplayName("VxVoice");
     QApplication::setOrganizationName("VxVoiceCorp");
     QApplication::setOrganizationDomain("vxvoice.corp");
-    QApplication::setApplicationVersion("1.0.0");
+    QApplication::setApplicationVersion(SettingsManager::APP_VERSION);
 
     // Configure purple VX application icon
     app.setWindowIcon(QIcon(":/icons/app_icon.png"));

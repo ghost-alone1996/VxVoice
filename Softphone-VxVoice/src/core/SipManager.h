@@ -3,9 +3,12 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QColor>
 #include <QTimer>
 #include <QMap>
+#include <QMutex>
+#include <memory>
 #include "SettingsManager.h"
 
 namespace pj {
@@ -13,6 +16,7 @@ namespace pj {
 }
 class VxAccount;
 class VxCall;
+class VxSipLogWriter;
 
 class SipManager : public QObject {
     Q_OBJECT
@@ -109,6 +113,11 @@ public:
     bool hasActiveCall() const;
     CallData activeCall() const;
 
+    // SIP Logging & Event Tracing
+    void logSipMessage(const QString &msg, int level = 3);
+    QStringList sipLogs() const;
+    void clearSipLogs();
+
     // Callbacks do PJSIP despachados com segurança para o loop do Qt
     void handleRegState(int statusCode, const QString &reason);
     void handleIncomingCall(VxCall *call, const QString &callId, const QString &remoteUri, const QString &remoteContact);
@@ -125,6 +134,7 @@ signals:
     void muteStateChanged(const QString &callId, bool isMuted);
     void dtmfSent(const QString &digits);
     void blfStatusChanged(const QString &extension, SipManager::BlfState state);
+    void sipLogReceived(const QString &formattedLine, int level);
 
 private slots:
     void onCallTimerTick();
@@ -145,6 +155,10 @@ private:
     VxAccount *m_account{nullptr};
     VxCall *m_currentCall{nullptr};
     SipAccountConfig m_currentAccount;
+
+    mutable QMutex m_logMutex;
+    QStringList m_sipLogs;
+    std::unique_ptr<VxSipLogWriter> m_logWriter;
 };
 
 #endif // SIPMANAGER_H

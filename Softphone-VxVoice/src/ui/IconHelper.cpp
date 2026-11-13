@@ -133,6 +133,49 @@ QIcon IconHelper::createCloseIcon(const QColor &color, int size) {
     return QIcon(pix);
 }
 
+QIcon IconHelper::createBackspaceIcon(const QColor &color, int size) {
+    QPixmap pix(size, size);
+    pix.fill(Qt::transparent);
+
+    QPainter p(&pix);
+    p.setRenderHint(QPainter::Antialiasing);
+
+    // Contorno elegante do botão backspace (formato de etiqueta com ponta à esquerda)
+    QPainterPath outline;
+    qreal leftTip = size * 0.12;
+    qreal shoulderX = size * 0.38;
+    qreal topY = size * 0.22;
+    qreal bottomY = size * 0.78;
+    qreal rightX = size * 0.90;
+    qreal radius = size * 0.08;
+
+    outline.moveTo(leftTip, size * 0.50);
+    outline.lineTo(shoulderX, topY);
+    outline.lineTo(rightX - radius, topY);
+    outline.quadTo(rightX, topY, rightX, topY + radius);
+    outline.lineTo(rightX, bottomY - radius);
+    outline.quadTo(rightX, bottomY, rightX - radius, bottomY);
+    outline.lineTo(shoulderX, bottomY);
+    outline.closeSubpath();
+
+    // Borda do símbolo
+    p.setPen(QPen(color, 1.8, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    p.setBrush(Qt::NoBrush);
+    p.drawPath(outline);
+
+    // Cruz interna ('X' de delete)
+    qreal x1 = size * 0.52;
+    qreal x2 = size * 0.74;
+    qreal y1 = size * 0.38;
+    qreal y2 = size * 0.62;
+
+    p.setPen(QPen(color, 2.0, Qt::SolidLine, Qt::RoundCap));
+    p.drawLine(QPointF(x1, y1), QPointF(x2, y2));
+    p.drawLine(QPointF(x2, y1), QPointF(x1, y2));
+
+    return QIcon(pix);
+}
+
 QPixmap IconHelper::createUserAvatarPixmap(const QColor &bgColor, const QColor &fgColor, int size) {
     QPixmap pix(size, size);
     pix.fill(Qt::transparent);

@@ -16,6 +16,9 @@
 #include <QTextEdit>
 #include <QDir>
 #include <QTimer>
+#include <QScrollBar>
+#include <QClipboard>
+#include <QGuiApplication>
 
 #ifdef HAVE_QT_MULTIMEDIA
 #include <QMediaDevices>
@@ -24,8 +27,9 @@
 
 SettingsDialog::SettingsDialog(QWidget *parent)
     : QDialog(parent) {
-    setWindowTitle("Preferências Corporativas - VxVoice");
-    resize(460, 560);
+    setWindowTitle("Configurações");
+    setWindowIcon(QIcon(":/icons/app_icon.png"));
+    resize(520, 580);
     setupUi();
     loadSettings();
 }
@@ -44,6 +48,7 @@ void SettingsDialog::setupUi() {
     m_tabs->addTab(createAudioTab(), "🎙 Áudio e Voz");
     m_tabs->addTab(createCodecsTab(), "🎛 Codecs");
     m_tabs->addTab(createRecordingTab(), "⏺ Gravação");
+    m_tabs->addTab(createSipLogTab(), "📋 Log SIP");
     m_tabs->addTab(createAboutTab(), "ℹ Sobre");
 
     mainLayout->addWidget(m_tabs, 1);
@@ -498,12 +503,12 @@ QWidget* SettingsDialog::createAboutTab() {
     layout->setContentsMargins(16, 16, 16, 16);
     layout->setSpacing(8);
 
-    auto lblTitle = new QLabel("<b>VxVoice Softphone Corporativo</b>", widget);
+    auto lblTitle = new QLabel("<b>VxVoice</b>", widget);
     lblTitle->setStyleSheet("font-size: 16px; color: #8E44AD;");
     auto lblEmpresa = new QLabel("<b>Empresa:</b> VxNET Comunicações e Telecomunicações", widget);
     auto lblAno = new QLabel("<b>Ano:</b> 2026", widget);
-    auto lblVersion = new QLabel(QString("<b>Versão:</b> %1 (Build Corporativa Multiplataforma)").arg(SettingsManager::APP_VERSION), widget);
-    auto lblLicense = new QLabel("<b>Licença:</b> Comercial Proprietária - VxNET Telecom", widget);
+    auto lblVersion = new QLabel(QString("<b>Versão:</b> %1").arg(SettingsManager::APP_VERSION), widget);
+    auto lblLicense = new QLabel("<b>Licença:</b> GNU General Public License v3.0 (GPLv3) / Open Source", widget);
 
     // Card de Atualizações Automáticas via Git
     auto updateCard = new QFrame(widget);
@@ -537,12 +542,13 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.2):</b><br>"
+        "<b>Novidades e Correções (v1.4.3):</b><br>"
         "<ul>"
-        "<li><b>Persistência Total e Unificada:</b> Contas SIP, histórico completo de chamadas e lista de contatos salvos de forma resiliente e síncrona.</li>"
-        "<li><b>BINA Inteligente com Nome do Contato:</b> Exibição automática e destacada do nome salvo na agenda telefônica em chamadas efetuadas e recebidas.</li>"
-        "<li><b>Gravação Bidirecional de Alta Fidelidade:</b> Captura simultânea da voz do usuário e do interlocutor remoto sem picotes ou perda de pacotes.</li>"
-        "<li><b>Otimização de Codecs SIP:</b> Priorização nativa dos codecs PCMA (G.711a), PCMU (G.711u), G.722 e Speex na pilha PJSIP.</li>"
+        "<li><b>Aba de Log SIP Corporativo:</b> Visualizador de diagnóstico em tempo real dos pacotes e eventos SIP (REGISTER, INVITE, 200 OK, BYE, RTP e erros de conexão) com filtros e exportação.</li>"
+        "<li><b>Busca Inteligente nos Contatos:</b> Autocomplete e busca em tempo real no discador por nome ou ramal.</li>"
+        "<li><b>Botão Backspace Aprimorado:</b> Ícone vetorial nativo com suporte a exclusão unitária e limpeza total por clique longo.</li>"
+        "<li><b>Licença Open Source:</b> Licenciado sob os termos da GNU General Public License v3.0 (GPLv3).</li>"
+        "<li><b>Ícone do Executável:</b> Ícone oficial VxVoice integrado nativamente nas janelas e executável.</li>"
         "</ul>"
     );
 
@@ -554,6 +560,139 @@ QWidget* SettingsDialog::createAboutTab() {
     layout->addWidget(updateCard);
     layout->addWidget(txtChangelog, 1);
     return widget;
+}
+
+QWidget* SettingsDialog::createSipLogTab() {
+    auto widget = new QWidget();
+    auto layout = new QVBoxLayout(widget);
+    layout->setContentsMargins(12, 12, 12, 12);
+    layout->setSpacing(8);
+
+    auto topBar = new QHBoxLayout();
+    topBar->setSpacing(8);
+
+    m_txtLogFilter = new QLineEdit(widget);
+    m_txtLogFilter->setPlaceholderText("Filtrar logs SIP (ex: INVITE, REGISTER, 200 OK, erro)...");
+    m_txtLogFilter->setClearButtonEnabled(true);
+    connect(m_txtLogFilter, &QLineEdit::textChanged, this, &SettingsDialog::onFilterSipLogs);
+
+    m_chkAutoScrollSipLogs = new QCheckBox("Auto-rolagem", widget);
+    m_chkAutoScrollSipLogs->setChecked(true);
+
+    topBar->addWidget(m_txtLogFilter, 1);
+    topBar->addWidget(m_chkAutoScrollSipLogs);
+
+    m_txtSipLogs = new QPlainTextEdit(widget);
+    m_txtSipLogs->setReadOnly(true);
+    m_txtSipLogs->setLineWrapMode(QPlainTextEdit::NoWrap);
+    QFont monoFont("Monospace");
+    monoFont.setStyleHint(QFont::Monospace);
+    monoFont.setPointSize(9);
+    m_txtSipLogs->setFont(monoFont);
+    m_txtSipLogs->setStyleSheet(
+        "QPlainTextEdit { "
+        "  background-color: #121820; "
+        "  color: #E2E8F0; "
+        "  border: 1px solid #2D3748; "
+        "  border-radius: 4px; "
+        "  font-family: monospace; "
+        "}"
+    );
+
+    const auto existingLogs = SipManager::instance().sipLogs();
+    for (const auto &line : existingLogs) {
+        m_txtSipLogs->appendPlainText(line);
+    }
+    if (m_chkAutoScrollSipLogs->isChecked()) {
+        m_txtSipLogs->verticalScrollBar()->setValue(m_txtSipLogs->verticalScrollBar()->maximum());
+    }
+
+    auto bottomBar = new QHBoxLayout();
+    auto btnClear = new QPushButton("🗑 Limpar Logs", widget);
+    connect(btnClear, &QPushButton::clicked, this, &SettingsDialog::onClearSipLogs);
+
+    auto btnCopy = new QPushButton("📋 Copiar Tudo", widget);
+    connect(btnCopy, &QPushButton::clicked, this, &SettingsDialog::onCopySipLogs);
+
+    auto btnSave = new QPushButton("💾 Salvar em Arquivo...", widget);
+    connect(btnSave, &QPushButton::clicked, this, &SettingsDialog::onSaveSipLogs);
+
+    bottomBar->addWidget(btnClear);
+    bottomBar->addWidget(btnCopy);
+    bottomBar->addWidget(btnSave);
+    bottomBar->addStretch();
+
+    layout->addLayout(topBar);
+    layout->addWidget(m_txtSipLogs, 1);
+    layout->addLayout(bottomBar);
+
+    connect(&SipManager::instance(), &SipManager::sipLogReceived, this, &SettingsDialog::onSipLogReceived);
+
+    return widget;
+}
+
+void SettingsDialog::onSipLogReceived(const QString &line, int level) {
+    Q_UNUSED(level);
+    if (!m_txtSipLogs) return;
+
+    QString filter = m_txtLogFilter ? m_txtLogFilter->text().trimmed() : QString();
+    if (!filter.isEmpty() && !line.contains(filter, Qt::CaseInsensitive)) {
+        return;
+    }
+
+    m_txtSipLogs->appendPlainText(line);
+
+    if (m_chkAutoScrollSipLogs && m_chkAutoScrollSipLogs->isChecked()) {
+        m_txtSipLogs->verticalScrollBar()->setValue(m_txtSipLogs->verticalScrollBar()->maximum());
+    }
+}
+
+void SettingsDialog::onFilterSipLogs(const QString &filterText) {
+    if (!m_txtSipLogs) return;
+    m_txtSipLogs->clear();
+    const auto allLogs = SipManager::instance().sipLogs();
+    QString f = filterText.trimmed();
+    for (const auto &l : allLogs) {
+        if (f.isEmpty() || l.contains(f, Qt::CaseInsensitive)) {
+            m_txtSipLogs->appendPlainText(l);
+        }
+    }
+    if (m_chkAutoScrollSipLogs && m_chkAutoScrollSipLogs->isChecked()) {
+        m_txtSipLogs->verticalScrollBar()->setValue(m_txtSipLogs->verticalScrollBar()->maximum());
+    }
+}
+
+void SettingsDialog::onClearSipLogs() {
+    SipManager::instance().clearSipLogs();
+    if (m_txtSipLogs) {
+        m_txtSipLogs->clear();
+    }
+}
+
+void SettingsDialog::onCopySipLogs() {
+    if (!m_txtSipLogs) return;
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if (clipboard) {
+        clipboard->setText(m_txtSipLogs->toPlainText());
+        QMessageBox::information(this, "Logs Copiados", "Os logs SIP foram copiados para a área de transferência.");
+    }
+}
+
+void SettingsDialog::onSaveSipLogs() {
+    if (!m_txtSipLogs) return;
+    QString defaultPath = QDir::homePath() + QString("/vxvoice_sip_log_%1.txt").arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
+    QString filePath = QFileDialog::getSaveFileName(this, "Salvar Logs SIP", defaultPath, "Arquivos de Log (*.txt *.log)");
+    if (filePath.isEmpty()) return;
+
+    QFile file(filePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << m_txtSipLogs->toPlainText();
+        file.close();
+        QMessageBox::information(this, "Logs Salvos", QString("Logs SIP exportados com sucesso para:\n%1").arg(filePath));
+    } else {
+        QMessageBox::warning(this, "Erro", "Não foi possível gravar o arquivo de logs selecionado.");
+    }
 }
 
 void SettingsDialog::onCheckGitUpdates() {

@@ -171,6 +171,23 @@ private:
 // =============================================================================
 // SipManager Implementation
 // =============================================================================
+class VxSipLogWriter : public pj::LogWriter {
+public:
+    explicit VxSipLogWriter(SipManager *mgr) : m_mgr(mgr) {}
+    void write(const pj::LogEntry &entry) override {
+        if (!m_mgr) return;
+        QString text = QString::fromStdString(entry.msg).trimmed();
+        if (text.isEmpty()) return;
+        if (text.contains("timer heap", Qt::CaseInsensitive) ||
+            text.contains("pj_timer_heap", Qt::CaseInsensitive)) {
+            return;
+        }
+        m_mgr->logSipMessage(text, entry.level);
+    }
+private:
+    SipManager *m_mgr{nullptr};
+};
+
 SipManager& SipManager::instance() {
     static SipManager s_instance;
     return s_instance;
@@ -187,6 +204,33 @@ SipManager::~SipManager() {
     shutdown();
 }
 
+void SipManager::logSipMessage(const QString &msg, int level) {
+    QString ts = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+    QString formatted = QString("[%1] %2").arg(ts, msg);
+
+    {
+        QMutexLocker locker(&m_logMutex);
+        m_sipLogs.append(formatted);
+        if (m_sipLogs.size() > 2000) {
+            m_sipLogs.removeFirst();
+        }
+    }
+
+    QMetaObject::invokeMethod(this, [this, formatted, level]() {
+        emit sipLogReceived(formatted, level);
+    }, Qt::QueuedConnection);
+}
+
+QStringList SipManager::sipLogs() const {
+    QMutexLocker locker(&m_logMutex);
+    return m_sipLogs;
+}
+
+void SipManager::clearSipLogs() {
+    QMutexLocker locker(&m_logMutex);
+    m_sipLogs.clear();
+}
+
 bool SipManager::initialize() {
     qInfo() << "[SipManager] Inicializando subsistema SIP corporativo com PJSUA2...";
     try {
@@ -195,9 +239,11 @@ bool SipManager::initialize() {
             m_endpoint->libCreate();
 
             pj::EpConfig epCfg;
-            epCfg.logConfig.level = 2;
-            epCfg.logConfig.consoleLevel = 2;
-            epCfg.uaConfig.userAgent = "VxVoice Enterprise Softphone 1.4.2";
+            m_logWriter = std::make_unique<VxSipLogWriter>(this);
+            epCfg.logConfig.writer = m_logWriter.get();
+            epCfg.logConfig.level = 4;
+            epCfg.logConfig.consoleLevel = 1;
+            epCfg.uaConfig.userAgent = QString("VxVoice/%1 (Linux; Qt6)").arg(SettingsManager::APP_VERSION).toStdString();
 
             // Configuração avançada de áudio para eliminar picotes e atrasos
             epCfg.medConfig.clockRate = 16000;      // 16 kHz Wideband clock
@@ -326,6 +372,7 @@ void SipManager::makeCall(const QString &destination) {
         m_activeCallId = callId;
 
         qInfo() << "[SipManager] SIP INVITE enviado para:" << destUri << "Contato:" << callData.remoteName;
+        logSipMessage(QString("[SIP-CALL] >>> Enviando INVITE para %1 (Contato: %2)").arg(destUri, callData.remoteName), 3);
         emit callStateChanged(callId, CallState::Calling, QString("Discando para %1...").arg(callData.remoteName));
     } catch (pj::Error &err) {
         qWarning() << "[SipManager] Erro ao originar chamada:" << QString::fromStdString(err.info());
@@ -340,6 +387,7 @@ void SipManager::makeCall(const QString &destination) {
 void SipManager::answerCall(const QString &callId) {
     ensurePjThread();
     Q_UNUSED(callId);
+    logSipMessage("[SIP-CALL] >>> Atendendo chamada (Respondendo 200 OK)", 3);
     if (m_currentCall) {
         try {
             pj::CallOpParam prm(true);
@@ -361,6 +409,7 @@ void SipManager::answerCall(const QString &callId) {
 void SipManager::hangupCall(const QString &callId) {
     ensurePjThread();
     Q_UNUSED(callId);
+    logSipMessage("[SIP-CALL] >>> Finalizando chamada (Enviando BYE / CANCEL)", 3);
     if (m_callDurationTimer && m_callDurationTimer->isActive()) {
         m_callDurationTimer->stop();
     }
@@ -494,6 +543,7 @@ void SipManager::sendDtmf(const QString &digits) {
 
 void SipManager::handleRegState(int statusCode, const QString &reason) {
     qInfo() << "[SipManager] Resposta SIP REGISTER:" << statusCode << reason;
+    logSipMessage(QString("[SIP-REG] <<< Resposta de Registro: Código %1 (%2)").arg(statusCode).arg(reason), statusCode == 200 ? 3 : 2);
     if (statusCode == 200) {
         m_regState = RegistrationState::Registered;
         emit registrationStateChanged(m_regState, QString("Registrado (%1@%2)").arg(m_currentAccount.username, m_currentAccount.server));
@@ -540,12 +590,14 @@ void SipManager::handleIncomingCall(VxCall *call, const QString &callId, const Q
     m_calls.insert(callId, cd);
 
     emit incomingCall(callId, callerNumber, callerName);
+    logSipMessage(QString("[SIP-CALL] <<< Chamada Recebida (INVITE) de %1 (%2)").arg(callerName, callerNumber), 3);
     emit callStateChanged(callId, CallState::Incoming, QString("Chamada de %1 (%2)").arg(callerName, callerNumber));
 }
 
 void SipManager::handleCallState(VxCall *call, const QString &pjsipCallId, int invState, const QString &stateText, const QString &lastReason) {
     Q_UNUSED(pjsipCallId);
     qInfo() << "[SipManager] Estado da chamada alterado:" << invState << stateText << "Motivo:" << lastReason;
+    logSipMessage(QString("[SIP-CALL] Estado da Chamada: %1 (%2) Motivo: %3").arg(stateText).arg(invState).arg(lastReason), 3);
 
     if (m_activeCallId.isEmpty()) {
         m_activeCallId = QString("call_%1").arg(QDateTime::currentMSecsSinceEpoch());
@@ -641,6 +693,7 @@ void SipManager::registerAccount(const SipAccountConfig &account) {
     }
 
     m_regState = RegistrationState::Registering;
+    logSipMessage(QString("[SIP-REG] >>> Registrando conta '%1' (sip:%2@%3:%4)").arg(account.accountName, account.username, account.server).arg(account.port), 3);
     emit registrationStateChanged(m_regState, QString("Registrando em %1...").arg(account.server));
 
     try {
@@ -675,6 +728,7 @@ void SipManager::registerAccount(const SipAccountConfig &account) {
 
 void SipManager::unregisterAccount() {
     ensurePjThread();
+    logSipMessage("[SIP-REG] >>> Desregistrando conta SIP ativa...", 3);
     try {
         if (m_account) {
             delete m_account;

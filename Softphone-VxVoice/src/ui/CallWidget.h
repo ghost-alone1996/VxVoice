@@ -10,6 +10,8 @@
 #include <QHBoxLayout>
 #include <QFrame>
 #include <QTimer>
+#include <QCompleter>
+#include <QStandardItemModel>
 #include "SipManager.h"
 
 class CallWidget : public QWidget {
@@ -61,6 +63,7 @@ private:
     void setupUi();
     void updateInCallUiState(bool inCall);
     void refreshStatusLine();
+    void updateCompleterModel();
 
     // Top Info Header (Posicionado no topo, ACIMA do campo de discagem)
     QFrame *m_topInfoFrame{nullptr};
@@ -69,9 +72,12 @@ private:
     QLabel *m_lblCallStatus{nullptr};
     QTimer *m_clockTimer{nullptr};
 
-    // Dial input
+    // Dial input & autocomplete search
     QLineEdit *m_numberDisplay{nullptr};
     QPushButton *m_btnBackspace{nullptr};
+    QCompleter *m_completer{nullptr};
+    QStandardItemModel *m_completerModel{nullptr};
+    QTimer *m_backspaceLongPressTimer{nullptr};
 
     // In-Call adaptive controls
     QFrame *m_inCallControlsFrame{nullptr};

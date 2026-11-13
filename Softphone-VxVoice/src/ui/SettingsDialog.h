@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QPlainTextEdit>
 #include <QProcess>
 #include <QTimer>
 #include "SettingsManager.h"
@@ -33,6 +34,11 @@ private slots:
     void onMoveCodecDown();
     void onCheckGitUpdates();
     void onApplyGitUpdate();
+    void onClearSipLogs();
+    void onCopySipLogs();
+    void onSaveSipLogs();
+    void onSipLogReceived(const QString &line, int level);
+    void onFilterSipLogs(const QString &filterText);
 
 private:
     void setupUi();
@@ -40,6 +46,7 @@ private:
     QWidget* createAudioTab();
     QWidget* createCodecsTab();
     QWidget* createRecordingTab();
+    QWidget* createSipLogTab();
     QWidget* createAboutTab();
 
     void loadSettings();
@@ -91,6 +98,11 @@ private:
     QPushButton *m_btnOpenRecordFolder{nullptr};
     QComboBox *m_comboRecordFormat{nullptr};
     QCheckBox *m_chkAutoRecord{nullptr};
+
+    // Aba Log SIP
+    QPlainTextEdit *m_txtSipLogs{nullptr};
+    QCheckBox *m_chkAutoScrollSipLogs{nullptr};
+    QLineEdit *m_txtLogFilter{nullptr};
 
     QPushButton *m_btnSave{nullptr};
     QPushButton *m_btnCancel{nullptr};

@@ -15,6 +15,7 @@
 ContactEditDialog::ContactEditDialog(const ContactInfo &contact, QWidget *parent)
     : QDialog(parent) {
     setWindowTitle(contact.name.isEmpty() ? "Adicionar Contato" : "Editar Contato");
+    setWindowIcon(QIcon(":/icons/app_icon.png"));
     resize(360, 260);
     setupUi();
 

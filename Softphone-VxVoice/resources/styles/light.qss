@@ -65,6 +65,22 @@ QLineEdit#callerIdDisplay:focus {
     border: 1px solid #2980B9;
 }
 
+QPushButton#btnDialBackspace {
+    background-color: #F2F4F7;
+    border: 1px solid #CBD5E0;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+QPushButton#btnDialBackspace:hover {
+    background-color: #E2E8F0;
+    border: 1px solid #2980B9;
+}
+
+QPushButton#btnDialBackspace:pressed {
+    background-color: #CBD5E0;
+}
+
 /* Tab Widget */
 QTabWidget::pane {
     border: 1px solid #E2E8F0;

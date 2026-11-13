@@ -1,5 +1,6 @@
 #include "ContactsManager.h"
 #include <QSettings>
+#include <QRegularExpression>
 
 ContactsManager& ContactsManager::instance() {
     static ContactsManager s_instance;
@@ -81,6 +82,59 @@ QString ContactsManager::findContactNameByNumber(const QString &numberOrExt) con
     }
 
     return QString();
+}
+
+QList<ContactEntry> ContactsManager::searchContacts(const QString &query) const {
+    QString q = query.trimmed();
+    if (q.isEmpty()) return m_contacts;
+
+    QString qDigits = normalizeDigits(q);
+    QList<ContactEntry> results;
+
+    for (const auto &c : m_contacts) {
+        bool match = false;
+        if (c.name.contains(q, Qt::CaseInsensitive)) {
+            match = true;
+        } else if (!c.extension.isEmpty() && c.extension.contains(q, Qt::CaseInsensitive)) {
+            match = true;
+        } else if (!c.number.isEmpty() && c.number.contains(q, Qt::CaseInsensitive)) {
+            match = true;
+        } else if (!c.company.isEmpty() && c.company.contains(q, Qt::CaseInsensitive)) {
+            match = true;
+        } else if (!qDigits.isEmpty()) {
+            if (normalizeDigits(c.extension).contains(qDigits) ||
+                normalizeDigits(c.number).contains(qDigits)) {
+                match = true;
+            }
+        }
+        if (match) {
+            results.append(c);
+        }
+    }
+    return results;
+}
+
+QString ContactsManager::resolveDestination(const QString &input) const {
+    QString raw = input.trimmed();
+    if (raw.isEmpty()) return QString();
+
+    // Se o usuário digitou ou selecionou no completer algo como "Carlos Silva (1001)" ou "Leonardo (21971263979)"
+    static const QRegularExpression parenRegex(R"(\(([^)]+)\))");
+    auto match = parenRegex.match(raw);
+    if (match.hasMatch()) {
+        return match.captured(1).trimmed();
+    }
+
+    // Se o usuário digitou o nome direto de um contato
+    for (const auto &c : m_contacts) {
+        if (c.name.compare(raw, Qt::CaseInsensitive) == 0) {
+            if (!c.extension.isEmpty()) return c.extension;
+            if (!c.number.isEmpty()) return c.number;
+        }
+    }
+
+    // Caso contrário, retorna o valor original (número puro ou ramal)
+    return raw;
 }
 
 void ContactsManager::loadContacts() {

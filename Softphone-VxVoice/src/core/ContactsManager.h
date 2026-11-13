@@ -31,6 +31,8 @@ public:
     // Busca o nome do contato pelo número de telefone ou ramal
     QString findContactNameByNumber(const QString &numberOrExt) const;
     QString resolveContactName(const QString &numberOrExt) const { return findContactNameByNumber(numberOrExt); }
+    QList<ContactEntry> searchContacts(const QString &query) const;
+    QString resolveDestination(const QString &input) const;
 
 signals:
     void contactsChanged();

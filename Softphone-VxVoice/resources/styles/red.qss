@@ -68,6 +68,22 @@ QLineEdit#callerIdDisplay:focus {
     border: 2px solid #E74C3C;
 }
 
+QPushButton#btnDialBackspace {
+    background-color: #2F191D;
+    border: 1px solid #5C272F;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+QPushButton#btnDialBackspace:hover {
+    background-color: #5C272F;
+    border: 1px solid #E74C3C;
+}
+
+QPushButton#btnDialBackspace:pressed {
+    background-color: #962D22;
+}
+
 /* Inputs Gerais */
 QLineEdit, QSpinBox, QComboBox {
     background-color: #241518;

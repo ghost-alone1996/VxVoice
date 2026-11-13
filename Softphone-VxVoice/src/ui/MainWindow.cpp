@@ -52,7 +52,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setupUi() {
-    setWindowTitle("VxVoice Softphone");
+    setWindowTitle("VxVoice");
 
     // Proporção padrão corporativa com ajuste para visor com 3 linhas
     setMinimumSize(380, 670);

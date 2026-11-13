@@ -1,6 +1,7 @@
 #include "CallWidget.h"
 #include "ContactsManager.h"
 #include "ThemeManager.h"
+#include "IconHelper.h"
 #include <QInputDialog>
 #include <QDateTime>
 #include <QShortcut>
@@ -70,16 +71,56 @@ void CallWidget::setupUi() {
 
     m_numberDisplay = new QLineEdit(this);
     m_numberDisplay->setObjectName("callerIdDisplay");
-    m_numberDisplay->setPlaceholderText("Digite o ramal ou número...");
+    m_numberDisplay->setPlaceholderText("Digite o ramal ou busque um contato...");
     m_numberDisplay->setAlignment(Qt::AlignCenter);
     m_numberDisplay->setFixedHeight(42);
     m_numberDisplay->installEventFilter(this);
 
-    m_btnBackspace = new QPushButton("⌫", this);
-    m_btnBackspace->setFixedSize(40, 42);
+    // Sistema de busca em tempo real com auto-completar inteligente nos contatos
+    m_completer = new QCompleter(this);
+    m_completerModel = new QStandardItemModel(this);
+    m_completer->setModel(m_completerModel);
+    m_completer->setCaseSensitivity(Qt::CaseInsensitive);
+    m_completer->setFilterMode(Qt::MatchContains);
+    m_completer->setCompletionMode(QCompleter::PopupCompletion);
+    m_completer->setMaxVisibleItems(7);
+    m_numberDisplay->setCompleter(m_completer);
+
+    connect(m_completer, QOverload<const QModelIndex &>::of(&QCompleter::activated), this, [this](const QModelIndex &index) {
+        QString num = index.data(Qt::UserRole).toString();
+        if (!num.isEmpty()) {
+            m_numberDisplay->setText(num);
+        }
+    });
+
+    connect(&ContactsManager::instance(), &ContactsManager::contactsChanged, this, &CallWidget::updateCompleterModel);
+    updateCompleterModel();
+
+    // Botão de apagar (Backspace) aprimorado com ícone vetorial e suporte a clique ou clique longo
+    m_btnBackspace = new QPushButton(this);
+    m_btnBackspace->setObjectName("btnDialBackspace");
+    m_btnBackspace->setIcon(IconHelper::createBackspaceIcon(QColor("#ECF0F1"), 20));
+    m_btnBackspace->setIconSize(QSize(20, 20));
+    m_btnBackspace->setFixedSize(46, 42);
     m_btnBackspace->setCursor(Qt::PointingHandCursor);
-    m_btnBackspace->setToolTip("Apagar último dígito");
-    connect(m_btnBackspace, &QPushButton::clicked, this, &CallWidget::onBackspaceClicked);
+    m_btnBackspace->setToolTip("Apagar (Clique: 1 dígito • Segure: Limpar tudo)");
+
+    m_backspaceLongPressTimer = new QTimer(this);
+    m_backspaceLongPressTimer->setInterval(450);
+    m_backspaceLongPressTimer->setSingleShot(true);
+    connect(m_backspaceLongPressTimer, &QTimer::timeout, this, [this]() {
+        m_numberDisplay->clear();
+    });
+
+    connect(m_btnBackspace, &QPushButton::pressed, this, [this]() {
+        m_backspaceLongPressTimer->start();
+    });
+    connect(m_btnBackspace, &QPushButton::released, this, [this]() {
+        if (m_backspaceLongPressTimer->isActive()) {
+            m_backspaceLongPressTimer->stop();
+            onBackspaceClicked();
+        }
+    });
 
     displayLayout->addWidget(m_numberDisplay, 1);
     displayLayout->addWidget(m_btnBackspace);
@@ -266,8 +307,40 @@ void CallWidget::updateThemeVisuals() {
         );
     }
 
+    QColor backspaceColor = (theme == ThemeManager::Theme::Light) ? QColor("#2C3E50") : QColor("#ECF0F1");
+    if (m_btnBackspace) {
+        m_btnBackspace->setIcon(IconHelper::createBackspaceIcon(backspaceColor, 20));
+    }
+
     updateAccountDisplay();
     refreshStatusLine();
+}
+
+void CallWidget::updateCompleterModel() {
+    if (!m_completerModel) return;
+    m_completerModel->clear();
+
+    const auto contacts = ContactsManager::instance().contacts();
+    for (const auto &c : contacts) {
+        QString primary = !c.extension.isEmpty() ? c.extension : c.number;
+        if (primary.isEmpty()) continue;
+
+        QString label = QString("%1 (%2)").arg(c.name, primary);
+        auto item = new QStandardItem(label);
+        item->setData(primary, Qt::UserRole);
+        item->setData(c.name, Qt::UserRole + 1);
+        item->setIcon(IconHelper::createUserIcon(QColor("#8E44AD"), 16));
+        m_completerModel->appendRow(item);
+
+        if (!c.number.isEmpty() && !c.extension.isEmpty() && c.number != c.extension) {
+            QString labelExt = QString("%1 (%2)").arg(c.name, c.number);
+            auto itemExt = new QStandardItem(labelExt);
+            itemExt->setData(c.number, Qt::UserRole);
+            itemExt->setData(c.name, Qt::UserRole + 1);
+            itemExt->setIcon(IconHelper::createUserIcon(QColor("#8E44AD"), 16));
+            m_completerModel->appendRow(itemExt);
+        }
+    }
 }
 
 void CallWidget::updateAccountDisplay() {
@@ -413,7 +486,7 @@ void CallWidget::setDialNumber(const QString &number) {
 }
 
 QString CallWidget::currentNumber() const {
-    return m_numberDisplay->text().trimmed();
+    return ContactsManager::instance().resolveDestination(m_numberDisplay->text());
 }
 
 void CallWidget::onDigitClicked() {

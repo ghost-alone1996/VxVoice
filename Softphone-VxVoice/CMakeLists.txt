@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 1.4.2
+    VERSION 1.4.3
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -65,6 +65,10 @@ set(HEADERS
 set(RESOURCES
     resources/resources.qrc
 )
+
+if(WIN32)
+    list(APPEND SOURCES resources/app.rc)
+endif()
 
 add_executable(${PROJECT_NAME}
     ${SOURCES}

@@ -17,6 +17,7 @@ AccountEditDialog::AccountEditDialog(const SipAccountConfig &account, QWidget *p
       m_accountId(account.id.isEmpty() ? QString("acc_%1").arg(QDateTime::currentMSecsSinceEpoch()) : account.id),
       m_isDefault(account.isDefault) {
     setWindowTitle(account.accountName.isEmpty() ? "Criar Conta SIP" : "Editar Conta SIP");
+    setWindowIcon(QIcon(":/icons/app_icon.png"));
     resize(420, 380);
     setupUi();
 
@@ -125,7 +126,8 @@ SipAccountConfig AccountEditDialog::getAccountConfig() const {
 
 AccountsDialog::AccountsDialog(QWidget *parent)
     : QDialog(parent) {
-    setWindowTitle("Contas SIP Corporativas - VxVoice");
+    setWindowTitle("Contas SIP");
+    setWindowIcon(QIcon(":/icons/app_icon.png"));
     resize(580, 380);
     setupUi();
     loadAccounts();
