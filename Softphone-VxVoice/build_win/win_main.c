@@ -66,11 +66,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             ShowWindow(hWnd, SW_RESTORE);
             SetForegroundWindow(hWnd);
         } else if (id == ID_TRAY_ACCOUNTS) {
-            MessageBoxA(hWnd, "Configuração de Contas SIP (VxVoice v2.0.0)", "Contas SIP", MB_OK | MB_ICONINFORMATION);
+            MessageBoxA(hWnd, "Configuração de Contas SIP (VxVoice v2.0.1)", "Contas SIP", MB_OK | MB_ICONINFORMATION);
         } else if (id == ID_TRAY_SETTINGS) {
-            MessageBoxA(hWnd, "Preferências e Configurações (VxVoice v2.0.0)\n\nÁudio, Codecs (Opus, G.722, PCMA), Gravação e Temas.", "Configurações", MB_OK | MB_ICONINFORMATION);
+            MessageBoxA(hWnd, "Preferências e Configurações (VxVoice v2.0.1)\n\nÁudio, Codecs (Opus, G.722, PCMA), Gravação e Temas.", "Configurações", MB_OK | MB_ICONINFORMATION);
         } else if (id == ID_TRAY_UPDATE) {
-            MessageBoxA(hWnd, "VxVoice v2.0.0 - Sistema Conectado e Atualizado.", "Atualização de Software", MB_OK | MB_ICONINFORMATION);
+            MessageBoxA(hWnd, "VxVoice v2.0.1 - Sistema Conectado e Atualizado.", "Atualização de Software", MB_OK | MB_ICONINFORMATION);
         } else if (id == ID_TRAY_EXIT) {
             Shell_NotifyIconA(NIM_DELETE, &g_nid);
             DestroyWindow(hWnd);
@@ -114,7 +114,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                                      CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, "Segoe UI");
         SelectObject(hdc, hSubFont);
         SetTextColor(hdc, RGB(180, 165, 195));
-        TextOutA(hdc, 58, 40, "Enterprise SIP Softphone Client v2.0.0", 38);
+        TextOutA(hdc, 58, 40, "Enterprise SIP Softphone Client v2.0.1", 38);
 
         // Visor com status
         RECT rcVisor = {16, 85, rc.right - 16, 175};
@@ -160,7 +160,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Parser de argumentos
     if (strstr(lpCmdLine, "--version") || strstr(lpCmdLine, "-v")) {
-        MessageBoxA(NULL, "VxVoice Enterprise Softphone\nVersao 2.0.0 (Windows x64 Build)\nVxNET Telecom", "Versao", MB_OK | MB_ICONINFORMATION);
+        MessageBoxA(NULL, "VxVoice Enterprise Softphone\nVersao 2.0.1 (Windows x64 Build)\nVxNET Telecom", "Versao", MB_OK | MB_ICONINFORMATION);
         return 0;
     }
 

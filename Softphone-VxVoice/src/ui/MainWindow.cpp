@@ -30,9 +30,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupTrayIcon();
     setupConnections();
 
-    // Sincroniza estado inicial do SIP e Status de Registro salvo
+    // Sincroniza estado inicial do SIP e Status de Registro salvo (quando inicialização com SO está ativa)
     SipManager::instance().initialize();
-    int savedPresence = qBound(0, SettingsManager::instance().registrationStatus(), 2);
+    int savedPresence = SettingsManager::instance().startWithSystem()
+        ? qBound(0, SettingsManager::instance().registrationStatus(), 2)
+        : 0;
     m_comboPresence->blockSignals(true);
     m_comboPresence->setCurrentIndex(savedPresence);
     m_comboPresence->blockSignals(false);

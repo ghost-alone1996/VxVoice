@@ -81,32 +81,45 @@ QWidget* SettingsDialog::createGeneralTab() {
     formLayout->setSpacing(10);
 
     m_chkStartWithSystem = new QCheckBox("Iniciar junto com o Sistema Operacional", widget);
-    m_chkStartMinimized = new QCheckBox("Iniciar minimizado no System Tray", widget);
+
+    // Container de sub-opções indentadas vinculadas ao checkbox "Iniciar junto com o Sistema Operacional"
+    m_autostartSubOptions = new QWidget(widget);
+    m_autostartSubOptions->setStyleSheet(
+        "QCheckBox:disabled, QLabel:disabled { color: #6E7681; }"
+        "QCheckBox::indicator:disabled { background-color: #3A3F47; border: 1px solid #555B64; }"
+        "QComboBox:disabled { background-color: #2E3239; color: #6E7681; border: 1px solid #495057; }"
+    );
+    auto subOptionsLayout = new QVBoxLayout(m_autostartSubOptions);
+    subOptionsLayout->setContentsMargins(24, 2, 0, 4);
+    subOptionsLayout->setSpacing(8);
+
+    m_chkStartMinimized = new QCheckBox("Iniciar minimizado no System Tray", m_autostartSubOptions);
     m_chkStartMinimized->setToolTip("Quando ativado, inicia minimizado apenas ao ligar o computador junto com o Sistema Operacional.");
-    m_chkStartMinimized->setEnabled(false);
 
-    // Sub-opção indentada vinculada ao checkbox "Iniciar junto com o Sistema Operacional"
-    auto subOptionsLayout = new QVBoxLayout();
-    subOptionsLayout->setContentsMargins(24, 0, 0, 0);
-    subOptionsLayout->setSpacing(4);
+    auto regStatusRow = new QHBoxLayout();
+    regStatusRow->setSpacing(10);
+    auto lblRegStatus = new QLabel("Status de Registro:", m_autostartSubOptions);
+    m_comboRegistrationStatus = new QComboBox(m_autostartSubOptions);
+    m_comboRegistrationStatus->addItem("🟢 Disponível");
+    m_comboRegistrationStatus->addItem("🔴 Não Perturbe");
+    m_comboRegistrationStatus->addItem("⚫ Offline");
+    regStatusRow->addWidget(lblRegStatus);
+    regStatusRow->addWidget(m_comboRegistrationStatus, 1);
+
     subOptionsLayout->addWidget(m_chkStartMinimized);
+    subOptionsLayout->addLayout(regStatusRow);
 
+    m_autostartSubOptions->setEnabled(false);
     connect(m_chkStartWithSystem, &QCheckBox::toggled, this, [this](bool checked) {
-        m_chkStartMinimized->setEnabled(checked);
+        m_autostartSubOptions->setEnabled(checked);
     });
 
     m_chkMinimizeToTrayOnClose = new QCheckBox("Ao clicar em fechar (X), manter na bandeja do sistema", widget);
 
     layout->addWidget(m_chkStartWithSystem);
-    layout->addLayout(subOptionsLayout);
+    layout->addWidget(m_autostartSubOptions);
     layout->addWidget(m_chkMinimizeToTrayOnClose);
     layout->addSpacing(8);
-
-    // Status de Registro
-    m_comboRegistrationStatus = new QComboBox(widget);
-    m_comboRegistrationStatus->addItem("🟢 Disponível");
-    m_comboRegistrationStatus->addItem("🔴 Não Perturbe");
-    m_comboRegistrationStatus->addItem("⚫ Offline");
 
     // Ringtone selector
     auto ringtoneLayout = new QHBoxLayout();
@@ -127,7 +140,6 @@ QWidget* SettingsDialog::createGeneralTab() {
     m_comboTheme->addItem("🟣 Purple (Tons de roxo corporativo)");
     m_comboTheme->addItem("🔴 Red (Tons de vermelho corporativo)");
 
-    formLayout->addRow("Status de Registro:", m_comboRegistrationStatus);
     formLayout->addRow("Ringtone de Chamada:", ringtoneLayout);
     formLayout->addRow("Tema Visual do Softphone:", m_comboTheme);
 
@@ -611,11 +623,11 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v2.0.0):</b><br>"
+        "<b>Novidades e Correções (v2.0.1):</b><br>"
         "<ul>"
-        "<li><b>Busca Automática de Atualizações no GitHub:</b> Ao abrir o VxVoice, o sistema verifica automaticamente se há nova versão no GitHub e abre uma janela perguntando se deseja atualizar.</li>"
-        "<li><b>Sub-opções de Inicialização com o SO:</b> 'Iniciar minimizado no System Tray' agora é sub-opção vinculada e ativa somente ao iniciar junto com o Sistema Operacional.</li>"
-        "<li><b>Status de Registro Padrão:</b> Escolha entre Disponível, Não Perturbe ou Offline diretamente em Configurações &gt; Gerais.</li>"
+        "<li><b>Instância Única (System Tray):</b> Ao clicar no executável enquanto o VxVoice já está minimizado no System Tray, a janela existente é restaurada em vez de abrir uma segunda instância.</li>"
+        "<li><b>Sub-opções de Inicialização com o SO:</b> 'Iniciar minimizado no System Tray' e 'Status de Registro' agora ficam agrupados e bloqueados em cinza quando 'Iniciar junto com o Sistema Operacional' estiver desmarcado.</li>"
+        "<li><b>Busca Automática de Atualizações no GitHub:</b> Verificação automática ao iniciar o aplicativo com opção de aplicar ou adiar a atualização.</li>"
         "<li><b>Instaladores Multiplataforma:</b> Pacote Linux .deb, instalador .sh compactado em .zip e pacote corporativo Windows .msi.</li>"
         "</ul>"
     );
@@ -868,7 +880,7 @@ void SettingsDialog::loadSettings() {
 
     m_chkStartWithSystem->setChecked(sm.startWithSystem());
     m_chkStartMinimized->setChecked(sm.startMinimized());
-    m_chkStartMinimized->setEnabled(sm.startWithSystem());
+    m_autostartSubOptions->setEnabled(sm.startWithSystem());
     m_chkMinimizeToTrayOnClose->setChecked(sm.minimizeToTrayOnClose());
     m_comboRegistrationStatus->setCurrentIndex(qBound(0, sm.registrationStatus(), 2));
 
@@ -920,7 +932,9 @@ void SettingsDialog::saveSettings() {
 
     int regStatus = qBound(0, m_comboRegistrationStatus->currentIndex(), 2);
     sm.setRegistrationStatus(regStatus);
-    SipManager::instance().setPresence(static_cast<SipManager::UserPresence>(regStatus));
+    if (m_chkStartWithSystem->isChecked()) {
+        SipManager::instance().setPresence(static_cast<SipManager::UserPresence>(regStatus));
+    }
 
     sm.setRingtone(m_comboRingtone->currentText());
 

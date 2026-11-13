@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${SCRIPT_DIR}/build"
 OUTPUT_DIR="${SCRIPT_DIR}/.."
-VERSION="2.0.0"
+VERSION="2.0.1"
 STAGING_DIR="${BUILD_DIR}/vxvoice-${VERSION}-linux-installer"
 ZIP_PATH="${OUTPUT_DIR}/vxvoice-${VERSION}-Linux-Installer.zip"
 
@@ -52,7 +52,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 echo "=========================================="
-echo "  Instalador VxVoice v2.0.0 (Linux)       "
+echo "  Instalador VxVoice v2.0.1 (Linux)       "
 echo "=========================================="
 
 echo "[1/4] Instalando binário em /usr/bin/VxVoice..."
@@ -82,7 +82,7 @@ ${SUDO} update-desktop-database /usr/share/applications 2>/dev/null || true
 ${SUDO} gtk-update-icon-cache -f -t /usr/share/icons/hicolor 2>/dev/null || true
 
 echo ""
-echo "VxVoice v2.0.0 instalado com sucesso!"
+echo "VxVoice v2.0.1 instalado com sucesso!"
 echo "Execute 'VxVoice' no terminal ou abra pelo menu de aplicativos."
 EOF
 

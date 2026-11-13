@@ -25,8 +25,8 @@ x86_64-w64-mingw32-gcc -mwindows -L"${HOME}/.local/mingw/usr/x86_64-w64-mingw32/
 
 # 4. Compila instalador MSI com WiX Toolset (wixl)
 echo "==> Gerando pacote Windows Installer (.msi) com wixl..."
-"${HOME}/.local/bin/wixl" -a x64 -o "${OUTPUT_DIR}/vxvoice-2.0.0-x64.msi" "${BUILD_WIN_DIR}/vxvoice.wxs"
-cp "${OUTPUT_DIR}/vxvoice-2.0.0-x64.msi" "${OUTPUT_DIR}/vxvoice-2.0.0-Windows.msi"
+"${HOME}/.local/bin/wixl" -a x64 -o "${OUTPUT_DIR}/vxvoice-2.0.1-x64.msi" "${BUILD_WIN_DIR}/vxvoice.wxs"
+cp "${OUTPUT_DIR}/vxvoice-2.0.1-x64.msi" "${OUTPUT_DIR}/vxvoice-2.0.1-Windows.msi"
 
 echo "==> Pacote MSI gerado com sucesso em:"
-ls -lh "${OUTPUT_DIR}/vxvoice-2.0.0-x64.msi" "${OUTPUT_DIR}/vxvoice-2.0.0-Windows.msi"
+ls -lh "${OUTPUT_DIR}/vxvoice-2.0.1-x64.msi" "${OUTPUT_DIR}/vxvoice-2.0.1-Windows.msi"

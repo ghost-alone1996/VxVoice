@@ -1,7 +1,14 @@
 #include <QApplication>
+#include <QLocalServer>
+#include <QLocalSocket>
+#include <QIcon>
 #include "MainWindow.h"
 #include "ThemeManager.h"
 #include "SettingsManager.h"
+
+namespace {
+constexpr const char* SINGLE_INSTANCE_KEY = "VxVoice_SingleInstance_IPC";
+}
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -13,6 +20,25 @@ int main(int argc, char *argv[]) {
     QApplication::setOrganizationName("VxVoiceCorp");
     QApplication::setOrganizationDomain("vxvoice.corp");
     QApplication::setApplicationVersion(SettingsManager::APP_VERSION);
+
+    // Verifica se já existe uma instância do VxVoice em execução
+    {
+        QLocalSocket probeSocket;
+        probeSocket.connectToServer(SINGLE_INSTANCE_KEY);
+        if (probeSocket.waitForConnected(250)) {
+            // Envia comando para restaurar/trazer à frente a janela já aberta
+            probeSocket.write("SHOW\n");
+            probeSocket.flush();
+            probeSocket.waitForBytesWritten(250);
+            probeSocket.disconnectFromServer();
+            return 0;
+        }
+    }
+
+    // Remove eventual socket órfão de encerramento inesperado
+    QLocalServer::removeServer(SINGLE_INSTANCE_KEY);
+    QLocalServer instanceServer;
+    instanceServer.listen(SINGLE_INSTANCE_KEY);
 
     // Configure application icon (resolves from system theme or internal resource)
     QIcon appIcon = QIcon::fromTheme("vxvoice", QIcon(":/icons/app_icon.png"));
@@ -27,6 +53,22 @@ int main(int argc, char *argv[]) {
     ThemeManager::instance().setTheme(theme);
 
     MainWindow window;
+
+    // Ao receber tentativa de nova abertura, traz a instância existente para o primeiro plano
+    QObject::connect(&instanceServer, &QLocalServer::newConnection, &window, [&instanceServer, &window]() {
+        while (instanceServer.hasPendingConnections()) {
+            QLocalSocket *client = instanceServer.nextPendingConnection();
+            if (!client) continue;
+            client->waitForReadyRead(150);
+            client->readAll();
+            client->close();
+            client->deleteLater();
+        }
+        window.setWindowState((window.windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+        window.show();
+        window.raise();
+        window.activateWindow();
+    });
 
     // Iniciar minimizado no System Tray somente quando iniciado junto com o Sistema Operacional (--autostart)
     bool isAutostart = false;
@@ -47,9 +89,7 @@ int main(int argc, char *argv[]) {
     if (!hasExplicitShow) {
         if (isAutostart && SettingsManager::instance().startWithSystem() && SettingsManager::instance().startMinimized()) {
             startMinimized = true;
-        } else if (hasExplicitMinimized && isAutostart) {
-            startMinimized = true;
-        } else if (hasExplicitMinimized && !isAutostart) {
+        } else if (hasExplicitMinimized) {
             startMinimized = true;
         }
     }
@@ -60,4 +100,3 @@ int main(int argc, char *argv[]) {
 
     return app.exec();
 }
-

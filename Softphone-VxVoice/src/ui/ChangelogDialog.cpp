@@ -56,11 +56,10 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>🔄 Busca Automática de Atualizações no GitHub:</b> Ao iniciar o aplicativo, o VxVoice verifica automaticamente novas versões no GitHub "
-        "(<code>github.com/ghost-alone1996/VxVoice</code>) e exibe uma janela perguntando se deseja atualizar agora.</li><br>"
-        "<li><b>🚀 Sub-opções de Inicialização com o Sistema:</b> A opção <i>Iniciar minimizado no System Tray</i> agora é uma sub-opção vinculada e aplicada exclusivamente quando o aplicativo inicia com o Sistema Operacional.</li><br>"
-        "<li><b>🟢 Status de Registro Padrão:</b> Escolha entre <i>Disponível</i>, <i>Não Perturbe</i> ou <i>Offline</i> em Configurações &gt; Gerais.</li><br>"
-        "<li><b>🎨 Aba Sobre &amp; Repositório GitHub:</b> Novo link direto para o repositório no GitHub, contraste adaptativo por tema (Light/Dark/Purple/Red) e botão <i>Aplicar Atualização</i> dinâmico.</li><br>"
+        "<li><b>🪟 Instância Única (System Tray):</b> Ao clicar no executável enquanto o VxVoice já está minimizado no System Tray, a janela já aberta é restaurada automaticamente sem duplicar o aplicativo.</li><br>"
+        "<li><b>🚀 Sub-opções de Inicialização com o Sistema:</b> <i>Iniciar minimizado no System Tray</i> e <i>Status de Registro</i> agora ficam agrupados abaixo de <i>Iniciar junto com o Sistema Operacional</i> e ficam bloqueados em cinza quando desmarcado.</li><br>"
+        "<li><b>🔄 Busca Automática de Atualizações no GitHub:</b> Verificação automática ao abrir o VxVoice com opção de atualizar na hora ou depois.</li><br>"
+        "<li><b>🎨 Aba Sobre &amp; Repositório GitHub:</b> Link direto para o repositório no GitHub, contraste adaptativo por tema e botão <i>Aplicar Atualização</i> dinâmico.</li><br>"
         "<li><b>📦 Instaladores Multiplataforma:</b> Pacote Linux <code>.deb</code>, instalador <code>.sh</code> compactado em <code>.zip</code> e pacote corporativo Windows <code>.msi</code>.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);

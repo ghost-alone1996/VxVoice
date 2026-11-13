@@ -67,6 +67,7 @@ private:
 
     // Aba Geral
     QCheckBox *m_chkStartWithSystem{nullptr};
+    QWidget *m_autostartSubOptions{nullptr};
     QCheckBox *m_chkStartMinimized{nullptr};
     QCheckBox *m_chkMinimizeToTrayOnClose{nullptr};
     QComboBox *m_comboRegistrationStatus{nullptr};

@@ -4,13 +4,13 @@
            Name="VxVoice Enterprise Softphone" 
            Language="1046" 
            Codepage="1252" 
-           Version="2.0.0" 
+           Version="2.0.1" 
            Manufacturer="VxNET Comunicações e Telecomunicações" 
            UpgradeCode="A5D19302-7B4F-4E89-9A52-87F95A34DC7A">
     
     <Package Id="*" 
              Keywords="Installer,MSI,SIP,Softphone,VoIP,VxVoice" 
-             Description="VxVoice Enterprise Softphone v2.0.0" 
+             Description="VxVoice Enterprise Softphone v2.0.1" 
              Comments="Softphone Corporativo SIP - VxNET Telecomunicações" 
              Manufacturer="VxNET Comunicações e Telecomunicações" 
              InstallerVersion="300" 
@@ -103,7 +103,7 @@
 
             <!-- Informações Corporativas no Registro -->
             <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="InstallDir" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
-            <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Version" Type="string" Value="2.0.0" />
+            <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Version" Type="string" Value="2.0.1" />
             <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Publisher" Type="string" Value="VxNET Comunicações e Telecomunicações" />
           </Component>
 
