@@ -183,8 +183,14 @@ void ActiveCallDialog::updateThemeVisuals() {
 
 void ActiveCallDialog::setupCall(const QString &callId, const QString &number, const QString &name, const QString &company) {
     m_callId = callId;
-    m_lblName->setText(name.isEmpty() ? "Chamada SIP" : name);
-    m_lblNumber->setText(number.isEmpty() ? "" : QString("Ramal: %1").arg(number));
+
+    if (!name.isEmpty() && name != number) {
+        m_lblName->setText(name);
+        m_lblNumber->setText(QString("Número / Ramal: %1").arg(number));
+    } else {
+        m_lblName->setText(number.isEmpty() ? "Chamada SIP" : number);
+        m_lblNumber->setText("Número não salvo nos contatos");
+    }
 
     if (!company.isEmpty()) {
         m_lblCompany->setText("🏢 " + company);

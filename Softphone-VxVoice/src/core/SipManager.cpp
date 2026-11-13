@@ -1,5 +1,8 @@
 #include "SipManager.h"
+#include "ContactsManager.h"
 #include <QDateTime>
+#include <QDir>
+#include <QRegularExpression>
 #include <QDebug>
 #include <pjsua2.hpp>
 
@@ -15,12 +18,77 @@ static void ensurePjThread() {
 }
 
 // =============================================================================
-// Classe VxCall: Gerencia o ciclo de vida de uma chamada real via SIP/SDP/RTP
+// Classe VxCall: Gerencia o ciclo de vida e a gravação bidirecional da chamada
 // =============================================================================
 class VxCall : public pj::Call {
 public:
     VxCall(pj::Account &acc, SipManager *mgr, int call_id = PJSUA_INVALID_ID)
         : pj::Call(acc, call_id), m_mgr(mgr) {}
+
+    ~VxCall() override {
+        stopCallRecording();
+    }
+
+    bool isRecording() const { return m_isRecording; }
+    QString recordingFilePath() const { return m_recordingPath; }
+
+    bool startCallRecording(const QString &filePath) {
+        if (m_isRecording) return true;
+        try {
+            m_recordingPath = filePath;
+            m_recorder = new pj::AudioMediaRecorder();
+            m_recorder->createRecorder(filePath.toStdString());
+
+            // 1. Grava áudio do interlocutor remoto (voz da outra ponta)
+            pj::CallInfo ci = getInfo();
+            for (unsigned i = 0; i < ci.media.size(); i++) {
+                if (ci.media[i].type == PJMEDIA_TYPE_AUDIO && getMedia(i)) {
+                    pj::AudioMedia *remote_med = static_cast<pj::AudioMedia*>(getMedia(i));
+                    remote_med->startTransmit(*m_recorder);
+                }
+            }
+
+            // 2. Grava a nossa própria voz do microfone local (gravação bidirecional perfeita)
+            pj::Endpoint::instance().audDevManager().getCaptureDevMedia().startTransmit(*m_recorder);
+
+            m_isRecording = true;
+            qInfo() << "[PJSIP Recording] Gravação bidirecional iniciada em:" << filePath;
+            return true;
+        } catch (pj::Error &err) {
+            qWarning() << "[PJSIP Recording] Erro ao iniciar gravação:" << QString::fromStdString(err.info());
+            if (m_recorder) {
+                delete m_recorder;
+                m_recorder = nullptr;
+            }
+            m_isRecording = false;
+            return false;
+        }
+    }
+
+    void stopCallRecording() {
+        if (!m_isRecording || !m_recorder) return;
+        try {
+            pj::CallInfo ci = getInfo();
+            for (unsigned i = 0; i < ci.media.size(); i++) {
+                if (ci.media[i].type == PJMEDIA_TYPE_AUDIO && getMedia(i)) {
+                    pj::AudioMedia *remote_med = static_cast<pj::AudioMedia*>(getMedia(i));
+                    try { remote_med->stopTransmit(*m_recorder); } catch (...) {}
+                }
+            }
+            try {
+                pj::Endpoint::instance().audDevManager().getCaptureDevMedia().stopTransmit(*m_recorder);
+            } catch (...) {}
+
+            delete m_recorder;
+            m_recorder = nullptr;
+            m_isRecording = false;
+            qInfo() << "[PJSIP Recording] Gravação finalizada e salva em:" << m_recordingPath;
+        } catch (...) {
+            delete m_recorder;
+            m_recorder = nullptr;
+            m_isRecording = false;
+        }
+    }
 
     void onCallState(pj::OnCallStateParam &prm) override {
         Q_UNUSED(prm);
@@ -48,6 +116,11 @@ public:
                     pj::Endpoint::instance().audDevManager().getCaptureDevMedia().startTransmit(*aud_med);
                     aud_med->startTransmit(pj::Endpoint::instance().audDevManager().getPlaybackDevMedia());
                     qInfo() << "[PJSIP Media] Fluxo de áudio bidirecional conectado com sucesso.";
+
+                    // Se a gravação já estiver armada, conecta o áudio remoto imediatamente
+                    if (m_isRecording && m_recorder) {
+                        try { aud_med->startTransmit(*m_recorder); } catch (...) {}
+                    }
                 }
             }
         } catch (pj::Error &err) {
@@ -57,6 +130,9 @@ public:
 
 private:
     SipManager *m_mgr{nullptr};
+    pj::AudioMediaRecorder *m_recorder{nullptr};
+    bool m_isRecording{false};
+    QString m_recordingPath;
 };
 
 // =============================================================================
@@ -119,15 +195,24 @@ bool SipManager::initialize() {
             m_endpoint->libCreate();
 
             pj::EpConfig epCfg;
-            epCfg.logConfig.level = 3;
-            epCfg.logConfig.consoleLevel = 3;
-            epCfg.uaConfig.userAgent = "VxVoice Enterprise Softphone 1.4.1";
+            epCfg.logConfig.level = 2;
+            epCfg.logConfig.consoleLevel = 2;
+            epCfg.uaConfig.userAgent = "VxVoice Enterprise Softphone 1.4.2";
+
+            // Configuração avançada de áudio para eliminar picotes e atrasos
+            epCfg.medConfig.clockRate = 16000;      // 16 kHz Wideband clock
+            epCfg.medConfig.sndClockRate = 0;        // Usa clock nativo da placa de som (evita drift e jitter)
+            epCfg.medConfig.audioFramePtime = 20;    // 20ms padrão RTP
+            epCfg.medConfig.quality = 10;            // Resampler de alta fidelidade
+            epCfg.medConfig.ecOptions = PJMEDIA_ECHO_DEFAULT;
+            epCfg.medConfig.ecTailLen = 200;         // 200ms cauda de eco
+            epCfg.medConfig.sndAutoCloseTime = 0;    // Mantém o canal de som sempre aberto
 
             m_endpoint->libInit(epCfg);
 
             // Cria transporte UDP dinâmico para recepção e transmissão
             pj::TransportConfig tcfg;
-            tcfg.port = 0; // Porta dinâmica evita conflito com outras instâncias
+            tcfg.port = 0; // Porta dinâmica evita conflito com outros softphones
             try {
                 m_endpoint->transportCreate(PJSIP_TRANSPORT_UDP, tcfg);
             } catch (pj::Error &err) {
@@ -135,6 +220,7 @@ bool SipManager::initialize() {
             }
 
             m_endpoint->libStart();
+            applyCodecs();
             qInfo() << "[SipManager] PJSUA2 inicializado com sucesso.";
         }
     } catch (pj::Error &err) {
@@ -229,15 +315,18 @@ void SipManager::makeCall(const QString &destination) {
         CallData callData;
         callData.callId = callId;
         callData.remoteNumber = dest;
-        callData.remoteName = "Destino: " + dest;
+
+        // Resolução inteligente da BINA (mostra nome do contato se salvo)
+        QString resolvedName = ContactsManager::instance().findContactNameByNumber(dest);
+        callData.remoteName = !resolvedName.isEmpty() ? resolvedName : dest;
         callData.state = CallState::Calling;
         callData.durationSeconds = 0;
 
         m_calls.insert(callId, callData);
         m_activeCallId = callId;
 
-        qInfo() << "[SipManager] SIP INVITE enviado para:" << destUri;
-        emit callStateChanged(callId, CallState::Calling, QString("Discando para %1...").arg(dest));
+        qInfo() << "[SipManager] SIP INVITE enviado para:" << destUri << "Contato:" << callData.remoteName;
+        emit callStateChanged(callId, CallState::Calling, QString("Discando para %1...").arg(callData.remoteName));
     } catch (pj::Error &err) {
         qWarning() << "[SipManager] Erro ao originar chamada:" << QString::fromStdString(err.info());
         if (m_currentCall) {
@@ -278,6 +367,7 @@ void SipManager::hangupCall(const QString &callId) {
 
     if (m_currentCall) {
         try {
+            m_currentCall->stopCallRecording();
             pj::CallOpParam prm(true);
             prm.statusCode = PJSIP_SC_DECLINE;
             m_currentCall->hangup(prm);
@@ -288,7 +378,7 @@ void SipManager::hangupCall(const QString &callId) {
 
     if (!m_activeCallId.isEmpty()) {
         m_calls[m_activeCallId].state = CallState::Disconnected;
-        emit callStateChanged(m_activeCallId, CallState::Disconnected, "Chamada encerrada pelo usuário");
+        emit callStateChanged(m_activeCallId, CallState::Disconnected, "Chamada encerrada");
     }
 }
 
@@ -361,7 +451,26 @@ void SipManager::toggleRecording(const QString &callId) {
     QString id = callId.isEmpty() ? m_activeCallId : callId;
     if (!m_calls.contains(id)) return;
 
-    m_calls[id].isRecording = !m_calls[id].isRecording;
+    if (m_currentCall) {
+        if (!m_currentCall->isRecording()) {
+            QString recDir = SettingsManager::instance().recordingPath();
+            QDir().mkpath(recDir);
+            QString safeName = m_calls[id].remoteName;
+            safeName.replace(QRegularExpression("[^a-zA-Z0-9_-]"), "");
+            QString filePath = QString("%1/rec_%2_%3_%4.wav")
+                                   .arg(recDir, m_calls[id].remoteNumber, safeName,
+                                        QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
+
+            bool ok = m_currentCall->startCallRecording(filePath);
+            m_calls[id].isRecording = ok;
+        } else {
+            m_currentCall->stopCallRecording();
+            m_calls[id].isRecording = false;
+        }
+    } else {
+        m_calls[id].isRecording = !m_calls[id].isRecording;
+    }
+
     emit recordingStateChanged(id, m_calls[id].isRecording);
     qInfo() << "[SipManager] Gravação da chamada:" << id << (m_calls[id].isRecording ? "Iniciada" : "Pausada");
 }
@@ -418,7 +527,10 @@ void SipManager::handleIncomingCall(VxCall *call, const QString &callId, const Q
     if (colonPos != -1 && atPos != -1 && atPos > colonPos) {
         callerNumber = callerNumber.mid(colonPos + 1, atPos - colonPos - 1);
     }
-    QString callerName = remoteContact.isEmpty() ? callerNumber : remoteContact;
+
+    // Resolução inteligente da BINA na chamada recebida
+    QString resolvedName = ContactsManager::instance().findContactNameByNumber(callerNumber);
+    QString callerName = !resolvedName.isEmpty() ? resolvedName : (remoteContact.isEmpty() ? callerNumber : remoteContact);
 
     CallData cd;
     cd.callId = callId;
@@ -444,6 +556,7 @@ void SipManager::handleCallState(VxCall *call, const QString &pjsipCallId, int i
         CallData cd;
         cd.callId = id;
         cd.remoteNumber = "Desconhecido";
+        cd.remoteName = "Desconhecido";
         m_calls.insert(id, cd);
     }
 
@@ -469,6 +582,11 @@ void SipManager::handleCallState(VxCall *call, const QString &pjsipCallId, int i
         if (!m_callDurationTimer->isActive()) {
             m_callDurationTimer->start();
         }
+
+        // Se gravação automática estiver habilitada nas configurações, inicia gravação
+        if (SettingsManager::instance().autoRecord() && !m_calls[id].isRecording) {
+            toggleRecording(id);
+        }
         break;
 
     case PJSIP_INV_STATE_DISCONNECTED: {
@@ -476,6 +594,11 @@ void SipManager::handleCallState(VxCall *call, const QString &pjsipCallId, int i
         if (m_callDurationTimer && m_callDurationTimer->isActive()) {
             m_callDurationTimer->stop();
         }
+        if (call && call->isRecording()) {
+            call->stopCallRecording();
+            m_calls[id].isRecording = false;
+        }
+
         QString reasonMsg = lastReason.isEmpty() ? "Chamada encerrada" : QString("Encerrada (%1)").arg(lastReason);
         emit callStateChanged(id, CallState::Disconnected, reasonMsg);
 
@@ -666,6 +789,40 @@ void SipManager::setAudioDevices(const QString &inputDev, const QString &outputD
 void SipManager::setAudioVolume(int inputVol, int outputVol) {
     ensurePjThread();
     qInfo() << "[SipManager] Volume de Áudio: Microfone=" << inputVol << "% Alto-falante=" << outputVol << "%";
+}
+
+void SipManager::applyCodecs() {
+    ensurePjThread();
+    if (!m_endpoint) return;
+
+    auto codecs = SettingsManager::instance().codecs();
+    int prio = 230;
+    for (const auto &c : codecs) {
+        short p = c.enabled ? prio : 0;
+        QString n = c.name.toUpper();
+
+        if (n.contains("PCMA") || n.contains("ALAW") || n.contains("G711A")) {
+            try { m_endpoint->codecSetPriority("PCMA/8000/1", p); } catch (...) {}
+        } else if (n.contains("PCMU") || n.contains("ULAW") || n.contains("G711U")) {
+            try { m_endpoint->codecSetPriority("PCMU/8000/1", p); } catch (...) {}
+        } else if (n.contains("G722")) {
+            try { m_endpoint->codecSetPriority("G722/16000/1", p); } catch (...) {}
+        } else if (n.contains("SPEEX")) {
+            try {
+                m_endpoint->codecSetPriority("speex/16000/1", p);
+                m_endpoint->codecSetPriority("speex/8000/1", p);
+            } catch (...) {}
+        } else if (n.contains("GSM")) {
+            try { m_endpoint->codecSetPriority("GSM/8000/1", p); } catch (...) {}
+        } else if (n.contains("ILBC")) {
+            try { m_endpoint->codecSetPriority("iLBC/8000/1", p); } catch (...) {}
+        } else if (n.contains("OPUS")) {
+            try { m_endpoint->codecSetPriority("opus/48000/2", p); } catch (...) {}
+        }
+
+        if (c.enabled) prio -= 15;
+    }
+    qInfo() << "[SipManager] Prioridades de codecs aplicadas na pilha PJSIP.";
 }
 
 void SipManager::applyProfile(const SipProfileConfig &profile) {

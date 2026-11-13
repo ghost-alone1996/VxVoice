@@ -100,6 +100,7 @@ public:
     void setAudioProcessing(bool aec, bool agc, bool vad);
     void setAudioDevices(const QString &inputDev, const QString &outputDev);
     void setAudioVolume(int inputVol, int outputVol);
+    void applyCodecs();
 
     // Profile & Security Config (STUN / TURN / TLS / SRTP)
     void applyProfile(const SipProfileConfig &profile);

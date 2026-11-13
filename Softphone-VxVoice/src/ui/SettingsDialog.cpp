@@ -537,12 +537,12 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.1):</b><br>"
+        "<b>Novidades e Correções (v1.4.2):</b><br>"
         "<ul>"
-        "<li><b>Integração Real do Engine PJSIP/PJSUA2:</b> Registro e sinalização SIP real no PBX corporativo via pacotes de rede UDP/SIP.</li>"
-        "<li><b>Originação e Recepção de Chamadas Funcionais:</b> Envio de SIP INVITE, processamento de 100 Trying, 180 Ringing, 200 OK e encerramento real via SIP BYE/CANCEL.</li>"
-        "<li><b>Fluxo de Áudio Bidirecional:</b> Associação automática de mídia de áudio aos dispositivos de captura e reprodução de som.</li>"
-        "<li><b>Correção no Carregamento de Contas:</b> Resolução do bug de contagem de contas SIP no arquivo de configurações.</li>"
+        "<li><b>Persistência Total e Unificada:</b> Contas SIP, histórico completo de chamadas e lista de contatos salvos de forma resiliente e síncrona.</li>"
+        "<li><b>BINA Inteligente com Nome do Contato:</b> Exibição automática e destacada do nome salvo na agenda telefônica em chamadas efetuadas e recebidas.</li>"
+        "<li><b>Gravação Bidirecional de Alta Fidelidade:</b> Captura simultânea da voz do usuário e do interlocutor remoto sem picotes ou perda de pacotes.</li>"
+        "<li><b>Otimização de Codecs SIP:</b> Priorização nativa dos codecs PCMA (G.711a), PCMU (G.711u), G.722 e Speex na pilha PJSIP.</li>"
         "</ul>"
     );
 

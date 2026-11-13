@@ -84,7 +84,7 @@ QString ContactsManager::findContactNameByNumber(const QString &numberOrExt) con
 }
 
 void ContactsManager::loadContacts() {
-    QSettings settings("VxVoice", "Softphone");
+    QSettings settings("VxVoiceCorp", "VxVoice");
     int size = settings.beginReadArray("Contacts");
     m_contacts.clear();
 
@@ -96,6 +96,8 @@ void ContactsManager::loadContacts() {
         c.extension = settings.value("extension").toString();
         c.email = settings.value("email").toString();
         c.company = settings.value("company").toString();
+
+        if (c.name.isEmpty()) continue;
 
         // Descarta contatos fictícios legados de teste
         if ((c.extension == "1042" && c.name.contains("Suporte TI")) ||
@@ -109,8 +111,9 @@ void ContactsManager::loadContacts() {
 }
 
 void ContactsManager::saveContacts() {
-    QSettings settings("VxVoice", "Softphone");
-    settings.beginWriteArray("Contacts");
+    QSettings settings("VxVoiceCorp", "VxVoice");
+    settings.remove("Contacts");
+    settings.beginWriteArray("Contacts", m_contacts.size());
     for (int i = 0; i < m_contacts.size(); ++i) {
         settings.setArrayIndex(i);
         settings.setValue("name", m_contacts[i].name);
@@ -120,5 +123,6 @@ void ContactsManager::saveContacts() {
         settings.setValue("company", m_contacts[i].company);
     }
     settings.endArray();
+    settings.sync();
 }
 

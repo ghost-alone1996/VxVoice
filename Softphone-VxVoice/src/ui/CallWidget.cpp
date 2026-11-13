@@ -531,6 +531,15 @@ void CallWidget::onCallStateChanged(const QString &callId, SipManager::CallState
     m_callState = state;
     m_currentStatusText = stateText;
 
+    if (state != SipManager::CallState::Disconnected) {
+        auto active = SipManager::instance().activeCall();
+        if (!active.remoteNumber.isEmpty()) {
+            m_remoteNumber = active.remoteNumber;
+        }
+        QString contactName = ContactsManager::instance().findContactNameByNumber(m_remoteNumber);
+        m_remoteName = !contactName.isEmpty() ? contactName : active.remoteName;
+    }
+
     switch (state) {
     case SipManager::CallState::Calling:
     case SipManager::CallState::Connecting:

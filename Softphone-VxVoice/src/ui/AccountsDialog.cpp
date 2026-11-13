@@ -81,6 +81,8 @@ void AccountEditDialog::setupUi() {
 
     auto btnSave = new QPushButton("Salvar Conta", this);
     btnSave->setObjectName("primaryButton");
+    btnSave->setDefault(true);
+    btnSave->setAutoDefault(true);
     connect(btnSave, &QPushButton::clicked, this, [this]() {
         if (m_editServer->text().trimmed().isEmpty() || m_editUsername->text().trimmed().isEmpty()) {
             QMessageBox::warning(this, "Validação", "Servidor SIP e Usuário/Ramal são obrigatórios.");
@@ -88,6 +90,12 @@ void AccountEditDialog::setupUi() {
         }
         accept();
     });
+
+    connect(m_editName, &QLineEdit::returnPressed, btnSave, &QPushButton::click);
+    connect(m_editServer, &QLineEdit::returnPressed, btnSave, &QPushButton::click);
+    connect(m_editUsername, &QLineEdit::returnPressed, btnSave, &QPushButton::click);
+    connect(m_editPassword, &QLineEdit::returnPressed, btnSave, &QPushButton::click);
+    connect(m_editDomain, &QLineEdit::returnPressed, btnSave, &QPushButton::click);
 
     btnLayout->addWidget(btnCancel);
     btnLayout->addWidget(btnSave);
@@ -298,4 +306,9 @@ void AccountsDialog::onSelectionChanged() {
     m_btnToggleEnable->setEnabled(hasSelection);
     m_btnDelete->setEnabled(hasSelection);
     m_btnSetDefault->setEnabled(hasSelection);
+}
+
+void AccountsDialog::closeEvent(QCloseEvent *event) {
+    saveAccounts();
+    QDialog::closeEvent(event);
 }

@@ -53,6 +53,9 @@ private:
     void loadAccounts();
     void saveAccounts();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
     QTableView *m_tableView{nullptr};
     QStandardItemModel *m_model{nullptr};
     QPushButton *m_btnAdd{nullptr};
