@@ -161,6 +161,24 @@ QString ThemeManager::themeName(Theme theme) const {
     return "Purple (Roxo Corporativo)";
 }
 
+QString ThemeManager::themeToString(Theme theme) {
+    switch (theme) {
+    case Theme::Dark: return "Dark";
+    case Theme::Light: return "Light";
+    case Theme::Purple: return "Purple";
+    case Theme::Red: return "Red";
+    }
+    return "Purple";
+}
+
+ThemeManager::Theme ThemeManager::themeFromString(const QString &themeStr) {
+    QString t = themeStr.trimmed().toLower();
+    if (t == "dark") return Theme::Dark;
+    if (t == "light") return Theme::Light;
+    if (t == "red") return Theme::Red;
+    return Theme::Purple;
+}
+
 QString ThemeManager::loadStyleSheet(const QString &resourcePath) {
     QFile file(resourcePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {

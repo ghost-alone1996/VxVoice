@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "AccountsDialog.h"
 #include "SettingsDialog.h"
+#include "ChangelogDialog.h"
 #include "ThemeManager.h"
 #include "SoundManager.h"
 #include "ContactsManager.h"
@@ -40,6 +41,16 @@ MainWindow::MainWindow(QWidget *parent)
                 QSystemTrayIcon::Information, 6000);
         }
     });
+
+    // Se acabou de atualizar ou é a primeira execução desta versão, exibe diálogo com melhorias e correções
+    bool justUpdated = qApp->arguments().contains("--just-updated");
+    QString lastVer = SettingsManager::instance().lastRunVersion();
+    if (justUpdated || lastVer != SettingsManager::APP_VERSION) {
+        SettingsManager::instance().setLastRunVersion(SettingsManager::APP_VERSION);
+        QTimer::singleShot(600, this, [this]() {
+            showChangelogDialog();
+        });
+    }
 
     QTimer::singleShot(3000, []() {
         UpdateManager::instance().checkForUpdates(true);
@@ -475,4 +486,9 @@ void MainWindow::onQuitApplication() {
     SoundManager::instance().stopRinging();
     SipManager::instance().shutdown();
     qApp->quit();
+}
+
+void MainWindow::showChangelogDialog() {
+    ChangelogDialog dlg(this);
+    dlg.exec();
 }

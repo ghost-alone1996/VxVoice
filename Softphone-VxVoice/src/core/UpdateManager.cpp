@@ -3,10 +3,11 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QTimer>
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "1.4.5"
+#define VXVOICE_VERSION "1.4.6"
 #endif
 
 UpdateManager& UpdateManager::instance() {
@@ -15,12 +16,18 @@ UpdateManager& UpdateManager::instance() {
 }
 
 UpdateManager::UpdateManager(QObject *parent)
-    : QObject(parent) {
+    : QObject(parent),
+      m_currentVersion(SettingsManager::APP_VERSION),
+      m_gitVersion(SettingsManager::APP_VERSION) {
     m_repoPath = findGitDirectory();
 }
 
 QString UpdateManager::currentVersion() const {
     return QString(VXVOICE_VERSION);
+}
+
+QString UpdateManager::gitVersion() const {
+    return m_gitVersion;
 }
 
 QString UpdateManager::gitRepoPath() const {
@@ -29,6 +36,29 @@ QString UpdateManager::gitRepoPath() const {
 
 bool UpdateManager::isGitRepository() const {
     return !m_repoPath.isEmpty() && QDir(m_repoPath + "/.git").exists();
+}
+
+bool UpdateManager::isUpdateAvailable() const {
+    return m_isUpdateAvailable;
+}
+
+int UpdateManager::compareVersions(const QString &v1, const QString &v2) {
+    QString clean1 = v1.trimmed();
+    if (clean1.startsWith('v', Qt::CaseInsensitive)) clean1 = clean1.mid(1);
+    QString clean2 = v2.trimmed();
+    if (clean2.startsWith('v', Qt::CaseInsensitive)) clean2 = clean2.mid(1);
+
+    auto parts1 = clean1.split('.');
+    auto parts2 = clean2.split('.');
+    int maxLen = qMax(parts1.size(), parts2.size());
+
+    for (int i = 0; i < maxLen; ++i) {
+        int num1 = (i < parts1.size()) ? parts1[i].toInt() : 0;
+        int num2 = (i < parts2.size()) ? parts2[i].toInt() : 0;
+        if (num1 > num2) return 1;
+        if (num1 < num2) return -1;
+    }
+    return 0;
 }
 
 QString UpdateManager::findGitDirectory() const {
@@ -50,7 +80,7 @@ QString UpdateManager::findGitDirectory() const {
         if (!appDir.cdUp()) break;
     }
 
-    // 3. Fallback para caminho de desenvolvimento conhecido
+    // 3. Fallback para caminho do repositório
     if (QDir("/home/leonardo/Documentos/ProjetosDEV/.git").exists()) {
         return "/home/leonardo/Documentos/ProjetosDEV";
     }
@@ -63,72 +93,80 @@ void UpdateManager::checkForUpdates(bool silent) {
 
     m_silent = silent;
     m_isChecking = true;
+    m_currentVersion = currentVersion();
     emit checkingStarted();
     emit statusChanged("Verificando atualizações no repositório Git...");
 
     if (!isGitRepository()) {
         m_isChecking = false;
-        QString err = "Repositório Git não encontrado no diretório de instalação.";
+        QString err = "Repositório Git não encontrado.";
+        m_gitVersion = m_currentVersion;
         emit updateError(err);
         emit statusChanged(err);
         return;
     }
 
-    // Executa git fetch de forma assíncrona
+    // Consulta assíncrona ao Git
     auto process = new QProcess(this);
     process->setWorkingDirectory(m_repoPath);
 
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [this, process](int exitCode, QProcess::ExitStatus exitStatus) {
+            this, [this, process](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
         process->deleteLater();
         m_isChecking = false;
 
-        if (exitStatus != QProcess::NormalExit || exitCode != 0) {
-            // Se não houver conexão com a internet ou remoto não configurado
-            // verifica o último commit local
-            QProcess logProc;
-            logProc.setWorkingDirectory(m_repoPath);
-            logProc.start("git", {"log", "-1", "--format=%h - %s (%ci)"});
-            logProc.waitForFinished(2000);
-            QString lastCommit = QString::fromUtf8(logProc.readAllStandardOutput()).trimmed();
-
-            QString msg = QString("Sistema atualizado na versão %1.\nÚltimo commit local: %2")
-                              .arg(currentVersion(), lastCommit.isEmpty() ? "main" : lastCommit);
-            emit upToDate(msg);
-            emit statusChanged(QString("Versão %1 (Atualizada)").arg(currentVersion()));
-            return;
+        // 1. Obtém a tag de versão mais recente no Git
+        QProcess tagProc;
+        tagProc.setWorkingDirectory(m_repoPath);
+        tagProc.start("git", {"tag", "-l", "--sort=-v:refname", "v*"});
+        tagProc.waitForFinished(2000);
+        QString tagsOutput = QString::fromUtf8(tagProc.readAllStandardOutput()).trimmed();
+        QString latestTag;
+        if (!tagsOutput.isEmpty()) {
+            latestTag = tagsOutput.split('\n').first().trimmed();
         }
 
-        // Compara HEAD local com upstream / origin
+        if (latestTag.isEmpty()) {
+            latestTag = "v" + m_currentVersion;
+        }
+
+        QString cleanGitVer = latestTag.startsWith('v') ? latestTag.mid(1) : latestTag;
+        m_gitVersion = cleanGitVer;
+
+        // 2. Obtém resumo do último commit
+        QProcess logProc;
+        logProc.setWorkingDirectory(m_repoPath);
+        logProc.start("git", {"log", "-1", "--format=%h - %s (%ci)"});
+        logProc.waitForFinished(2000);
+        QString lastCommit = QString::fromUtf8(logProc.readAllStandardOutput()).trimmed();
+
+        // 3. Verifica contagem de commits à frente se houver upstream
         QProcess diffProc;
         diffProc.setWorkingDirectory(m_repoPath);
         diffProc.start("git", {"rev-list", "HEAD..@{u}", "--count"});
-        diffProc.waitForFinished(3000);
+        diffProc.waitForFinished(2000);
         int aheadCount = QString::fromUtf8(diffProc.readAllStandardOutput()).trimmed().toInt();
 
-        if (aheadCount > 0) {
-            QProcess logProc;
-            logProc.setWorkingDirectory(m_repoPath);
-            logProc.start("git", {"log", "HEAD..@{u}", "--oneline", "-n", "5"});
-            logProc.waitForFinished(3000);
-            QString changelog = QString::fromUtf8(logProc.readAllStandardOutput()).trimmed();
-
-            emit updateAvailable(QString("%1 novos commits").arg(aheadCount), changelog);
-            emit statusChanged(QString("Nova versão disponível no Git (%1 commits à frente)").arg(aheadCount));
+        // Compara versões semânticas
+        int cmp = compareVersions(m_gitVersion, m_currentVersion);
+        if (cmp > 0 || aheadCount > 0) {
+            m_isUpdateAvailable = true;
+            QString changelog = QString("Nova versão v%1 disponível no Git.\nÚltimo commit: %2")
+                                    .arg(m_gitVersion, lastCommit);
+            emit updateChecked(m_currentVersion, m_gitVersion, true, changelog);
+            emit updateAvailable(m_gitVersion, changelog);
+            emit statusChanged(QString("Nova versão v%1 disponível no Git.").arg(m_gitVersion));
         } else {
-            QProcess logProc;
-            logProc.setWorkingDirectory(m_repoPath);
-            logProc.start("git", {"log", "-1", "--format=%h - %s (%ci)"});
-            logProc.waitForFinished(2000);
-            QString lastCommit = QString::fromUtf8(logProc.readAllStandardOutput()).trimmed();
-
+            m_isUpdateAvailable = false;
             QString msg = QString("O software está na versão mais recente (%1).\nCommit: %2")
-                              .arg(currentVersion(), lastCommit);
+                              .arg(m_currentVersion, lastCommit);
+            emit updateChecked(m_currentVersion, m_gitVersion, false, msg);
             emit upToDate(msg);
-            emit statusChanged(QString("Versão %1 (Atualizada)").arg(currentVersion()));
+            emit statusChanged(QString("Versão %1 (Atualizada)").arg(m_currentVersion));
         }
     });
 
+    // Se houver remoto configurado, faz fetch rápido
     process->start("git", {"fetch", "--dry-run"});
 }
 
@@ -138,55 +176,78 @@ void UpdateManager::applyUpdate() {
         return;
     }
 
-    emit statusChanged("Baixando e aplicando atualizações do Git...");
+    emit statusChanged("Preparando e sincronizando pacote de atualização...");
     auto process = new QProcess(this);
     process->setWorkingDirectory(m_repoPath);
 
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [this, process](int exitCode, QProcess::ExitStatus exitStatus) {
+            this, [this, process](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
         process->deleteLater();
-        if (exitStatus == QProcess::NormalExit && exitCode == 0) {
-            // Busca o pacote .deb mais recente gerado no workspace
-            QString debPath;
-            QStringList searchDirs = { m_repoPath, m_repoPath + "/build", QFileInfo(m_repoPath).dir().absolutePath() };
-            for (const auto &sdir : searchDirs) {
-                QDir d(sdir);
-                auto debFiles = d.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
-                if (!debFiles.isEmpty()) {
-                    debPath = debFiles.first().absoluteFilePath();
-                    break;
-                }
-            }
 
-            if (!debPath.isEmpty() && QFile::exists("/usr/bin/pkexec")) {
-                emit statusChanged("Instalando pacote com privilégios de administrador...");
-                auto instProc = new QProcess(this);
-                connect(instProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                        this, [this, instProc, debPath](int instCode, QProcess::ExitStatus instStatus) {
-                    instProc->deleteLater();
-                    if (instStatus == QProcess::NormalExit && instCode == 0) {
-                        emit updateCompleted(true, QString("VxVoice atualizado com sucesso no sistema operacional!\n\nPacote instalado: %1\n\nReinicie o aplicativo para carregar a nova versão.")
-                                             .arg(QFileInfo(debPath).fileName()));
-                        emit statusChanged("Atualização e instalação concluídas com sucesso.");
-                    } else {
-                        emit updateCompleted(false, QString("Atualização baixada. Para instalar no sistema, execute no terminal:\n\nsudo dpkg -i %1").arg(debPath));
-                        emit statusChanged("Aguardando instalação do pacote.");
-                    }
-                });
-                instProc->start("pkexec", {"dpkg", "-i", debPath});
-            } else if (!debPath.isEmpty()) {
-                emit updateCompleted(true, QString("Atualizações sincronizadas com sucesso!\n\nPara atualizar o pacote instalado no sistema, execute:\nsudo dpkg -i %1").arg(debPath));
-                emit statusChanged("Atualização concluída.");
-            } else {
-                emit updateCompleted(true, "Atualização Git concluída com sucesso! Reinicie o aplicativo para aplicar.");
-                emit statusChanged("Atualização concluída com sucesso.");
+        // Procura o pacote .deb mais recente gerado para instalação
+        QString debPath;
+        QStringList searchDirs = {
+            m_repoPath,
+            m_repoPath + "/Softphone-VxVoice/build",
+            m_repoPath + "/build",
+            QFileInfo(m_repoPath).dir().absolutePath()
+        };
+
+        for (const auto &sdir : searchDirs) {
+            QDir d(sdir);
+            if (!d.exists()) continue;
+            auto debFiles = d.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
+            if (!debFiles.isEmpty()) {
+                debPath = debFiles.first().absoluteFilePath();
+                break;
             }
+        }
+
+        if (debPath.isEmpty()) {
+            emit updateCompleted(false, "Nenhum pacote .deb de atualização encontrado.");
+            emit statusChanged("Erro: Pacote .deb não localizado.");
+            return;
+        }
+
+        if (QFile::exists("/usr/bin/pkexec")) {
+            emit statusChanged("Instalando pacote com privilégios de administrador...");
+            auto instProc = new QProcess(this);
+            connect(instProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                    this, [this, instProc, debPath](int instCode, QProcess::ExitStatus instStatus) {
+                instProc->deleteLater();
+                if (instStatus == QProcess::NormalExit && instCode == 0) {
+                    emit updateCompleted(true, QString("VxVoice atualizado com sucesso!\n\nPacote instalado: %1\n\nReiniciando para carregar a nova versão...")
+                                         .arg(QFileInfo(debPath).fileName()));
+                    emit statusChanged("Atualização e instalação concluídas. Reiniciando...");
+                    // Reinicia o softphone automaticamente na nova versão
+                    restartApplication();
+                } else {
+                    emit updateCompleted(false, QString("Atualização cancelada ou com erro. Para instalar manualmente:\nsudo dpkg -i %1").arg(debPath));
+                    emit statusChanged("Aguardando instalação do pacote.");
+                }
+            });
+            instProc->start("pkexec", {"dpkg", "-i", debPath});
         } else {
-            QString err = QString::fromUtf8(process->readAllStandardError());
-            emit updateCompleted(false, "Erro ao puxar atualizações: " + err);
-            emit statusChanged("Falha na atualização.");
+            emit updateCompleted(true, QString("Atualizações sincronizadas.\nInstale manualmente executando:\nsudo dpkg -i %1").arg(debPath));
+            emit statusChanged("Atualização sincronizada.");
         }
     });
 
     process->start("git", {"pull", "--rebase"});
+}
+
+void UpdateManager::restartApplication() {
+    QString execPath = "/usr/bin/VxVoice";
+    if (!QFile::exists(execPath)) {
+        execPath = QCoreApplication::applicationFilePath();
+    }
+
+    // Inicia nova instância desacoplada informando a atualização recém-feita
+    bool started = QProcess::startDetached(execPath, {"--just-updated"});
+    if (started) {
+        // Encerra imediatamente o processo atual
+        QTimer::singleShot(400, []() {
+            QCoreApplication::quit();
+        });
+    }
 }

@@ -21,8 +21,10 @@ int main(int argc, char *argv[]) {
     // Quit behavior handled via closeEvent and settings
     QApplication::setQuitOnLastWindowClosed(false);
 
-    // Initialize Default VxVoice Corporate Purple Theme
-    ThemeManager::instance().setTheme(ThemeManager::Theme::VxVoice);
+    // Initialize Theme from Saved Settings (Persistência Garantida)
+    QString savedTheme = SettingsManager::instance().theme();
+    ThemeManager::Theme theme = ThemeManager::themeFromString(savedTheme);
+    ThemeManager::instance().setTheme(theme);
 
     MainWindow window;
 

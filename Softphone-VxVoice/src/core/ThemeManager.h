@@ -24,6 +24,9 @@ public:
     void toggleTheme();
     QString themeName(Theme theme) const;
 
+    static QString themeToString(Theme theme);
+    static Theme themeFromString(const QString &themeStr);
+
 signals:
     void themeChanged(Theme newTheme);
 

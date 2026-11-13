@@ -39,6 +39,7 @@ private slots:
     void onSaveSipLogs();
     void onSipLogReceived(const QString &line, int level);
     void onFilterSipLogs(const QString &filterText);
+    void onShowChangelog();
 
 private:
     void setupUi();
@@ -56,9 +57,12 @@ private:
     QTabWidget *m_tabs{nullptr};
 
     // Aba Sobre & Atualização
+    QLabel *m_lblCurrentVersion{nullptr};
+    QLabel *m_lblGitVersion{nullptr};
     QLabel *m_lblUpdateStatus{nullptr};
     QPushButton *m_btnCheckUpdates{nullptr};
     QPushButton *m_btnApplyUpdate{nullptr};
+    QPushButton *m_btnShowChangelog{nullptr};
 
     // Aba Geral
     QCheckBox *m_chkStartWithSystem{nullptr};

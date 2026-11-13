@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 1.4.5
+    VERSION 1.4.6
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -41,6 +41,7 @@ set(SOURCES
     src/ui/AccountsDialog.cpp
     src/ui/CallNotificationPopup.cpp
     src/ui/SelectContactNumberDialog.cpp
+    src/ui/ChangelogDialog.cpp
     src/ui/IconHelper.cpp
 )
 
@@ -61,6 +62,7 @@ set(HEADERS
     src/ui/AccountsDialog.h
     src/ui/CallNotificationPopup.h
     src/ui/SelectContactNumberDialog.h
+    src/ui/ChangelogDialog.h
     src/ui/IconHelper.h
 )
 

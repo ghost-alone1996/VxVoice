@@ -39,7 +39,7 @@ class SettingsManager : public QObject {
     Q_OBJECT
 
 public:
-    static constexpr const char* APP_VERSION = "1.4.5";
+    static constexpr const char* APP_VERSION = "1.4.6";
 
     static SettingsManager& instance();
 
@@ -55,6 +55,12 @@ public:
 
     QString ringtone() const;
     void setRingtone(const QString &ringtone);
+
+    QString theme() const;
+    void setTheme(const QString &theme);
+
+    QString lastRunVersion() const;
+    void setLastRunVersion(const QString &version);
 
     // Audio & Voice Preferences
     QString inputDevice() const;

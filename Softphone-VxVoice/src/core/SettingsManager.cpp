@@ -57,6 +57,23 @@ void SettingsManager::setRingtone(const QString &ringtone) {
     emit settingsChanged();
 }
 
+QString SettingsManager::theme() const {
+    return m_settings.value("General/Theme", "Purple").toString();
+}
+
+void SettingsManager::setTheme(const QString &theme) {
+    m_settings.setValue("General/Theme", theme);
+    emit settingsChanged();
+}
+
+QString SettingsManager::lastRunVersion() const {
+    return m_settings.value("General/LastRunVersion", "").toString();
+}
+
+void SettingsManager::setLastRunVersion(const QString &version) {
+    m_settings.setValue("General/LastRunVersion", version);
+}
+
 QString SettingsManager::inputDevice() const {
     return m_settings.value("Audio/InputDevice", "Dispositivo Padrão").toString();
 }

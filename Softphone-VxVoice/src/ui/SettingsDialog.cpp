@@ -3,6 +3,7 @@
 #include "SoundManager.h"
 #include "SipManager.h"
 #include "UpdateManager.h"
+#include "ChangelogDialog.h"
 #include <QProcess>
 #include <QRegularExpression>
 #include <QVBoxLayout>
@@ -514,40 +515,80 @@ QWidget* SettingsDialog::createAboutTab() {
     auto updateCard = new QFrame(widget);
     updateCard->setObjectName("callInfoFrame");
     auto updateLayout = new QVBoxLayout(updateCard);
-    updateLayout->setContentsMargins(10, 8, 10, 8);
-    updateLayout->setSpacing(6);
+    updateLayout->setContentsMargins(14, 12, 14, 12);
+    updateLayout->setSpacing(8);
 
-    auto lblUpdateHeader = new QLabel("<b>🔄 Atualizações do Sistema (Git)</b>", updateCard);
-    m_lblUpdateStatus = new QLabel(QString("Versão instalada: %1 • Repositório conectado").arg(SettingsManager::APP_VERSION), updateCard);
+    auto lblUpdateHeader = new QLabel("<b>🔄 Atualização de Software (Git)</b>", updateCard);
+    lblUpdateHeader->setStyleSheet("font-size: 14px; font-weight: bold; color: #3498DB;");
+
+    auto formGrid = new QGridLayout();
+    formGrid->setHorizontalSpacing(14);
+    formGrid->setVerticalSpacing(6);
+
+    auto lblCurVerTitle = new QLabel("<b>Versão Atual Instalada:</b>", updateCard);
+    m_lblCurrentVersion = new QLabel(QString("v%1").arg(SettingsManager::APP_VERSION), updateCard);
+    m_lblCurrentVersion->setStyleSheet("font-weight: bold; font-size: 13px;");
+
+    auto lblGitVerTitle = new QLabel("<b>Versão Disponível no Git:</b>", updateCard);
+    m_lblGitVersion = new QLabel("Clique em verificar para consultar...", updateCard);
+    m_lblGitVersion->setStyleSheet("font-weight: bold; color: #3498DB; font-size: 13px;");
+
+    auto lblStatusTitle = new QLabel("<b>Status:</b>", updateCard);
+    m_lblUpdateStatus = new QLabel("Pronto para verificar atualizações no repositório.", updateCard);
     m_lblUpdateStatus->setStyleSheet("color: #7F8C8D; font-size: 12px;");
 
+    formGrid->addWidget(lblCurVerTitle, 0, 0);
+    formGrid->addWidget(m_lblCurrentVersion, 0, 1);
+    formGrid->addWidget(lblGitVerTitle, 1, 0);
+    formGrid->addWidget(m_lblGitVersion, 1, 1);
+    formGrid->addWidget(lblStatusTitle, 2, 0);
+    formGrid->addWidget(m_lblUpdateStatus, 2, 1);
+    formGrid->setColumnStretch(1, 1);
+
     auto btnUpdateRow = new QHBoxLayout();
+    btnUpdateRow->setSpacing(8);
+
     m_btnCheckUpdates = new QPushButton("🔍 Verificar Atualizações no Git", updateCard);
     m_btnCheckUpdates->setCursor(Qt::PointingHandCursor);
     connect(m_btnCheckUpdates, &QPushButton::clicked, this, &SettingsDialog::onCheckGitUpdates);
 
-    m_btnApplyUpdate = new QPushButton("⬇ Atualizar via Git", updateCard);
+    m_btnApplyUpdate = new QPushButton("⬇ Atualizar Software", updateCard);
     m_btnApplyUpdate->setCursor(Qt::PointingHandCursor);
-    m_btnApplyUpdate->setVisible(false);
+    m_btnApplyUpdate->setStyleSheet(
+        "QPushButton {"
+        "  background-color: #27AE60;"
+        "  color: white;"
+        "  font-weight: bold;"
+        "  padding: 6px 14px;"
+        "  border-radius: 4px;"
+        "}"
+        "QPushButton:hover { background-color: #2ECC71; }"
+        "QPushButton:disabled { background-color: #555555; color: #888888; }"
+    );
     connect(m_btnApplyUpdate, &QPushButton::clicked, this, &SettingsDialog::onApplyGitUpdate);
+
+    m_btnShowChangelog = new QPushButton("📋 Ver Novidades e Melhorias", updateCard);
+    m_btnShowChangelog->setCursor(Qt::PointingHandCursor);
+    connect(m_btnShowChangelog, &QPushButton::clicked, this, &SettingsDialog::onShowChangelog);
 
     btnUpdateRow->addWidget(m_btnCheckUpdates);
     btnUpdateRow->addWidget(m_btnApplyUpdate);
+    btnUpdateRow->addWidget(m_btnShowChangelog);
     btnUpdateRow->addStretch();
 
     updateLayout->addWidget(lblUpdateHeader);
-    updateLayout->addWidget(m_lblUpdateStatus);
+    updateLayout->addLayout(formGrid);
     updateLayout->addLayout(btnUpdateRow);
 
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.5):</b><br>"
+        "<b>Novidades e Correções (v1.4.6):</b><br>"
         "<ul>"
-        "<li><b>Layout Adaptativo da Janela Principal:</b> A janela se adapta dinamicamente em largura e proporção para cada aba (Ligação, Histórico, Contatos, Gravação), ajustando automaticamente as colunas das tabelas.</li>"
-        "<li><b>Proporção da Tela de Escolha de Destino:</b> Dimensões ampliadas e confortáveis para o diálogo de seleção de ramal/telefone sem truncamento de texto.</li>"
-        "<li><b>Reprodução de Áudio no Histórico:</b> A opção de ouvir gravação com botão direito agora reproduz diretamente o arquivo pelo motor de áudio.</li>"
-        "<li><b>Ícone do Executável no Desktop:</b> Integração completa do ícone corporativo nos gerenciadores de janelas Linux (GNOME Shell / KDE) com identificador desktop e múltiplas resoluções.</li>"
+        "<li><b>Persistência de Tema Visual:</b> Correção definitiva no carregamento das preferências de tema. O tema selecionado (Dark, Light, Red ou Roxo) é salvo no sistema e restaurado automaticamente ao reiniciar o aplicativo.</li>"
+        "<li><b>Tela de Atualização do Software:</b> Exibição detalhada da versão instalada e versão disponível no Git, com botão de atualização direta e reinício automático para abrir na nova versão com as novidades destacadas.</li>"
+        "<li><b>Preservação dos Ícones do Executável:</b> Ícones FreeDesktop oficiais mantidos em múltiplas resoluções com controle de versão v1.4.6.</li>"
+        "<li><b>Estabilidade Geral:</b> Diálogo de seleção de destinos dimensionado e áudio sincronizado.</li>"
         "</ul>"
     );
 
@@ -558,6 +599,12 @@ QWidget* SettingsDialog::createAboutTab() {
     layout->addWidget(lblLicense);
     layout->addWidget(updateCard);
     layout->addWidget(txtChangelog, 1);
+
+    // Consulta inicial rápida de versão Git
+    QTimer::singleShot(200, this, [this]() {
+        onCheckGitUpdates();
+    });
+
     return widget;
 }
 
@@ -696,62 +743,72 @@ void SettingsDialog::onSaveSipLogs() {
 
 void SettingsDialog::onCheckGitUpdates() {
     m_btnCheckUpdates->setEnabled(false);
-    m_btnCheckUpdates->setText("Verificando no Git...");
-    m_lblUpdateStatus->setText("Consultando upstream / repositório Git...");
+    m_btnCheckUpdates->setText("Verificando...");
+    m_lblUpdateStatus->setText("Consultando repositório Git...");
+    m_lblCurrentVersion->setText(QString("v%1").arg(SettingsManager::APP_VERSION));
 
     auto &um = UpdateManager::instance();
 
     // Desconecta listeners anteriores se houver
-    disconnect(&um, &UpdateManager::upToDate, this, nullptr);
-    disconnect(&um, &UpdateManager::updateAvailable, this, nullptr);
+    disconnect(&um, &UpdateManager::updateChecked, this, nullptr);
     disconnect(&um, &UpdateManager::updateError, this, nullptr);
 
-    connect(&um, &UpdateManager::upToDate, this, [this](const QString &msg) {
+    connect(&um, &UpdateManager::updateChecked, this, [this](const QString &curVer, const QString &gitVer, bool hasUpdate, const QString &/*changelog*/) {
         m_btnCheckUpdates->setEnabled(true);
         m_btnCheckUpdates->setText("🔍 Verificar Atualizações no Git");
-        m_lblUpdateStatus->setText("✓ " + msg);
-        m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 12px;");
-        m_btnApplyUpdate->setVisible(false);
-    });
+        m_lblCurrentVersion->setText(QString("v%1").arg(curVer));
 
-    connect(&um, &UpdateManager::updateAvailable, this, [this](const QString &latest, const QString &log) {
-        m_btnCheckUpdates->setEnabled(true);
-        m_btnCheckUpdates->setText("🔍 Verificar Atualizações no Git");
-        m_lblUpdateStatus->setText(QString("★ Nova atualização disponível: %1").arg(latest));
-        m_lblUpdateStatus->setStyleSheet("color: #3498DB; font-weight: bold; font-size: 12px;");
-        m_btnApplyUpdate->setVisible(true);
-
-        QMessageBox::information(this, "Atualização Disponível",
-            QString("Uma nova versão do VxVoice foi detectada no repositório Git:\n\n%1\n\nClique em 'Atualizar via Git' para sincronizar.")
-            .arg(log.isEmpty() ? latest : log));
+        if (hasUpdate) {
+            m_lblGitVersion->setText(QString("v%1 (Nova versão disponível!)").arg(gitVer));
+            m_lblGitVersion->setStyleSheet("font-weight: bold; color: #2ECC71; font-size: 13px;");
+            m_lblUpdateStatus->setText("Uma versão mais recente foi localizada no repositório Git.");
+            m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 12px;");
+            m_btnApplyUpdate->setEnabled(true);
+            m_btnApplyUpdate->setText(QString("⬇ Atualizar para v%1").arg(gitVer));
+        } else {
+            m_lblGitVersion->setText(QString("v%1 (Versão mais recente)").arg(gitVer));
+            m_lblGitVersion->setStyleSheet("font-weight: bold; color: #3498DB; font-size: 13px;");
+            m_lblUpdateStatus->setText("O software já está na versão mais recente disponível no repositório.");
+            m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-size: 12px;");
+            m_btnApplyUpdate->setEnabled(true);
+            m_btnApplyUpdate->setText("⬇ Reinstalar / Atualizar");
+        }
     });
 
     connect(&um, &UpdateManager::updateError, this, [this](const QString &err) {
         m_btnCheckUpdates->setEnabled(true);
         m_btnCheckUpdates->setText("🔍 Verificar Atualizações no Git");
+        m_lblGitVersion->setText("Indisponível");
+        m_lblGitVersion->setStyleSheet("color: #E74C3C; font-size: 13px;");
         m_lblUpdateStatus->setText("⚠ " + err);
         m_lblUpdateStatus->setStyleSheet("color: #E74C3C; font-size: 12px;");
-        m_btnApplyUpdate->setVisible(false);
     });
 
     um.checkForUpdates(false);
 }
 
 void SettingsDialog::onApplyGitUpdate() {
+    auto confirm = QMessageBox::question(this, "Atualizar VxVoice",
+        "Deseja iniciar a atualização do software agora?\n\nO aplicativo irá instalar o pacote e reiniciar automaticamente na nova versão, exibindo as novidades e melhorias.",
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+    if (confirm != QMessageBox::Yes) {
+        return;
+    }
+
     m_btnApplyUpdate->setEnabled(false);
-    m_btnApplyUpdate->setText("Aplicando Git Pull...");
-    m_lblUpdateStatus->setText("Baixando novos commits e aplicando rebase...");
+    m_btnApplyUpdate->setText("Atualizando...");
+    m_lblUpdateStatus->setText("Baixando pacote e instalando com privilégios...");
 
     auto &um = UpdateManager::instance();
     disconnect(&um, &UpdateManager::updateCompleted, this, nullptr);
 
     connect(&um, &UpdateManager::updateCompleted, this, [this](bool ok, const QString &msg) {
         m_btnApplyUpdate->setEnabled(true);
-        m_btnApplyUpdate->setText("⬇ Atualizar via Git");
+        m_btnApplyUpdate->setText("⬇ Atualizar Software");
         if (ok) {
             m_lblUpdateStatus->setText("✓ " + msg);
             m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 12px;");
-            QMessageBox::information(this, "Atualização Concluída", msg);
         } else {
             m_lblUpdateStatus->setText("⚠ " + msg);
             m_lblUpdateStatus->setStyleSheet("color: #E74C3C; font-size: 12px;");
@@ -760,6 +817,11 @@ void SettingsDialog::onApplyGitUpdate() {
     });
 
     um.applyUpdate();
+}
+
+void SettingsDialog::onShowChangelog() {
+    ChangelogDialog dlg(this);
+    dlg.exec();
 }
 
 void SettingsDialog::loadSettings() {
@@ -773,7 +835,8 @@ void SettingsDialog::loadSettings() {
     if (ringIdx >= 0) m_comboRingtone->setCurrentIndex(ringIdx);
 
     // Theme selector
-    auto currentTheme = ThemeManager::instance().currentTheme();
+    QString savedTheme = sm.theme();
+    auto currentTheme = ThemeManager::themeFromString(savedTheme);
     m_comboTheme->setCurrentIndex(static_cast<int>(currentTheme));
 
     // Audio & Voice
@@ -818,6 +881,7 @@ void SettingsDialog::saveSettings() {
     // Theme
     auto selectedTheme = static_cast<ThemeManager::Theme>(m_comboTheme->currentIndex());
     ThemeManager::instance().setTheme(selectedTheme);
+    sm.setTheme(ThemeManager::themeToString(selectedTheme));
 
     // Audio & Voice
     sm.setInputVolume(m_sliderInputVolume->value());

@@ -42,6 +42,7 @@ private slots:
 
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void onQuitApplication();
+    void showChangelogDialog();
 
 private:
     void setupUi();
