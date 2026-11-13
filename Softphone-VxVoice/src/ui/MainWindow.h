@@ -74,6 +74,7 @@ private:
     ActiveCallDialog *m_activeCallDialog{nullptr};
 
     bool m_reallyQuit{false};
+    bool m_startupTrayNotified{false};
 };
 
 #endif // MAINWINDOW_H

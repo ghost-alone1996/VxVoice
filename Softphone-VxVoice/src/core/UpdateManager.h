@@ -27,6 +27,7 @@ signals:
     void updateAvailable(const QString &latestCommit, const QString &changelog);
     void upToDate(const QString &message);
     void updateError(const QString &errorMessage);
+    void updateProgress(int percent, const QString &statusText);
     void updateCompleted(bool success, const QString &message);
     void statusChanged(const QString &status);
 

@@ -4,6 +4,7 @@
 #include "SipManager.h"
 #include "UpdateManager.h"
 #include "ChangelogDialog.h"
+#include "UpdateProgressDialog.h"
 #include <QProcess>
 #include <QRegularExpression>
 #include <QVBoxLayout>
@@ -82,13 +83,6 @@ QWidget* SettingsDialog::createGeneralTab() {
     m_chkStartWithSystem = new QCheckBox("Iniciar junto com o Sistema Operacional", widget);
     m_chkStartMinimized = new QCheckBox("Iniciar minimizado no System Tray", widget);
     m_chkMinimizeToTrayOnClose = new QCheckBox("Ao clicar em fechar (X), manter na bandeja do sistema", widget);
-
-    connect(m_chkStartMinimized, &QCheckBox::toggled, this, [](bool checked) {
-        if (checked) {
-            QMessageBox::information(nullptr, "Aviso de Inicialização",
-                "O VxVoice iniciará automaticamente em segundo plano na barra de tarefas (System Tray).");
-        }
-    });
 
     layout->addWidget(m_chkStartWithSystem);
     layout->addWidget(m_chkStartMinimized);
@@ -583,12 +577,12 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.6):</b><br>"
+        "<b>Novidades e Correções (v1.4.7):</b><br>"
         "<ul>"
-        "<li><b>Persistência de Tema Visual:</b> Correção definitiva no carregamento das preferências de tema. O tema selecionado (Dark, Light, Red ou Roxo) é salvo no sistema e restaurado automaticamente ao reiniciar o aplicativo.</li>"
-        "<li><b>Tela de Atualização do Software:</b> Exibição detalhada da versão instalada e versão disponível no Git, com botão de atualização direta e reinício automático para abrir na nova versão com as novidades destacadas.</li>"
-        "<li><b>Preservação dos Ícones do Executável:</b> Ícones FreeDesktop oficiais mantidos em múltiplas resoluções com controle de versão v1.4.6.</li>"
-        "<li><b>Estabilidade Geral:</b> Diálogo de seleção de destinos dimensionado e áudio sincronizado.</li>"
+        "<li><b>Iniciar com o Sistema Operacional:</b> Correção na inicialização com o boot do sistema. Quando a opção 'Iniciar minimizado no System Tray' estiver desativada, o softphone abre diretamente visível na área de trabalho assim que o sistema carregar.</li>"
+        "<li><b>Remoção de Alerta em Configurações:</b> Janela de aviso ao clicar na opção de iniciar minimizado foi removida. O softphone agora exibe silenciosamente uma notificação no System Tray ao iniciar em segundo plano informando que o serviço e ramal estão disponíveis.</li>"
+        "<li><b>Janela de Progresso da Instalação:</b> Diálogo moderno de progresso durante as atualizações via Git, com barra de status passo a passo e auto-restart.</li>"
+        "<li><b>Persistência de Temas e Identidade:</b> Temas visuais e ícones corporativos preservados.</li>"
         "</ul>"
     );
 
@@ -789,7 +783,7 @@ void SettingsDialog::onCheckGitUpdates() {
 
 void SettingsDialog::onApplyGitUpdate() {
     auto confirm = QMessageBox::question(this, "Atualizar VxVoice",
-        "Deseja iniciar a atualização do software agora?\n\nO aplicativo irá instalar o pacote e reiniciar automaticamente na nova versão, exibindo as novidades e melhorias.",
+        "Deseja iniciar a atualização do software agora?\n\nO aplicativo irá instalar o novo pacote e reiniciar automaticamente na nova versão, exibindo as novidades e melhorias.",
         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
     if (confirm != QMessageBox::Yes) {
@@ -800,8 +794,16 @@ void SettingsDialog::onApplyGitUpdate() {
     m_btnApplyUpdate->setText("Atualizando...");
     m_lblUpdateStatus->setText("Baixando pacote e instalando com privilégios...");
 
+    auto progressDlg = new UpdateProgressDialog(this);
+    progressDlg->setAttribute(Qt::WA_DeleteOnClose);
+
     auto &um = UpdateManager::instance();
     disconnect(&um, &UpdateManager::updateCompleted, this, nullptr);
+    disconnect(&um, &UpdateManager::updateProgress, progressDlg, nullptr);
+    disconnect(&um, &UpdateManager::updateCompleted, progressDlg, nullptr);
+
+    connect(&um, &UpdateManager::updateProgress, progressDlg, &UpdateProgressDialog::setProgress);
+    connect(&um, &UpdateManager::updateCompleted, progressDlg, &UpdateProgressDialog::onUpdateCompleted);
 
     connect(&um, &UpdateManager::updateCompleted, this, [this](bool ok, const QString &msg) {
         m_btnApplyUpdate->setEnabled(true);
@@ -812,10 +814,10 @@ void SettingsDialog::onApplyGitUpdate() {
         } else {
             m_lblUpdateStatus->setText("⚠ " + msg);
             m_lblUpdateStatus->setStyleSheet("color: #E74C3C; font-size: 12px;");
-            QMessageBox::warning(this, "Erro na Atualização", msg);
         }
     });
 
+    progressDlg->show();
     um.applyUpdate();
 }
 

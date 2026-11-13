@@ -7,7 +7,7 @@
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "1.4.6"
+#define VXVOICE_VERSION "1.4.7"
 #endif
 
 UpdateManager& UpdateManager::instance() {
@@ -173,16 +173,20 @@ void UpdateManager::checkForUpdates(bool silent) {
 void UpdateManager::applyUpdate() {
     if (!isGitRepository()) {
         emit updateCompleted(false, "Repositório Git não encontrado.");
+        emit updateProgress(0, "Erro: Repositório Git não encontrado.");
         return;
     }
 
     emit statusChanged("Preparando e sincronizando pacote de atualização...");
+    emit updateProgress(15, "Sincronizando repositório Git e verificando atualizações...");
     auto process = new QProcess(this);
     process->setWorkingDirectory(m_repoPath);
 
     connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [this, process](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
         process->deleteLater();
+
+        emit updateProgress(45, "Localizando pacote Debian de instalação...");
 
         // Procura o pacote .deb mais recente gerado para instalação
         QString debPath;
@@ -204,6 +208,7 @@ void UpdateManager::applyUpdate() {
         }
 
         if (debPath.isEmpty()) {
+            emit updateProgress(0, "Erro: Pacote .deb de instalação não encontrado.");
             emit updateCompleted(false, "Nenhum pacote .deb de atualização encontrado.");
             emit statusChanged("Erro: Pacote .deb não localizado.");
             return;
@@ -211,23 +216,27 @@ void UpdateManager::applyUpdate() {
 
         if (QFile::exists("/usr/bin/pkexec")) {
             emit statusChanged("Instalando pacote com privilégios de administrador...");
+            emit updateProgress(70, QString("Instalando %1 via gerenciador de pacotes...").arg(QFileInfo(debPath).fileName()));
             auto instProc = new QProcess(this);
             connect(instProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
                     this, [this, instProc, debPath](int instCode, QProcess::ExitStatus instStatus) {
                 instProc->deleteLater();
                 if (instStatus == QProcess::NormalExit && instCode == 0) {
+                    emit updateProgress(100, "Instalação concluída com sucesso! Reiniciando o VxVoice...");
                     emit updateCompleted(true, QString("VxVoice atualizado com sucesso!\n\nPacote instalado: %1\n\nReiniciando para carregar a nova versão...")
                                          .arg(QFileInfo(debPath).fileName()));
                     emit statusChanged("Atualização e instalação concluídas. Reiniciando...");
                     // Reinicia o softphone automaticamente na nova versão
                     restartApplication();
                 } else {
+                    emit updateProgress(0, "A instalação foi cancelada ou falhou.");
                     emit updateCompleted(false, QString("Atualização cancelada ou com erro. Para instalar manualmente:\nsudo dpkg -i %1").arg(debPath));
                     emit statusChanged("Aguardando instalação do pacote.");
                 }
             });
             instProc->start("pkexec", {"dpkg", "-i", debPath});
         } else {
+            emit updateProgress(100, "Atualização sincronizada.");
             emit updateCompleted(true, QString("Atualizações sincronizadas.\nInstale manualmente executando:\nsudo dpkg -i %1").arg(debPath));
             emit statusChanged("Atualização sincronizada.");
         }

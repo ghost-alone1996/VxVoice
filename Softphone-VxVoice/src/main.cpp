@@ -32,9 +32,10 @@ int main(int argc, char *argv[]) {
     bool startMinimized = SettingsManager::instance().startMinimized();
     for (int i = 1; i < argc; ++i) {
         QString arg = QString::fromLocal8Bit(argv[i]);
-        if (arg == "--autostart" || arg == "-m" || arg == "--minimized") {
+        if (arg == "--minimized" || arg == "-m") {
             startMinimized = true;
-            break;
+        } else if (arg == "--show" || arg == "--open" || arg == "--no-minimized") {
+            startMinimized = false;
         }
     }
 

@@ -52,6 +52,21 @@ MainWindow::MainWindow(QWidget *parent)
         });
     }
 
+    // Se o aplicativo iniciou minimizado no System Tray, exibe notificação silenciosa de ramal disponível
+    if (SettingsManager::instance().startMinimized()) {
+        QTimer::singleShot(1500, this, [this]() {
+            if (m_trayIcon && m_trayIcon->isVisible() && !isVisible() && !m_startupTrayNotified) {
+                m_startupTrayNotified = true;
+                auto acc = SettingsManager::instance().defaultAccount();
+                QString ramal = !acc.username.isEmpty() ? acc.username : "";
+                QString msg = !ramal.isEmpty()
+                    ? QString("O VxVoice está em execução em segundo plano com o ramal %1 disponível.").arg(ramal)
+                    : "O VxVoice está em execução em segundo plano com o serviço disponível.";
+                m_trayIcon->showMessage("VxVoice Softphone", msg, QSystemTrayIcon::Information, 5000);
+            }
+        });
+    }
+
     QTimer::singleShot(3000, []() {
         UpdateManager::instance().checkForUpdates(true);
     });
@@ -346,9 +361,21 @@ void MainWindow::onSipPresenceChanged(SipManager::UserPresence presence) {
 }
 
 void MainWindow::onRegistrationStateChanged(SipManager::RegistrationState state, const QString &message) {
-    Q_UNUSED(state);
     updateVisorAccount();
     statusBar()->showMessage(message, 4000);
+
+    // Se iniciou minimizado e registrou com sucesso, notifica uma vez com o ramal ativo
+    if (state == SipManager::RegistrationState::Registered && !m_startupTrayNotified && !isVisible()) {
+        m_startupTrayNotified = true;
+        auto acc = SettingsManager::instance().defaultAccount();
+        QString ramal = !acc.username.isEmpty() ? acc.username : "";
+        QString msg = !ramal.isEmpty()
+            ? QString("O VxVoice está em execução em segundo plano com o ramal %1 disponível.").arg(ramal)
+            : "O VxVoice está em execução em segundo plano com o serviço disponível.";
+        if (m_trayIcon && m_trayIcon->isVisible()) {
+            m_trayIcon->showMessage("VxVoice Softphone", msg, QSystemTrayIcon::Information, 5000);
+        }
+    }
 }
 
 void MainWindow::onIncomingCall(const QString &callId, const QString &number, const QString &name) {

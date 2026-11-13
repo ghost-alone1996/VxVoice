@@ -56,14 +56,13 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>🎨 Persistência do Tema Visual:</b> Correção definitiva no carregamento das preferências de tema. "
-        "Ao selecionar qualquer tema (Dark, Light, Red ou Roxo) e reiniciar o aplicativo, sua escolha permanece ativa.</li><br>"
-        "<li><b>🔄 Atualizador Integrado com Reinício Automático:</b> A tela de atualização agora exibe em tempo real "
-        "a versão instalada, a versão disponível no repositório Git e executa a atualização com reinício automático e apresentação de melhorias.</li><br>"
-        "<li><b>🏷️ Preservação da Identidade e Ícones:</b> O ícone corporativo oficial permanece fixado no executável "
-        "e atalho do sistema em todas as resoluções (16px a 256px), com versionamento semântico v%1.</li><br>"
-        "<li><b>📞 Diálogo de Seleção de Números de Contatos:</b> Proporções e layout ampliados para evitar qualquer corte de texto ao discar para contatos com múltiplos ramais e telefones.</li><br>"
-        "<li><b>🎙️ Áudio e Gravações:</b> Estabilidade na reprodução direta de gravações de chamadas e captura de dispositivos USB.</li>"
+        "<li><b>🚀 Iniciar com o Sistema Operacional:</b> Correção completa na inicialização com o boot. "
+        "Quando 'Iniciar minimizado no System Tray' estiver desativado, o VxVoice abre diretamente na tela principal assim que a área de trabalho carregar.</li><br>"
+        "<li><b>🔔 Inicialização Silenciosa em Segundo Plano:</b> Remoção de popups incômodos nas configurações ao marcar o início minimizado. "
+        "Ao inicializar minimizado, o aplicativo exibe apenas um balão de notificação no System Tray informando que o VxVoice está ativo com o ramal disponível.</li><br>"
+        "<li><b>📊 Janela de Progresso da Instalação:</b> Diálogo moderno de progresso durante as atualizações via Git, "
+        "com barra de percentual e acompanhamento das etapas de download, instalação e reinício automático.</li><br>"
+        "<li><b>🎨 Persistência do Tema Visual:</b> Temas visuais selecionados (Dark, Light, Red e Roxo) mantidos permanentemente.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);
 

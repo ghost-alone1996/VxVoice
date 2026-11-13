@@ -36,6 +36,9 @@ bool SettingsManager::startMinimized() const {
 
 void SettingsManager::setStartMinimized(bool enable) {
     m_settings.setValue("General/StartMinimized", enable);
+    if (startWithSystem()) {
+        applySystemAutostart(true);
+    }
     emit settingsChanged();
 }
 
@@ -348,12 +351,17 @@ SipAccountConfig SettingsManager::defaultAccount() const {
 
 bool SettingsManager::applySystemAutostart(bool enable) {
     QString appPath = QCoreApplication::applicationFilePath();
+    if (QFile::exists("/usr/bin/VxVoice") && appPath.contains("/build")) {
+        appPath = "/usr/bin/VxVoice";
+    }
     QString appName = QCoreApplication::applicationName();
 
 #ifdef Q_OS_WIN
     QSettings bootSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
     if (enable) {
-        bootSettings.setValue(appName, QString("\"%1\" --autostart").arg(QDir::toNativeSeparators(appPath)));
+        QString execCmd = startMinimized() ? QString("\"%1\" --autostart --minimized").arg(QDir::toNativeSeparators(appPath))
+                                           : QString("\"%1\" --autostart --show").arg(QDir::toNativeSeparators(appPath));
+        bootSettings.setValue(appName, execCmd);
     } else {
         bootSettings.remove(appName);
     }
@@ -374,10 +382,16 @@ bool SettingsManager::applySystemAutostart(bool enable) {
             out << "Version=1.0\n";
             out << "Name=VxVoice\n";
             out << "Comment=Enterprise SIP Softphone Client\n";
-            out << "Exec=" << appPath << " --autostart\n";
+            if (startMinimized()) {
+                out << "Exec=" << appPath << " --autostart --minimized\n";
+            } else {
+                out << "Exec=" << appPath << " --autostart --show\n";
+            }
             out << "Terminal=false\n";
             out << "Categories=Network;Telephony;\n";
             out << "StartupNotify=false\n";
+            out << "X-GNOME-Autostart-enabled=true\n";
+            file.close();
             return true;
         }
         return false;
