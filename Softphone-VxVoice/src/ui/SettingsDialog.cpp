@@ -512,7 +512,7 @@ QWidget* SettingsDialog::createAboutTab() {
     updateLayout->setContentsMargins(14, 12, 14, 12);
     updateLayout->setSpacing(8);
 
-    auto lblUpdateHeader = new QLabel("<b>🔄 Atualização de Software (Git)</b>", updateCard);
+    auto lblUpdateHeader = new QLabel("<b>🔄 Atualização de Software (GitHub)</b>", updateCard);
     lblUpdateHeader->setStyleSheet("font-size: 14px; font-weight: bold; color: #3498DB;");
 
     auto formGrid = new QGridLayout();
@@ -523,12 +523,12 @@ QWidget* SettingsDialog::createAboutTab() {
     m_lblCurrentVersion = new QLabel(QString("v%1").arg(SettingsManager::APP_VERSION), updateCard);
     m_lblCurrentVersion->setStyleSheet("font-weight: bold; font-size: 13px;");
 
-    auto lblGitVerTitle = new QLabel("<b>Versão Disponível no Git:</b>", updateCard);
+    auto lblGitVerTitle = new QLabel("<b>Versão Disponível (GitHub):</b>", updateCard);
     m_lblGitVersion = new QLabel("Clique em verificar para consultar...", updateCard);
     m_lblGitVersion->setStyleSheet("font-weight: bold; color: #3498DB; font-size: 13px;");
 
     auto lblStatusTitle = new QLabel("<b>Status:</b>", updateCard);
-    m_lblUpdateStatus = new QLabel("Pronto para verificar atualizações no repositório.", updateCard);
+    m_lblUpdateStatus = new QLabel("Pronto para verificar atualizações no GitHub.", updateCard);
     m_lblUpdateStatus->setStyleSheet("color: #7F8C8D; font-size: 12px;");
 
     formGrid->addWidget(lblCurVerTitle, 0, 0);
@@ -542,7 +542,7 @@ QWidget* SettingsDialog::createAboutTab() {
     auto btnUpdateRow = new QHBoxLayout();
     btnUpdateRow->setSpacing(8);
 
-    m_btnCheckUpdates = new QPushButton("🔍 Verificar Atualizações no Git", updateCard);
+    m_btnCheckUpdates = new QPushButton("🔍 Verificar Atualizações no GitHub", updateCard);
     m_btnCheckUpdates->setCursor(Qt::PointingHandCursor);
     connect(m_btnCheckUpdates, &QPushButton::clicked, this, &SettingsDialog::onCheckGitUpdates);
 
@@ -577,12 +577,12 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.8):</b><br>"
+        "<b>Novidades e Correções (v1.4.9):</b><br>"
         "<ul>"
-        "<li><b>Suporte e Pacote Windows Installer (.msi):</b> Criação do pacote de distribuição corporativa Windows Installer (.msi) compatível com implantação automatizada em massa via Diretiva de Grupo (GPO), SCCM e Intune.</li>"
-        "<li><b>Instalação Windows Completa:</b> Atalhos na Área de Trabalho e Menu Iniciar, registro de protocolos SIP/SIPS/TEL, suporte a instalação silenciosa (/qn) e desinstalação limpa.</li>"
-        "<li><b>Inicialização e Autostart:</b> Sincronização avançada de abertura de janela ou início minimizado com notificação de ramal no System Tray.</li>"
-        "<li><b>Janela de Progresso:</b> Feedback visual em tempo real nas atualizações com barra de percentual.</li>"
+        "<li><b>Atualizador Direto via GitHub:</b> Consulta automática de novas versões, tags, commits e Releases diretamente no repositório oficial do GitHub (github.com/ghost-alone1996/VxVoice).</li>"
+        "<li><b>Download e Instalação Automatizada:</b> Suporte a download de pacotes .deb (Linux) e .msi (Windows) diretamente das Releases do GitHub ou sincronização automática via git pull.</li>"
+        "<li><b>Suporte e Pacote Windows Installer (.msi):</b> Distribuição corporativa compatível com GPO, SCCM, Intune e instalação silenciosa (/qn).</li>"
+        "<li><b>Inicialização e Autostart:</b> Abertura direta ou início minimizado silencioso com notificação de ramal no System Tray.</li>"
         "</ul>"
     );
 
@@ -738,7 +738,7 @@ void SettingsDialog::onSaveSipLogs() {
 void SettingsDialog::onCheckGitUpdates() {
     m_btnCheckUpdates->setEnabled(false);
     m_btnCheckUpdates->setText("Verificando...");
-    m_lblUpdateStatus->setText("Consultando repositório Git...");
+    m_lblUpdateStatus->setText("Consultando repositório no GitHub...");
     m_lblCurrentVersion->setText(QString("v%1").arg(SettingsManager::APP_VERSION));
 
     auto &um = UpdateManager::instance();
@@ -749,20 +749,20 @@ void SettingsDialog::onCheckGitUpdates() {
 
     connect(&um, &UpdateManager::updateChecked, this, [this](const QString &curVer, const QString &gitVer, bool hasUpdate, const QString &/*changelog*/) {
         m_btnCheckUpdates->setEnabled(true);
-        m_btnCheckUpdates->setText("🔍 Verificar Atualizações no Git");
+        m_btnCheckUpdates->setText("🔍 Verificar Atualizações no GitHub");
         m_lblCurrentVersion->setText(QString("v%1").arg(curVer));
 
         if (hasUpdate) {
             m_lblGitVersion->setText(QString("v%1 (Nova versão disponível!)").arg(gitVer));
             m_lblGitVersion->setStyleSheet("font-weight: bold; color: #2ECC71; font-size: 13px;");
-            m_lblUpdateStatus->setText("Uma versão mais recente foi localizada no repositório Git.");
+            m_lblUpdateStatus->setText("Uma versão mais recente foi localizada no GitHub.");
             m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 12px;");
             m_btnApplyUpdate->setEnabled(true);
             m_btnApplyUpdate->setText(QString("⬇ Atualizar para v%1").arg(gitVer));
         } else {
             m_lblGitVersion->setText(QString("v%1 (Versão mais recente)").arg(gitVer));
             m_lblGitVersion->setStyleSheet("font-weight: bold; color: #3498DB; font-size: 13px;");
-            m_lblUpdateStatus->setText("O software já está na versão mais recente disponível no repositório.");
+            m_lblUpdateStatus->setText("O software já está na versão mais recente disponível no GitHub.");
             m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-size: 12px;");
             m_btnApplyUpdate->setEnabled(true);
             m_btnApplyUpdate->setText("⬇ Reinstalar / Atualizar");
@@ -771,7 +771,7 @@ void SettingsDialog::onCheckGitUpdates() {
 
     connect(&um, &UpdateManager::updateError, this, [this](const QString &err) {
         m_btnCheckUpdates->setEnabled(true);
-        m_btnCheckUpdates->setText("🔍 Verificar Atualizações no Git");
+        m_btnCheckUpdates->setText("🔍 Verificar Atualizações no GitHub");
         m_lblGitVersion->setText("Indisponível");
         m_lblGitVersion->setStyleSheet("color: #E74C3C; font-size: 13px;");
         m_lblUpdateStatus->setText("⚠ " + err);

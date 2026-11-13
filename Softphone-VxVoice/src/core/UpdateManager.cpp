@@ -2,13 +2,49 @@
 #include "SettingsManager.h"
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QRegularExpression>
+#include <QStandardPaths>
 #include <QTimer>
+#include <QUrl>
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "1.4.8"
+#define VXVOICE_VERSION "1.4.9"
 #endif
+
+namespace {
+constexpr const char* GITHUB_REPO_URL      = "https://github.com/ghost-alone1996/VxVoice";
+constexpr const char* GITHUB_API_RELEASE   = "https://api.github.com/repos/ghost-alone1996/VxVoice/releases/latest";
+constexpr const char* GITHUB_API_TAGS      = "https://api.github.com/repos/ghost-alone1996/VxVoice/tags?per_page=15";
+constexpr const char* GITHUB_API_COMMIT    = "https://api.github.com/repos/ghost-alone1996/VxVoice/commits/main";
+constexpr const char* GITHUB_RAW_CMAKE     = "https://raw.githubusercontent.com/ghost-alone1996/VxVoice/main/Softphone-VxVoice/CMakeLists.txt";
+
+QNetworkRequest makeGithubRequest(const QString &url, bool isApi = true) {
+    QNetworkRequest req{QUrl(url)};
+    req.setHeader(QNetworkRequest::UserAgentHeader, "VxVoice-Softphone-Updater/1.4.9");
+    if (isApi) {
+        req.setRawHeader("Accept", "application/vnd.github+json");
+    }
+    req.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    req.setTransferTimeout(15000);
+    return req;
+}
+
+QString stripVPrefix(const QString &v) {
+    QString clean = v.trimmed();
+    if (clean.startsWith('v', Qt::CaseInsensitive)) {
+        clean = clean.mid(1);
+    }
+    return clean;
+}
+} // namespace
 
 UpdateManager& UpdateManager::instance() {
     static UpdateManager instance;
@@ -17,6 +53,7 @@ UpdateManager& UpdateManager::instance() {
 
 UpdateManager::UpdateManager(QObject *parent)
     : QObject(parent),
+      m_nam(new QNetworkAccessManager(this)),
       m_currentVersion(SettingsManager::APP_VERSION),
       m_gitVersion(SettingsManager::APP_VERSION) {
     m_repoPath = findGitDirectory();
@@ -34,6 +71,10 @@ QString UpdateManager::gitRepoPath() const {
     return m_repoPath;
 }
 
+QString UpdateManager::githubRepoUrl() const {
+    return QString(GITHUB_REPO_URL);
+}
+
 bool UpdateManager::isGitRepository() const {
     return !m_repoPath.isEmpty() && QDir(m_repoPath + "/.git").exists();
 }
@@ -43,10 +84,8 @@ bool UpdateManager::isUpdateAvailable() const {
 }
 
 int UpdateManager::compareVersions(const QString &v1, const QString &v2) {
-    QString clean1 = v1.trimmed();
-    if (clean1.startsWith('v', Qt::CaseInsensitive)) clean1 = clean1.mid(1);
-    QString clean2 = v2.trimmed();
-    if (clean2.startsWith('v', Qt::CaseInsensitive)) clean2 = clean2.mid(1);
+    QString clean1 = stripVPrefix(v1);
+    QString clean2 = stripVPrefix(v2);
 
     auto parts1 = clean1.split('.');
     auto parts2 = clean2.split('.');
@@ -62,7 +101,6 @@ int UpdateManager::compareVersions(const QString &v1, const QString &v2) {
 }
 
 QString UpdateManager::findGitDirectory() const {
-    // 1. Diretório de trabalho atual
     QDir dir(QDir::currentPath());
     for (int i = 0; i < 5; ++i) {
         if (dir.exists(".git")) {
@@ -71,7 +109,6 @@ QString UpdateManager::findGitDirectory() const {
         if (!dir.cdUp()) break;
     }
 
-    // 2. Diretório do executável
     QDir appDir(QCoreApplication::applicationDirPath());
     for (int i = 0; i < 5; ++i) {
         if (appDir.exists(".git")) {
@@ -80,7 +117,6 @@ QString UpdateManager::findGitDirectory() const {
         if (!appDir.cdUp()) break;
     }
 
-    // 3. Fallback para caminho do repositório
     if (QDir("/home/leonardo/Documentos/ProjetosDEV/.git").exists()) {
         return "/home/leonardo/Documentos/ProjetosDEV";
     }
@@ -94,91 +130,244 @@ void UpdateManager::checkForUpdates(bool silent) {
     m_silent = silent;
     m_isChecking = true;
     m_currentVersion = currentVersion();
+    m_downloadAssetUrl.clear();
+    m_downloadAssetName.clear();
+
     emit checkingStarted();
-    emit statusChanged("Verificando atualizações no repositório Git...");
+    emit statusChanged("Consultando repositório no GitHub...");
 
-    if (!isGitRepository()) {
-        m_isChecking = false;
-        QString err = "Repositório Git não encontrado.";
-        m_gitVersion = m_currentVersion;
-        emit updateError(err);
-        emit statusChanged(err);
-        return;
-    }
+    fetchGithubLatestRelease();
+}
 
-    // Consulta assíncrona ao Git
-    auto process = new QProcess(this);
-    process->setWorkingDirectory(m_repoPath);
+void UpdateManager::fetchGithubLatestRelease() {
+    auto reply = m_nam->get(makeGithubRequest(GITHUB_API_RELEASE, true));
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        reply->deleteLater();
+        int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [this, process](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
-        process->deleteLater();
-        m_isChecking = false;
+        if (reply->error() == QNetworkReply::NoError && httpStatus == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+            QJsonObject obj = doc.object();
+            QString tagName = obj.value("tag_name").toString().trimmed();
+            QString body = obj.value("body").toString().trimmed();
 
-        // 1. Obtém a tag de versão mais recente no Git
-        QProcess tagProc;
-        tagProc.setWorkingDirectory(m_repoPath);
-        tagProc.start("git", {"tag", "-l", "--sort=-v:refname", "v*"});
-        tagProc.waitForFinished(2000);
-        QString tagsOutput = QString::fromUtf8(tagProc.readAllStandardOutput()).trimmed();
-        QString latestTag;
-        if (!tagsOutput.isEmpty()) {
-            latestTag = tagsOutput.split('\n').first().trimmed();
+            if (!tagName.isEmpty()) {
+                const QJsonArray assets = obj.value("assets").toArray();
+#ifdef Q_OS_WIN
+                const QString targetExt = ".msi";
+#else
+                const QString targetExt = ".deb";
+#endif
+                for (const auto &assetVal : assets) {
+                    QJsonObject asset = assetVal.toObject();
+                    QString name = asset.value("name").toString();
+                    if (name.endsWith(targetExt, Qt::CaseInsensitive)) {
+                        m_downloadAssetName = name;
+                        m_downloadAssetUrl = asset.value("browser_download_url").toString();
+                        break;
+                    }
+                }
+
+                QString remoteVer = stripVPrefix(tagName);
+                fetchGithubMainCommit(remoteVer, body);
+                return;
+            }
         }
 
-        if (latestTag.isEmpty()) {
-            latestTag = "v" + m_currentVersion;
+        // Sem release publicada ainda (404) ou erro de API: consulta tags e CMakeLists.txt no branch main
+        if (httpStatus == 404 || reply->error() == QNetworkReply::ContentNotFoundError) {
+            fetchGithubTagsAndMain();
+            return;
         }
 
-        QString cleanGitVer = latestTag.startsWith('v') ? latestTag.mid(1) : latestTag;
-        m_gitVersion = cleanGitVer;
-
-        // 2. Obtém resumo do último commit
-        QProcess logProc;
-        logProc.setWorkingDirectory(m_repoPath);
-        logProc.start("git", {"log", "-1", "--format=%h - %s (%ci)"});
-        logProc.waitForFinished(2000);
-        QString lastCommit = QString::fromUtf8(logProc.readAllStandardOutput()).trimmed();
-
-        // 3. Verifica contagem de commits à frente se houver upstream
-        QProcess diffProc;
-        diffProc.setWorkingDirectory(m_repoPath);
-        diffProc.start("git", {"rev-list", "HEAD..@{u}", "--count"});
-        diffProc.waitForFinished(2000);
-        int aheadCount = QString::fromUtf8(diffProc.readAllStandardOutput()).trimmed().toInt();
-
-        // Compara versões semânticas
-        int cmp = compareVersions(m_gitVersion, m_currentVersion);
-        if (cmp > 0 || aheadCount > 0) {
-            m_isUpdateAvailable = true;
-            QString changelog = QString("Nova versão v%1 disponível no Git.\nÚltimo commit: %2")
-                                    .arg(m_gitVersion, lastCommit);
-            emit updateChecked(m_currentVersion, m_gitVersion, true, changelog);
-            emit updateAvailable(m_gitVersion, changelog);
-            emit statusChanged(QString("Nova versão v%1 disponível no Git.").arg(m_gitVersion));
+        // Caso ocorra erro de rede (sem internet, DNS, etc.), tenta informar claramente
+        if (reply->error() != QNetworkReply::NoError) {
+            qWarning() << "[UpdateManager] Erro ao consultar GitHub Releases:" << reply->errorString();
+            fetchGithubTagsAndMain();
         } else {
-            m_isUpdateAvailable = false;
-            QString msg = QString("O software está na versão mais recente (%1).\nCommit: %2")
-                              .arg(m_currentVersion, lastCommit);
-            emit updateChecked(m_currentVersion, m_gitVersion, false, msg);
-            emit upToDate(msg);
-            emit statusChanged(QString("Versão %1 (Atualizada)").arg(m_currentVersion));
+            fetchGithubTagsAndMain();
         }
     });
+}
 
-    // Se houver remoto configurado, faz fetch rápido
-    process->start("git", {"fetch", "--dry-run"});
+void UpdateManager::fetchGithubTagsAndMain() {
+    auto rawReply = m_nam->get(makeGithubRequest(GITHUB_RAW_CMAKE, false));
+    connect(rawReply, &QNetworkReply::finished, this, [this, rawReply]() {
+        rawReply->deleteLater();
+
+        QString cmakeVer;
+        if (rawReply->error() == QNetworkReply::NoError) {
+            QString content = QString::fromUtf8(rawReply->readAll());
+            QRegularExpression re(R"(project\s*\(\s*VxVoice[^)]*VERSION\s+([0-9]+\.[0-9]+\.[0-9]+))",
+                                  QRegularExpression::DotMatchesEverythingOption);
+            QRegularExpressionMatch m = re.match(content);
+            if (m.hasMatch()) {
+                cmakeVer = m.captured(1).trimmed();
+            }
+        } else {
+            m_isChecking = false;
+            QString err = QString("Não foi possível conectar ao GitHub (%1).").arg(rawReply->errorString());
+            m_gitVersion = m_currentVersion;
+            emit updateError(err);
+            emit statusChanged(err);
+            return;
+        }
+
+        auto tagsReply = m_nam->get(makeGithubRequest(GITHUB_API_TAGS, true));
+        connect(tagsReply, &QNetworkReply::finished, this, [this, tagsReply, cmakeVer]() {
+            tagsReply->deleteLater();
+
+            QString bestTagVer;
+            if (tagsReply->error() == QNetworkReply::NoError) {
+                QJsonDocument doc = QJsonDocument::fromJson(tagsReply->readAll());
+                const QJsonArray arr = doc.array();
+                for (const auto &item : arr) {
+                    QString t = stripVPrefix(item.toObject().value("name").toString());
+                    if (!t.isEmpty() && (bestTagVer.isEmpty() || compareVersions(t, bestTagVer) > 0)) {
+                        bestTagVer = t;
+                    }
+                }
+            }
+
+            QString remoteVer = m_currentVersion;
+            if (!cmakeVer.isEmpty() && compareVersions(cmakeVer, remoteVer) > 0) {
+                remoteVer = cmakeVer;
+            }
+            if (!bestTagVer.isEmpty() && compareVersions(bestTagVer, remoteVer) > 0) {
+                remoteVer = bestTagVer;
+            }
+
+            // Se nenhuma versão maior que a atual foi encontrada, usa a versão detectada no GitHub
+            if (!cmakeVer.isEmpty() && bestTagVer.isEmpty()) {
+                remoteVer = cmakeVer;
+            } else if (!bestTagVer.isEmpty() && cmakeVer.isEmpty()) {
+                remoteVer = bestTagVer;
+            } else if (!cmakeVer.isEmpty() && !bestTagVer.isEmpty()) {
+                remoteVer = (compareVersions(cmakeVer, bestTagVer) >= 0) ? cmakeVer : bestTagVer;
+            }
+
+            fetchGithubMainCommit(remoteVer, QString());
+        });
+    });
+}
+
+void UpdateManager::fetchGithubMainCommit(const QString &detectedVersion, const QString &releaseNotes) {
+    auto commitReply = m_nam->get(makeGithubRequest(GITHUB_API_COMMIT, true));
+    connect(commitReply, &QNetworkReply::finished, this, [this, commitReply, detectedVersion, releaseNotes]() {
+        commitReply->deleteLater();
+
+        QString commitSummary;
+        if (commitReply->error() == QNetworkReply::NoError) {
+            QJsonObject obj = QJsonDocument::fromJson(commitReply->readAll()).object();
+            QString sha = obj.value("sha").toString().left(7);
+            QJsonObject commitObj = obj.value("commit").toObject();
+            QString msg = commitObj.value("message").toString().split('\n').first().trimmed();
+            QString date = commitObj.value("author").toObject().value("date").toString().left(10);
+            if (!sha.isEmpty()) {
+                commitSummary = QString("%1 - %2 (%3)").arg(sha, msg, date);
+            }
+        }
+
+        QString changelog;
+        if (!releaseNotes.isEmpty()) {
+            changelog = releaseNotes;
+            if (!commitSummary.isEmpty()) {
+                changelog += QString("\n\nCommit GitHub: %1").arg(commitSummary);
+            }
+        } else if (!commitSummary.isEmpty()) {
+            changelog = QString("Repositório GitHub: %1\nÚltimo commit (main): %2").arg(GITHUB_REPO_URL, commitSummary);
+        } else {
+            changelog = QString("Repositório GitHub: %1").arg(GITHUB_REPO_URL);
+        }
+
+        finalizeUpdateCheck(detectedVersion, changelog);
+    });
+}
+
+void UpdateManager::finalizeUpdateCheck(const QString &remoteVer, const QString &changelog) {
+    m_isChecking = false;
+    m_gitVersion = remoteVer.isEmpty() ? m_currentVersion : remoteVer;
+
+    int cmp = compareVersions(m_gitVersion, m_currentVersion);
+    if (cmp > 0) {
+        m_isUpdateAvailable = true;
+        QString fullLog = QString("Nova versão v%1 disponível no GitHub.\n%2").arg(m_gitVersion, changelog);
+        emit updateChecked(m_currentVersion, m_gitVersion, true, fullLog);
+        emit updateAvailable(m_gitVersion, fullLog);
+        emit statusChanged(QString("Nova versão v%1 disponível no GitHub.").arg(m_gitVersion));
+    } else {
+        m_isUpdateAvailable = false;
+        QString msg = QString("O software está na versão mais recente (%1).\n%2").arg(m_currentVersion, changelog);
+        emit updateChecked(m_currentVersion, m_gitVersion, false, msg);
+        emit upToDate(msg);
+        emit statusChanged(QString("Versão %1 (Atualizada com o GitHub)").arg(m_currentVersion));
+    }
 }
 
 void UpdateManager::applyUpdate() {
-    if (!isGitRepository()) {
-        emit updateCompleted(false, "Repositório Git não encontrado.");
-        emit updateProgress(0, "Erro: Repositório Git não encontrado.");
+    // 1. Se houver pacote instalador (.deb / .msi) anexado na Release do GitHub, baixa diretamente do GitHub
+    if (!m_downloadAssetUrl.isEmpty()) {
+        emit statusChanged("Baixando instalador oficial do GitHub...");
+        emit updateProgress(10, QString("Baixando %1 do GitHub...").arg(m_downloadAssetName));
+
+        QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        QString targetFile = tempDir + "/" + m_downloadAssetName;
+
+        auto reply = m_nam->get(makeGithubRequest(m_downloadAssetUrl, false));
+        connect(reply, &QNetworkReply::downloadProgress, this, [this](qint64 received, qint64 total) {
+            if (total > 0) {
+                int pct = 10 + static_cast<int>((received * 55) / total);
+                emit updateProgress(pct, QString("Baixando atualização do GitHub (%1%)...").arg((received * 100) / total));
+            }
+        });
+
+        connect(reply, &QNetworkReply::finished, this, [this, reply, targetFile]() {
+            reply->deleteLater();
+            if (reply->error() != QNetworkReply::NoError) {
+                emit updateProgress(0, "Erro ao baixar pacote do GitHub.");
+                emit updateCompleted(false, QString("Falha no download do GitHub: %1").arg(reply->errorString()));
+                return;
+            }
+
+            QFile outFile(targetFile);
+            if (!outFile.open(QIODevice::WriteOnly)) {
+                emit updateProgress(0, "Erro ao salvar pacote temporário.");
+                emit updateCompleted(false, "Não foi possível salvar o instalador baixado em " + targetFile);
+                return;
+            }
+            outFile.write(reply->readAll());
+            outFile.close();
+
+#ifdef Q_OS_WIN
+            emit updateProgress(85, "Iniciando instalador Windows (.msi)...");
+            if (QProcess::startDetached("msiexec", {"/i", QDir::toNativeSeparators(targetFile), "/passive"})) {
+                emit updateProgress(100, "Instalador iniciado! Encerrando VxVoice para concluir...");
+                emit updateCompleted(true, "Instalador .msi iniciado com sucesso. O VxVoice será atualizado.");
+                QTimer::singleShot(500, []() { QCoreApplication::quit(); });
+            } else {
+                emit updateProgress(0, "Falha ao executar msiexec.");
+                emit updateCompleted(false, "Execute manualmente o instalador em: " + targetFile);
+            }
+#else
+            installLinuxDebPackage(targetFile);
+#endif
+        });
         return;
     }
 
-    emit statusChanged("Preparando e sincronizando pacote de atualização...");
-    emit updateProgress(15, "Sincronizando repositório Git e verificando atualizações...");
+    // 2. Caso ainda não haja asset na Release do GitHub, sincroniza via git pull do GitHub e compila/instala
+    if (!isGitRepository()) {
+        emit updateProgress(0, "Nenhum instalador encontrado na Release do GitHub.");
+        emit updateCompleted(false,
+            QString("A versão v%1 está no GitHub (%2), porém nenhum pacote instalador (.deb/.msi) foi publicado nas Releases ainda.")
+                .arg(m_gitVersion, GITHUB_REPO_URL));
+        emit statusChanged("Aguardando publicação do pacote na Release do GitHub.");
+        return;
+    }
+
+    emit statusChanged("Sincronizando repositório com o GitHub...");
+    emit updateProgress(15, "Sincronizando código-fonte com o GitHub (git pull)...");
+
     auto process = new QProcess(this);
     process->setWorkingDirectory(m_repoPath);
 
@@ -186,9 +375,8 @@ void UpdateManager::applyUpdate() {
             this, [this, process](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
         process->deleteLater();
 
-        emit updateProgress(45, "Localizando pacote Debian de instalação...");
+        emit updateProgress(45, "Localizando ou gerando pacote Debian de instalação...");
 
-        // Procura o pacote .deb mais recente gerado para instalação
         QString debPath;
         QStringList searchDirs = {
             m_repoPath,
@@ -197,13 +385,49 @@ void UpdateManager::applyUpdate() {
             QFileInfo(m_repoPath).dir().absolutePath()
         };
 
+        QString expectedName = QString("vxvoice-%1-Linux.deb").arg(m_gitVersion);
         for (const auto &sdir : searchDirs) {
             QDir d(sdir);
             if (!d.exists()) continue;
-            auto debFiles = d.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
-            if (!debFiles.isEmpty()) {
-                debPath = debFiles.first().absoluteFilePath();
+            if (QFile::exists(d.filePath(expectedName))) {
+                debPath = d.filePath(expectedName);
                 break;
+            }
+        }
+
+        if (debPath.isEmpty()) {
+            // Tenta compilar e empacotar o código recém-sincronizado do GitHub
+            QString buildDir = m_repoPath + "/Softphone-VxVoice/build";
+            if (QDir(buildDir).exists()) {
+                emit updateProgress(55, "Compilando nova versão sincronizada do GitHub...");
+                auto buildProc = new QProcess(this);
+                buildProc->setWorkingDirectory(buildDir);
+                connect(buildProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                        this, [this, buildProc, buildDir](int bCode, QProcess::ExitStatus bStatus) {
+                    buildProc->deleteLater();
+                    if (bStatus == QProcess::NormalExit && bCode == 0) {
+                        QDir bd(buildDir);
+                        auto debFiles = bd.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
+                        if (!debFiles.isEmpty()) {
+                            installLinuxDebPackage(debFiles.first().absoluteFilePath());
+                            return;
+                        }
+                    }
+                    emit updateProgress(0, "Erro ao gerar pacote .deb da nova versão.");
+                    emit updateCompleted(false, "Código sincronizado com o GitHub, mas não foi possível gerar o pacote .deb automaticamente.");
+                });
+                buildProc->start("bash", {"-c", "cmake .. && make -j$(nproc) && cpack -G DEB"});
+                return;
+            }
+
+            for (const auto &sdir : searchDirs) {
+                QDir d(sdir);
+                if (!d.exists()) continue;
+                auto debFiles = d.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
+                if (!debFiles.isEmpty()) {
+                    debPath = debFiles.first().absoluteFilePath();
+                    break;
+                }
             }
         }
 
@@ -214,35 +438,38 @@ void UpdateManager::applyUpdate() {
             return;
         }
 
-        if (QFile::exists("/usr/bin/pkexec")) {
-            emit statusChanged("Instalando pacote com privilégios de administrador...");
-            emit updateProgress(70, QString("Instalando %1 via gerenciador de pacotes...").arg(QFileInfo(debPath).fileName()));
-            auto instProc = new QProcess(this);
-            connect(instProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                    this, [this, instProc, debPath](int instCode, QProcess::ExitStatus instStatus) {
-                instProc->deleteLater();
-                if (instStatus == QProcess::NormalExit && instCode == 0) {
-                    emit updateProgress(100, "Instalação concluída com sucesso! Reiniciando o VxVoice...");
-                    emit updateCompleted(true, QString("VxVoice atualizado com sucesso!\n\nPacote instalado: %1\n\nReiniciando para carregar a nova versão...")
-                                         .arg(QFileInfo(debPath).fileName()));
-                    emit statusChanged("Atualização e instalação concluídas. Reiniciando...");
-                    // Reinicia o softphone automaticamente na nova versão
-                    restartApplication();
-                } else {
-                    emit updateProgress(0, "A instalação foi cancelada ou falhou.");
-                    emit updateCompleted(false, QString("Atualização cancelada ou com erro. Para instalar manualmente:\nsudo dpkg -i %1").arg(debPath));
-                    emit statusChanged("Aguardando instalação do pacote.");
-                }
-            });
-            instProc->start("pkexec", {"dpkg", "-i", debPath});
-        } else {
-            emit updateProgress(100, "Atualização sincronizada.");
-            emit updateCompleted(true, QString("Atualizações sincronizadas.\nInstale manualmente executando:\nsudo dpkg -i %1").arg(debPath));
-            emit statusChanged("Atualização sincronizada.");
-        }
+        installLinuxDebPackage(debPath);
     });
 
-    process->start("git", {"pull", "--rebase"});
+    process->start("bash", {"-c", "git fetch origin --tags && git pull --rebase origin main"});
+}
+
+void UpdateManager::installLinuxDebPackage(const QString &debPath) {
+    if (QFile::exists("/usr/bin/pkexec")) {
+        emit statusChanged("Instalando pacote com privilégios de administrador...");
+        emit updateProgress(75, QString("Instalando %1 via gerenciador de pacotes...").arg(QFileInfo(debPath).fileName()));
+        auto instProc = new QProcess(this);
+        connect(instProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, [this, instProc, debPath](int instCode, QProcess::ExitStatus instStatus) {
+            instProc->deleteLater();
+            if (instStatus == QProcess::NormalExit && instCode == 0) {
+                emit updateProgress(100, "Instalação concluída com sucesso! Reiniciando o VxVoice...");
+                emit updateCompleted(true, QString("VxVoice atualizado com sucesso!\n\nPacote instalado: %1\n\nReiniciando para carregar a nova versão...")
+                                     .arg(QFileInfo(debPath).fileName()));
+                emit statusChanged("Atualização e instalação concluídas. Reiniciando...");
+                restartApplication();
+            } else {
+                emit updateProgress(0, "A instalação foi cancelada ou falhou.");
+                emit updateCompleted(false, QString("Atualização cancelada ou com erro. Para instalar manualmente:\nsudo dpkg -i %1").arg(debPath));
+                emit statusChanged("Aguardando instalação do pacote.");
+            }
+        });
+        instProc->start("pkexec", {"dpkg", "-i", debPath});
+    } else {
+        emit updateProgress(100, "Atualização sincronizada.");
+        emit updateCompleted(true, QString("Pacote pronto.\nInstale manualmente executando:\nsudo dpkg -i %1").arg(debPath));
+        emit statusChanged("Atualização pronta.");
+    }
 }
 
 void UpdateManager::restartApplication() {
@@ -251,10 +478,8 @@ void UpdateManager::restartApplication() {
         execPath = QCoreApplication::applicationFilePath();
     }
 
-    // Inicia nova instância desacoplada informando a atualização recém-feita
     bool started = QProcess::startDetached(execPath, {"--just-updated"});
     if (started) {
-        // Encerra imediatamente o processo atual
         QTimer::singleShot(400, []() {
             QCoreApplication::quit();
         });

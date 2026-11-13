@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QProcess>
+#include <QNetworkAccessManager>
 
 class UpdateManager : public QObject {
     Q_OBJECT
@@ -14,6 +15,7 @@ public:
     QString currentVersion() const;
     QString gitVersion() const;
     QString gitRepoPath() const;
+    QString githubRepoUrl() const;
     bool isGitRepository() const;
     bool isUpdateAvailable() const;
 
@@ -40,12 +42,21 @@ private:
     QString findGitDirectory() const;
     static int compareVersions(const QString &v1, const QString &v2);
 
+    void fetchGithubLatestRelease();
+    void fetchGithubTagsAndMain();
+    void fetchGithubMainCommit(const QString &detectedVersion, const QString &releaseNotes);
+    void finalizeUpdateCheck(const QString &remoteVer, const QString &changelog);
+    void installLinuxDebPackage(const QString &debPath);
+
+    QNetworkAccessManager *m_nam{nullptr};
     bool m_isChecking{false};
     bool m_silent{false};
     bool m_isUpdateAvailable{false};
     QString m_currentVersion;
     QString m_gitVersion;
     QString m_repoPath;
+    QString m_downloadAssetUrl;
+    QString m_downloadAssetName;
 };
 
 #endif // UPDATEMANAGER_H

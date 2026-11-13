@@ -33,11 +33,11 @@ MainWindow::MainWindow(QWidget *parent)
     SipManager::instance().initialize();
     updateVisorAccount();
 
-    // Notificação de atualização automática via Git
+    // Notificação de atualização automática via GitHub
     connect(&UpdateManager::instance(), &UpdateManager::updateAvailable, this, [this](const QString &ver, const QString &/*log*/) {
         if (m_trayIcon && m_trayIcon->isVisible()) {
             m_trayIcon->showMessage("Atualização VxVoice",
-                QString("Nova versão disponível no repositório Git: %1").arg(ver),
+                QString("Nova versão v%1 disponível no GitHub!").arg(ver),
                 QSystemTrayIcon::Information, 6000);
         }
     });
