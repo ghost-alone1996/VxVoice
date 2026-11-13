@@ -16,7 +16,7 @@
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "1.4.9"
+#define VXVOICE_VERSION "2.0.0"
 #endif
 
 namespace {
@@ -28,7 +28,7 @@ constexpr const char* GITHUB_RAW_CMAKE     = "https://raw.githubusercontent.com/
 
 QNetworkRequest makeGithubRequest(const QString &url, bool isApi = true) {
     QNetworkRequest req{QUrl(url)};
-    req.setHeader(QNetworkRequest::UserAgentHeader, "VxVoice-Softphone-Updater/1.4.9");
+    req.setHeader(QNetworkRequest::UserAgentHeader, "VxVoice-Softphone-Updater/2.0.0");
     if (isApi) {
         req.setRawHeader("Accept", "application/vnd.github+json");
     }
@@ -81,6 +81,10 @@ bool UpdateManager::isGitRepository() const {
 
 bool UpdateManager::isUpdateAvailable() const {
     return m_isUpdateAvailable;
+}
+
+bool UpdateManager::isSilentCheck() const {
+    return m_silent;
 }
 
 int UpdateManager::compareVersions(const QString &v1, const QString &v2) {

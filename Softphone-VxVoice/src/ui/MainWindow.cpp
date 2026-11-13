@@ -7,6 +7,7 @@
 #include "ContactsManager.h"
 #include "IconHelper.h"
 #include "UpdateManager.h"
+#include "UpdateProgressDialog.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QApplication>
@@ -29,16 +30,53 @@ MainWindow::MainWindow(QWidget *parent)
     setupTrayIcon();
     setupConnections();
 
-    // Sincroniza estado inicial do SIP
+    // Sincroniza estado inicial do SIP e Status de Registro salvo
     SipManager::instance().initialize();
+    int savedPresence = qBound(0, SettingsManager::instance().registrationStatus(), 2);
+    m_comboPresence->blockSignals(true);
+    m_comboPresence->setCurrentIndex(savedPresence);
+    m_comboPresence->blockSignals(false);
+    onPresenceIndexChanged(savedPresence);
     updateVisorAccount();
 
-    // Notificação de atualização automática via GitHub
-    connect(&UpdateManager::instance(), &UpdateManager::updateAvailable, this, [this](const QString &ver, const QString &/*log*/) {
+    // Notificação e janela de atualização automática ao abrir o aplicativo
+    connect(&UpdateManager::instance(), &UpdateManager::updateAvailable, this, [this](const QString &ver, const QString &log) {
         if (m_trayIcon && m_trayIcon->isVisible()) {
             m_trayIcon->showMessage("Atualização VxVoice",
                 QString("Nova versão v%1 disponível no GitHub!").arg(ver),
                 QSystemTrayIcon::Information, 6000);
+        }
+
+        if (UpdateManager::instance().isSilentCheck()) {
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Atualização Disponível — VxVoice");
+            msgBox.setIcon(QMessageBox::Information);
+            msgBox.setText(QString("<b>Uma nova versão do VxVoice está disponível no GitHub!</b>"));
+            msgBox.setInformativeText(
+                QString("Versão atual instalada: <b>v%1</b><br>"
+                        "Nova versão disponível: <b>v%2</b><br><br>"
+                        "%3<br><br>"
+                        "Deseja baixar e aplicar a atualização agora?")
+                    .arg(SettingsManager::APP_VERSION, ver, QString(log).replace("\n", "<br>"))
+            );
+            auto btnUpdate = msgBox.addButton("Atualizar Agora", QMessageBox::AcceptRole);
+            msgBox.addButton("Agora Não", QMessageBox::RejectRole);
+            msgBox.setDefaultButton(btnUpdate);
+            msgBox.exec();
+
+            if (msgBox.clickedButton() == btnUpdate) {
+                auto progressDlg = new UpdateProgressDialog(this);
+                progressDlg->setAttribute(Qt::WA_DeleteOnClose);
+
+                auto &um = UpdateManager::instance();
+                disconnect(&um, &UpdateManager::updateProgress, progressDlg, nullptr);
+                disconnect(&um, &UpdateManager::updateCompleted, progressDlg, nullptr);
+                connect(&um, &UpdateManager::updateProgress, progressDlg, &UpdateProgressDialog::setProgress);
+                connect(&um, &UpdateManager::updateCompleted, progressDlg, &UpdateProgressDialog::onUpdateCompleted);
+
+                progressDlg->show();
+                um.applyUpdate();
+            }
         }
     });
 

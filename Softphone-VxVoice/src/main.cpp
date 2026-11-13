@@ -28,14 +28,29 @@ int main(int argc, char *argv[]) {
 
     MainWindow window;
 
-    // Check if application should start minimized in tray
-    bool startMinimized = SettingsManager::instance().startMinimized();
+    // Iniciar minimizado no System Tray somente quando iniciado junto com o Sistema Operacional (--autostart)
+    bool isAutostart = false;
+    bool hasExplicitMinimized = false;
+    bool hasExplicitShow = false;
     for (int i = 1; i < argc; ++i) {
         QString arg = QString::fromLocal8Bit(argv[i]);
-        if (arg == "--minimized" || arg == "-m") {
-            startMinimized = true;
+        if (arg == "--autostart") {
+            isAutostart = true;
+        } else if (arg == "--minimized" || arg == "-m") {
+            hasExplicitMinimized = true;
         } else if (arg == "--show" || arg == "--open" || arg == "--no-minimized") {
-            startMinimized = false;
+            hasExplicitShow = true;
+        }
+    }
+
+    bool startMinimized = false;
+    if (!hasExplicitShow) {
+        if (isAutostart && SettingsManager::instance().startWithSystem() && SettingsManager::instance().startMinimized()) {
+            startMinimized = true;
+        } else if (hasExplicitMinimized && isAutostart) {
+            startMinimized = true;
+        } else if (hasExplicitMinimized && !isAutostart) {
+            startMinimized = true;
         }
     }
 

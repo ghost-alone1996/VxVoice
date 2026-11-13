@@ -39,7 +39,7 @@ class SettingsManager : public QObject {
     Q_OBJECT
 
 public:
-    static constexpr const char* APP_VERSION = "1.4.9";
+    static constexpr const char* APP_VERSION = "2.0.0";
 
     static SettingsManager& instance();
 
@@ -52,6 +52,9 @@ public:
 
     bool minimizeToTrayOnClose() const;
     void setMinimizeToTrayOnClose(bool enable);
+
+    int registrationStatus() const;
+    void setRegistrationStatus(int status);
 
     QString ringtone() const;
     void setRingtone(const QString &ringtone);

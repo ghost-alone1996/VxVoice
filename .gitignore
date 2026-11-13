@@ -11,6 +11,7 @@ Makefile
 *.tar.gz
 *.msi
 *.rpm
+*.zip
 
 # IDE
 .vscode/

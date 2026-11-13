@@ -56,14 +56,12 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>🌐 Atualizador Direto pelo GitHub:</b> O sistema de atualização do VxVoice agora consulta diretamente o repositório oficial no GitHub "
-        "(<code>github.com/ghost-alone1996/VxVoice</code>) para detectar novas versões, tags, commits e Releases.</li><br>"
-        "<li><b>📦 Download e Instalação Automatizada:</b> Suporte a download direto de pacotes instaladores (.deb no Linux e .msi no Windows) "
-        "a partir das Releases do GitHub, além de sincronização automática via Git.</li><br>"
-        "<li><b>🪟 Pacote Windows Installer (.msi):</b> Disponibilização oficial de instalador corporativo MSI para Windows (x64), "
-        "com suporte a implantação em massa por GPO, SCCM, Microsoft Intune e instalação silenciosa (/qn).</li><br>"
-        "<li><b>🚀 Iniciar com o Sistema Operacional:</b> Abertura direta na tela principal ou início minimizado silencioso no System Tray com notificação de ramal disponível.</li><br>"
-        "<li><b>🎨 Persistência do Tema Visual:</b> Temas visuais selecionados (Dark, Light, Red e Roxo) mantidos permanentemente.</li>"
+        "<li><b>🔄 Busca Automática de Atualizações no GitHub:</b> Ao iniciar o aplicativo, o VxVoice verifica automaticamente novas versões no GitHub "
+        "(<code>github.com/ghost-alone1996/VxVoice</code>) e exibe uma janela perguntando se deseja atualizar agora.</li><br>"
+        "<li><b>🚀 Sub-opções de Inicialização com o Sistema:</b> A opção <i>Iniciar minimizado no System Tray</i> agora é uma sub-opção vinculada e aplicada exclusivamente quando o aplicativo inicia com o Sistema Operacional.</li><br>"
+        "<li><b>🟢 Status de Registro Padrão:</b> Escolha entre <i>Disponível</i>, <i>Não Perturbe</i> ou <i>Offline</i> em Configurações &gt; Gerais.</li><br>"
+        "<li><b>🎨 Aba Sobre &amp; Repositório GitHub:</b> Novo link direto para o repositório no GitHub, contraste adaptativo por tema (Light/Dark/Purple/Red) e botão <i>Aplicar Atualização</i> dinâmico.</li><br>"
+        "<li><b>📦 Instaladores Multiplataforma:</b> Pacote Linux <code>.deb</code>, instalador <code>.sh</code> compactado em <code>.zip</code> e pacote corporativo Windows <code>.msi</code>.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);
 

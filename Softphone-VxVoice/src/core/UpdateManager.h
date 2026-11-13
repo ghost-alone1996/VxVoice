@@ -18,6 +18,7 @@ public:
     QString githubRepoUrl() const;
     bool isGitRepository() const;
     bool isUpdateAvailable() const;
+    bool isSilentCheck() const;
 
     void checkForUpdates(bool silent = false);
     void applyUpdate();

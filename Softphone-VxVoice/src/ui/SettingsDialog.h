@@ -57,6 +57,7 @@ private:
     QTabWidget *m_tabs{nullptr};
 
     // Aba Sobre & Atualização
+    QLabel *m_lblAboutTitle{nullptr};
     QLabel *m_lblCurrentVersion{nullptr};
     QLabel *m_lblGitVersion{nullptr};
     QLabel *m_lblUpdateStatus{nullptr};
@@ -68,6 +69,7 @@ private:
     QCheckBox *m_chkStartWithSystem{nullptr};
     QCheckBox *m_chkStartMinimized{nullptr};
     QCheckBox *m_chkMinimizeToTrayOnClose{nullptr};
+    QComboBox *m_comboRegistrationStatus{nullptr};
     QComboBox *m_comboRingtone{nullptr};
     QPushButton *m_btnPlayRingtone{nullptr};
     QComboBox *m_comboTheme{nullptr};

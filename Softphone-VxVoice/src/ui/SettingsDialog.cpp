@@ -82,12 +82,31 @@ QWidget* SettingsDialog::createGeneralTab() {
 
     m_chkStartWithSystem = new QCheckBox("Iniciar junto com o Sistema Operacional", widget);
     m_chkStartMinimized = new QCheckBox("Iniciar minimizado no System Tray", widget);
+    m_chkStartMinimized->setToolTip("Quando ativado, inicia minimizado apenas ao ligar o computador junto com o Sistema Operacional.");
+    m_chkStartMinimized->setEnabled(false);
+
+    // Sub-opção indentada vinculada ao checkbox "Iniciar junto com o Sistema Operacional"
+    auto subOptionsLayout = new QVBoxLayout();
+    subOptionsLayout->setContentsMargins(24, 0, 0, 0);
+    subOptionsLayout->setSpacing(4);
+    subOptionsLayout->addWidget(m_chkStartMinimized);
+
+    connect(m_chkStartWithSystem, &QCheckBox::toggled, this, [this](bool checked) {
+        m_chkStartMinimized->setEnabled(checked);
+    });
+
     m_chkMinimizeToTrayOnClose = new QCheckBox("Ao clicar em fechar (X), manter na bandeja do sistema", widget);
 
     layout->addWidget(m_chkStartWithSystem);
-    layout->addWidget(m_chkStartMinimized);
+    layout->addLayout(subOptionsLayout);
     layout->addWidget(m_chkMinimizeToTrayOnClose);
     layout->addSpacing(8);
+
+    // Status de Registro
+    m_comboRegistrationStatus = new QComboBox(widget);
+    m_comboRegistrationStatus->addItem("🟢 Disponível");
+    m_comboRegistrationStatus->addItem("🔴 Não Perturbe");
+    m_comboRegistrationStatus->addItem("⚫ Offline");
 
     // Ringtone selector
     auto ringtoneLayout = new QHBoxLayout();
@@ -108,6 +127,7 @@ QWidget* SettingsDialog::createGeneralTab() {
     m_comboTheme->addItem("🟣 Purple (Tons de roxo corporativo)");
     m_comboTheme->addItem("🔴 Red (Tons de vermelho corporativo)");
 
+    formLayout->addRow("Status de Registro:", m_comboRegistrationStatus);
     formLayout->addRow("Ringtone de Chamada:", ringtoneLayout);
     formLayout->addRow("Tema Visual do Softphone:", m_comboTheme);
 
@@ -498,12 +518,25 @@ QWidget* SettingsDialog::createAboutTab() {
     layout->setContentsMargins(16, 16, 16, 16);
     layout->setSpacing(8);
 
-    auto lblTitle = new QLabel("<b>VxVoice</b>", widget);
-    lblTitle->setStyleSheet("font-size: 16px; color: #8E44AD;");
+    m_lblAboutTitle = new QLabel("<b>VxVoice</b>", widget);
+    auto updateAboutTitleColor = [this](ThemeManager::Theme t) {
+        if (!m_lblAboutTitle) return;
+        const QString color = (t == ThemeManager::Theme::Light) ? "#000000" : "#FFFFFF";
+        m_lblAboutTitle->setStyleSheet(QString("font-size: 16px; font-weight: bold; color: %1;").arg(color));
+    };
+    updateAboutTitleColor(ThemeManager::instance().currentTheme());
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, updateAboutTitleColor);
+
     auto lblEmpresa = new QLabel("<b>Empresa:</b> VxNET Comunicações e Telecomunicações", widget);
     auto lblAno = new QLabel("<b>Ano:</b> 2026", widget);
     auto lblVersion = new QLabel(QString("<b>Versão:</b> %1").arg(SettingsManager::APP_VERSION), widget);
     auto lblLicense = new QLabel("<b>Licença:</b> GNU General Public License v3.0 (GPLv3) / Open Source", widget);
+    auto lblGithubLink = new QLabel(
+        "<a href=\"https://github.com/ghost-alone1996/VxVoice\" style=\"color: #3498DB; text-decoration: none; font-weight: bold;\">🔗 Acessar Repositório Github</a>",
+        widget
+    );
+    lblGithubLink->setOpenExternalLinks(true);
+    lblGithubLink->setCursor(Qt::PointingHandCursor);
 
     // Card de Atualizações Automáticas via Git
     auto updateCard = new QFrame(widget);
@@ -542,12 +575,13 @@ QWidget* SettingsDialog::createAboutTab() {
     auto btnUpdateRow = new QHBoxLayout();
     btnUpdateRow->setSpacing(8);
 
-    m_btnCheckUpdates = new QPushButton("🔍 Verificar Atualizações no GitHub", updateCard);
+    m_btnCheckUpdates = new QPushButton("🔍 Buscar Atualizações", updateCard);
     m_btnCheckUpdates->setCursor(Qt::PointingHandCursor);
     connect(m_btnCheckUpdates, &QPushButton::clicked, this, &SettingsDialog::onCheckGitUpdates);
 
-    m_btnApplyUpdate = new QPushButton("⬇ Atualizar Software", updateCard);
+    m_btnApplyUpdate = new QPushButton("⬇ Aplicar Atualização", updateCard);
     m_btnApplyUpdate->setCursor(Qt::PointingHandCursor);
+    m_btnApplyUpdate->setEnabled(false);
     m_btnApplyUpdate->setStyleSheet(
         "QPushButton {"
         "  background-color: #27AE60;"
@@ -557,7 +591,7 @@ QWidget* SettingsDialog::createAboutTab() {
         "  border-radius: 4px;"
         "}"
         "QPushButton:hover { background-color: #2ECC71; }"
-        "QPushButton:disabled { background-color: #555555; color: #888888; }"
+        "QPushButton:disabled { background-color: #6C757D; color: #E5E7EB; }"
     );
     connect(m_btnApplyUpdate, &QPushButton::clicked, this, &SettingsDialog::onApplyGitUpdate);
 
@@ -577,20 +611,21 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.9):</b><br>"
+        "<b>Novidades e Correções (v2.0.0):</b><br>"
         "<ul>"
-        "<li><b>Atualizador Direto via GitHub:</b> Consulta automática de novas versões, tags, commits e Releases diretamente no repositório oficial do GitHub (github.com/ghost-alone1996/VxVoice).</li>"
-        "<li><b>Download e Instalação Automatizada:</b> Suporte a download de pacotes .deb (Linux) e .msi (Windows) diretamente das Releases do GitHub ou sincronização automática via git pull.</li>"
-        "<li><b>Suporte e Pacote Windows Installer (.msi):</b> Distribuição corporativa compatível com GPO, SCCM, Intune e instalação silenciosa (/qn).</li>"
-        "<li><b>Inicialização e Autostart:</b> Abertura direta ou início minimizado silencioso com notificação de ramal no System Tray.</li>"
+        "<li><b>Busca Automática de Atualizações no GitHub:</b> Ao abrir o VxVoice, o sistema verifica automaticamente se há nova versão no GitHub e abre uma janela perguntando se deseja atualizar.</li>"
+        "<li><b>Sub-opções de Inicialização com o SO:</b> 'Iniciar minimizado no System Tray' agora é sub-opção vinculada e ativa somente ao iniciar junto com o Sistema Operacional.</li>"
+        "<li><b>Status de Registro Padrão:</b> Escolha entre Disponível, Não Perturbe ou Offline diretamente em Configurações &gt; Gerais.</li>"
+        "<li><b>Instaladores Multiplataforma:</b> Pacote Linux .deb, instalador .sh compactado em .zip e pacote corporativo Windows .msi.</li>"
         "</ul>"
     );
 
-    layout->addWidget(lblTitle);
+    layout->addWidget(m_lblAboutTitle);
     layout->addWidget(lblEmpresa);
     layout->addWidget(lblAno);
     layout->addWidget(lblVersion);
     layout->addWidget(lblLicense);
+    layout->addWidget(lblGithubLink);
     layout->addWidget(updateCard);
     layout->addWidget(txtChangelog, 1);
 
@@ -749,7 +784,7 @@ void SettingsDialog::onCheckGitUpdates() {
 
     connect(&um, &UpdateManager::updateChecked, this, [this](const QString &curVer, const QString &gitVer, bool hasUpdate, const QString &/*changelog*/) {
         m_btnCheckUpdates->setEnabled(true);
-        m_btnCheckUpdates->setText("🔍 Verificar Atualizações no GitHub");
+        m_btnCheckUpdates->setText("🔍 Buscar Atualizações");
         m_lblCurrentVersion->setText(QString("v%1").arg(curVer));
 
         if (hasUpdate) {
@@ -758,24 +793,26 @@ void SettingsDialog::onCheckGitUpdates() {
             m_lblUpdateStatus->setText("Uma versão mais recente foi localizada no GitHub.");
             m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 12px;");
             m_btnApplyUpdate->setEnabled(true);
-            m_btnApplyUpdate->setText(QString("⬇ Atualizar para v%1").arg(gitVer));
+            m_btnApplyUpdate->setText(QString("⬇ Aplicar Atualização (v%1)").arg(gitVer));
         } else {
             m_lblGitVersion->setText(QString("v%1 (Versão mais recente)").arg(gitVer));
             m_lblGitVersion->setStyleSheet("font-weight: bold; color: #3498DB; font-size: 13px;");
             m_lblUpdateStatus->setText("O software já está na versão mais recente disponível no GitHub.");
             m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-size: 12px;");
-            m_btnApplyUpdate->setEnabled(true);
-            m_btnApplyUpdate->setText("⬇ Reinstalar / Atualizar");
+            m_btnApplyUpdate->setEnabled(false);
+            m_btnApplyUpdate->setText("⬇ Aplicar Atualização");
         }
     });
 
     connect(&um, &UpdateManager::updateError, this, [this](const QString &err) {
         m_btnCheckUpdates->setEnabled(true);
-        m_btnCheckUpdates->setText("🔍 Verificar Atualizações no GitHub");
+        m_btnCheckUpdates->setText("🔍 Buscar Atualizações");
         m_lblGitVersion->setText("Indisponível");
         m_lblGitVersion->setStyleSheet("color: #E74C3C; font-size: 13px;");
         m_lblUpdateStatus->setText("⚠ " + err);
         m_lblUpdateStatus->setStyleSheet("color: #E74C3C; font-size: 12px;");
+        m_btnApplyUpdate->setEnabled(false);
+        m_btnApplyUpdate->setText("⬇ Aplicar Atualização");
     });
 
     um.checkForUpdates(false);
@@ -806,8 +843,8 @@ void SettingsDialog::onApplyGitUpdate() {
     connect(&um, &UpdateManager::updateCompleted, progressDlg, &UpdateProgressDialog::onUpdateCompleted);
 
     connect(&um, &UpdateManager::updateCompleted, this, [this](bool ok, const QString &msg) {
-        m_btnApplyUpdate->setEnabled(true);
-        m_btnApplyUpdate->setText("⬇ Atualizar Software");
+        m_btnApplyUpdate->setEnabled(UpdateManager::instance().isUpdateAvailable());
+        m_btnApplyUpdate->setText("⬇ Aplicar Atualização");
         if (ok) {
             m_lblUpdateStatus->setText("✓ " + msg);
             m_lblUpdateStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 12px;");
@@ -831,7 +868,9 @@ void SettingsDialog::loadSettings() {
 
     m_chkStartWithSystem->setChecked(sm.startWithSystem());
     m_chkStartMinimized->setChecked(sm.startMinimized());
+    m_chkStartMinimized->setEnabled(sm.startWithSystem());
     m_chkMinimizeToTrayOnClose->setChecked(sm.minimizeToTrayOnClose());
+    m_comboRegistrationStatus->setCurrentIndex(qBound(0, sm.registrationStatus(), 2));
 
     int ringIdx = m_comboRingtone->findText(sm.ringtone());
     if (ringIdx >= 0) m_comboRingtone->setCurrentIndex(ringIdx);
@@ -878,6 +917,11 @@ void SettingsDialog::saveSettings() {
     sm.setStartWithSystem(m_chkStartWithSystem->isChecked());
     sm.setStartMinimized(m_chkStartMinimized->isChecked());
     sm.setMinimizeToTrayOnClose(m_chkMinimizeToTrayOnClose->isChecked());
+
+    int regStatus = qBound(0, m_comboRegistrationStatus->currentIndex(), 2);
+    sm.setRegistrationStatus(regStatus);
+    SipManager::instance().setPresence(static_cast<SipManager::UserPresence>(regStatus));
+
     sm.setRingtone(m_comboRingtone->currentText());
 
     // Theme

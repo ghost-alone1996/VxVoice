@@ -51,6 +51,15 @@ void SettingsManager::setMinimizeToTrayOnClose(bool enable) {
     emit settingsChanged();
 }
 
+int SettingsManager::registrationStatus() const {
+    return m_settings.value("General/RegistrationStatus", 0).toInt();
+}
+
+void SettingsManager::setRegistrationStatus(int status) {
+    m_settings.setValue("General/RegistrationStatus", status);
+    emit settingsChanged();
+}
+
 QString SettingsManager::ringtone() const {
     return m_settings.value("General/Ringtone", "Toque 1").toString();
 }
