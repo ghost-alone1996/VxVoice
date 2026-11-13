@@ -56,12 +56,14 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
+        "<li><b>🪟 Pacote Windows Installer (.msi):</b> Disponibilização oficial de instalador corporativo MSI para Windows (x64), "
+        "com suporte a implantação em massa por GPO, SCCM, Microsoft Intune e instalação silenciosa (/qn).</li><br>"
         "<li><b>🚀 Iniciar com o Sistema Operacional:</b> Correção completa na inicialização com o boot. "
         "Quando 'Iniciar minimizado no System Tray' estiver desativado, o VxVoice abre diretamente na tela principal assim que a área de trabalho carregar.</li><br>"
-        "<li><b>🔔 Inicialização Silenciosa em Segundo Plano:</b> Remoção de popups incômodos nas configurações ao marcar o início minimizado. "
+        "<li><b>🔔 Inicialização Silenciosa em Segundo Plano:</b> Remoção de popups incômodos nas configurações. "
         "Ao inicializar minimizado, o aplicativo exibe apenas um balão de notificação no System Tray informando que o VxVoice está ativo com o ramal disponível.</li><br>"
         "<li><b>📊 Janela de Progresso da Instalação:</b> Diálogo moderno de progresso durante as atualizações via Git, "
-        "com barra de percentual e acompanhamento das etapas de download, instalação e reinício automático.</li><br>"
+        "com acompanhamento em tempo real de cada etapa.</li><br>"
         "<li><b>🎨 Persistência do Tema Visual:</b> Temas visuais selecionados (Dark, Light, Red e Roxo) mantidos permanentemente.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);

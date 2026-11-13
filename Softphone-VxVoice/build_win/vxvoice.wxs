@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="VxVoice Enterprise Softphone" 
+           Language="1046" 
+           Codepage="1252" 
+           Version="1.4.8" 
+           Manufacturer="VxNET Comunicações e Telecomunicações" 
+           UpgradeCode="A5D19302-7B4F-4E89-9A52-87F95A34DC7A">
+    
+    <Package Id="*" 
+             Keywords="Installer,MSI,SIP,Softphone,VoIP,VxVoice" 
+             Description="VxVoice Enterprise Softphone v1.4.8" 
+             Comments="Softphone Corporativo SIP - VxNET Telecomunicações" 
+             Manufacturer="VxNET Comunicações e Telecomunicações" 
+             InstallerVersion="300" 
+             Compressed="yes" 
+             InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="Uma versão mais recente do VxVoice já está instalada no sistema." 
+                  AllowSameVersionUpgrades="yes" />
+
+    <Media Id="1" Cabinet="vxvoice.cab" EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="dist/vxvoice.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPHELPLINK" Value="https://www.vxnet.com.br" />
+    <Property Id="ARPURLINFOABOUT" Value="https://www.vxnet.com.br" />
+    <Property Id="ARPCONTACT" Value="suporte@vxnet.com.br" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Arquivos de Programas (64-bit) -->
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="VxVoice">
+          
+          <Component Id="C_VxVoiceExe" Guid="B7C93F1A-6D25-4890-9A1B-3C4D5E6F7A8B" Win64="yes">
+            <File Id="F_VxVoiceExe" Source="dist/VxVoice.exe" KeyPath="yes">
+              <!-- Atalho na Área de Trabalho -->
+              <Shortcut Id="DesktopShortcut" 
+                        Directory="DesktopFolder" 
+                        Name="VxVoice" 
+                        Description="VxVoice Enterprise Softphone" 
+                        WorkingDirectory="INSTALLFOLDER" 
+                        Icon="AppIcon" 
+                        Advertise="no" />
+              <!-- Atalho no Menu Iniciar -->
+              <Shortcut Id="StartMenuShortcut" 
+                        Directory="ProgramMenuDir" 
+                        Name="VxVoice" 
+                        Description="VxVoice Enterprise Softphone" 
+                        WorkingDirectory="INSTALLFOLDER" 
+                        Icon="AppIcon" 
+                        Advertise="no" />
+            </File>
+          </Component>
+
+          <Component Id="C_AppIcon" Guid="C8D04E2B-7E36-4901-AB2C-4D5E6F7A8B9C" Win64="yes">
+            <File Id="F_AppIcon" Source="dist/vxvoice.ico" KeyPath="yes" />
+          </Component>
+
+          <Component Id="C_ConfigIni" Guid="D9E15F3C-8F47-4A12-BC3D-5E6F7A8B9C0D" Win64="yes">
+            <File Id="F_ConfigIni" Source="dist/vxvoice.ini" KeyPath="yes" />
+          </Component>
+
+          <Component Id="C_Readme" Guid="EA02604D-9058-4B23-CD4E-6F7A8B9C0D1E" Win64="yes">
+            <File Id="F_Readme" Source="dist/README.txt" KeyPath="yes" />
+          </Component>
+
+          <Component Id="C_License" Guid="FB13715E-A169-4C34-DE5F-7A8B9C0D1E2F" Win64="yes">
+            <File Id="F_License" Source="dist/LICENSE.txt" KeyPath="yes" />
+          </Component>
+
+          <!-- Pasta de Áudios / Toques -->
+          <Directory Id="SoundsFolder" Name="sounds">
+            <Component Id="C_Sound1" Guid="1A2B3C4D-5E6F-7A8B-9C0D-1E2F3A4B5C6D" Win64="yes">
+              <File Id="F_Sound1" Source="dist/sounds/ringtone_1.wav" KeyPath="yes" />
+            </Component>
+            <Component Id="C_Sound2" Guid="2B3C4D5E-6F7A-8B9C-0D1E-2F3A4B5C6D7E" Win64="yes">
+              <File Id="F_Sound2" Source="dist/sounds/ringtone_2.wav" KeyPath="yes" />
+            </Component>
+            <Component Id="C_Sound3" Guid="3C4D5E6F-7A8B-9C0D-1E2F-3A4B5C6D7E8F" Win64="yes">
+              <File Id="F_Sound3" Source="dist/sounds/ringtone_3.wav" KeyPath="yes" />
+            </Component>
+            <Component Id="C_Sound4" Guid="4D5E6F7A-8B9C-0D1E-2F3A-4B5C6D7E8F9A" Win64="yes">
+              <File Id="F_Sound4" Source="dist/sounds/ringtone_4.wav" KeyPath="yes" />
+            </Component>
+          </Directory>
+
+          <!-- Registro de Protocolos SIP/SIPS/TEL e Configurações Corporativas -->
+          <Component Id="C_RegistryProtocols" Guid="6F7A8B9C-0D1E-2F3A-4B5C-6D7E8F9A0B1C" Win64="yes">
+            <!-- Protocolo sip: -->
+            <RegistryValue Root="HKCR" Key="sip" Type="string" Value="URL:SIP Protocol" />
+            <RegistryValue Root="HKCR" Key="sip" Name="URL Protocol" Type="string" Value="" />
+            <RegistryValue Root="HKCR" Key="sip\DefaultIcon" Type="string" Value="[INSTALLFOLDER]vxvoice.ico,0" />
+            <RegistryValue Root="HKCR" Key="sip\shell\open\command" Type="string" Value="&quot;[INSTALLFOLDER]VxVoice.exe&quot; &quot;%1&quot;" />
+
+            <!-- Protocolo tel: -->
+            <RegistryValue Root="HKCR" Key="tel" Type="string" Value="URL:Tel Protocol" />
+            <RegistryValue Root="HKCR" Key="tel" Name="URL Protocol" Type="string" Value="" />
+            <RegistryValue Root="HKCR" Key="tel\DefaultIcon" Type="string" Value="[INSTALLFOLDER]vxvoice.ico,0" />
+            <RegistryValue Root="HKCR" Key="tel\shell\open\command" Type="string" Value="&quot;[INSTALLFOLDER]VxVoice.exe&quot; &quot;%1&quot;" />
+
+            <!-- Informações Corporativas no Registro -->
+            <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="InstallDir" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+            <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Version" Type="string" Value="1.4.8" />
+            <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Publisher" Type="string" Value="VxNET Comunicações e Telecomunicações" />
+          </Component>
+
+        </Directory>
+      </Directory>
+
+      <!-- Menu Iniciar -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ProgramMenuDir" Name="VxVoice">
+          <Component Id="C_StartMenuDir" Guid="5E6F7A8B-9C0D-1E2F-3A4B-5C6D7E8F9A0B" Win64="yes">
+            <RemoveFolder Id="RemoveProgramMenuDir" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="Software\VxVoice" Name="ProgramMenuInstalled" Type="integer" Value="1" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+
+      <!-- Área de Trabalho -->
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <!-- Estrutura de Funcionalidades Instaladas -->
+    <Feature Id="MainFeature" Title="VxVoice Enterprise Softphone" Level="1">
+      <ComponentRef Id="C_VxVoiceExe" />
+      <ComponentRef Id="C_AppIcon" />
+      <ComponentRef Id="C_ConfigIni" />
+      <ComponentRef Id="C_Readme" />
+      <ComponentRef Id="C_License" />
+      <ComponentRef Id="C_Sound1" />
+      <ComponentRef Id="C_Sound2" />
+      <ComponentRef Id="C_Sound3" />
+      <ComponentRef Id="C_Sound4" />
+      <ComponentRef Id="C_StartMenuDir" />
+      <ComponentRef Id="C_RegistryProtocols" />
+    </Feature>
+
+  </Product>
+</Wix>

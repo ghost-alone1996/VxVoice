@@ -577,12 +577,12 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.7):</b><br>"
+        "<b>Novidades e Correções (v1.4.8):</b><br>"
         "<ul>"
-        "<li><b>Iniciar com o Sistema Operacional:</b> Correção na inicialização com o boot do sistema. Quando a opção 'Iniciar minimizado no System Tray' estiver desativada, o softphone abre diretamente visível na área de trabalho assim que o sistema carregar.</li>"
-        "<li><b>Remoção de Alerta em Configurações:</b> Janela de aviso ao clicar na opção de iniciar minimizado foi removida. O softphone agora exibe silenciosamente uma notificação no System Tray ao iniciar em segundo plano informando que o serviço e ramal estão disponíveis.</li>"
-        "<li><b>Janela de Progresso da Instalação:</b> Diálogo moderno de progresso durante as atualizações via Git, com barra de status passo a passo e auto-restart.</li>"
-        "<li><b>Persistência de Temas e Identidade:</b> Temas visuais e ícones corporativos preservados.</li>"
+        "<li><b>Suporte e Pacote Windows Installer (.msi):</b> Criação do pacote de distribuição corporativa Windows Installer (.msi) compatível com implantação automatizada em massa via Diretiva de Grupo (GPO), SCCM e Intune.</li>"
+        "<li><b>Instalação Windows Completa:</b> Atalhos na Área de Trabalho e Menu Iniciar, registro de protocolos SIP/SIPS/TEL, suporte a instalação silenciosa (/qn) e desinstalação limpa.</li>"
+        "<li><b>Inicialização e Autostart:</b> Sincronização avançada de abertura de janela ou início minimizado com notificação de ramal no System Tray.</li>"
+        "<li><b>Janela de Progresso:</b> Feedback visual em tempo real nas atualizações com barra de percentual.</li>"
         "</ul>"
     );
 

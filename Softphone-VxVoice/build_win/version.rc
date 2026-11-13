@@ -1,0 +1,37 @@
+#define VS_VERSION_INFO 1
+#define VOS_NT_WINDOWS32 0x00040004L
+#define VFT_APP 0x00000001L
+#define VFT2_UNKNOWN 0x00000000L
+#define VS_FFI_FILEFLAGSMASK 0x0000003FL
+
+APP_ICON ICON "../resources/icons/app_icon.ico"
+IDI_ICON1 ICON "../resources/icons/app_icon.ico"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,4,8,0
+PRODUCTVERSION  1,4,8,0
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041604B0"
+        BEGIN
+            VALUE "CompanyName",      "VxNET Comunicações e Telecomunicações"
+            VALUE "FileDescription",  "VxVoice Enterprise SIP Softphone"
+            VALUE "FileVersion",      "1.4.8.0"
+            VALUE "InternalName",     "VxVoice"
+            VALUE "LegalCopyright",   "Copyright (C) 2026 VxNET Telecom. All rights reserved."
+            VALUE "OriginalFilename", "VxVoice.exe"
+            VALUE "ProductName",      "VxVoice Enterprise Softphone"
+            VALUE "ProductVersion",   "1.4.8.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0416, 1200
+    END
+END

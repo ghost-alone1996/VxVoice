@@ -18,6 +18,7 @@ Makefile
 
 # Autogen & cache
 *.o
+*.res
 *.a
 *.so
 moc_*
