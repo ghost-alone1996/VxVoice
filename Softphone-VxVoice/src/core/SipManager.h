@@ -66,6 +66,7 @@ public:
         bool isMuted{false};
         bool isRecording{false};
         bool isConference{false};
+        QString recordingPath;
     };
 
     static SipManager& instance();

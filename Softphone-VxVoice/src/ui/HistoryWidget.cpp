@@ -1,4 +1,6 @@
 #include "HistoryWidget.h"
+#include "SoundManager.h"
+#include "SettingsManager.h"
 #include <QHeaderView>
 #include <QDateTime>
 #include <QMessageBox>
@@ -7,6 +9,8 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QFile>
+#include <QDir>
+#include <QFileInfo>
 #include <QSettings>
 
 HistoryWidget::HistoryWidget(QWidget *parent)
@@ -88,7 +92,33 @@ void HistoryWidget::addRecord(HistoryCallType type, const QString &number, const
 
     row << itemType << itemContact << itemTime << itemDuration << itemRec;
     m_model->insertRow(0, row);
+    adjustTableColumns();
     saveHistory();
+}
+
+void HistoryWidget::updateLatestRecord(const QString &duration, const QString &recordingPath) {
+    if (m_model->rowCount() == 0) return;
+    if (!duration.isEmpty()) {
+        m_model->item(0, 3)->setText(duration);
+    }
+    if (!recordingPath.isEmpty() && QFile::exists(recordingPath)) {
+        m_model->item(0, 4)->setText("🎙 Sim");
+        m_model->item(0, 4)->setData(recordingPath, Qt::UserRole);
+        m_model->item(0, 4)->setForeground(QColor("#E67E22"));
+    }
+    adjustTableColumns();
+    saveHistory();
+}
+
+void HistoryWidget::adjustTableColumns() {
+    if (!m_tableView || !m_model) return;
+    m_tableView->resizeColumnsToContents();
+    auto header = m_tableView->horizontalHeader();
+    header->setSectionResizeMode(0, QHeaderView::ResizeToContents); // Tipo
+    header->setSectionResizeMode(1, QHeaderView::Stretch);          // Contato/Número
+    header->setSectionResizeMode(2, QHeaderView::ResizeToContents); // Data/Hora
+    header->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Duração
+    header->setSectionResizeMode(4, QHeaderView::ResizeToContents); // Gravação
 }
 
 void HistoryWidget::loadHistory() {
@@ -171,6 +201,18 @@ void HistoryWidget::saveHistory() {
 void HistoryWidget::onItemDoubleClicked(const QModelIndex &index) {
     if (!index.isValid()) return;
     int row = index.row();
+
+    // Se clicar diretamente na coluna de gravação e ela existir, reproduz
+    if (index.column() == 4) {
+        QString recPath = m_model->item(row, 4)->data(Qt::UserRole).toString();
+        if (!recPath.isEmpty() && QFile::exists(recPath)) {
+            SoundManager::instance().playAudioFile(recPath, false);
+            QDesktopServices::openUrl(QUrl::fromLocalFile(recPath));
+            emit playRecordingRequested(recPath);
+            return;
+        }
+    }
+
     QModelIndex contactIndex = m_model->index(row, 1);
     QString number = contactIndex.data(Qt::UserRole).toString();
 
@@ -191,6 +233,22 @@ void HistoryWidget::onContextMenu(const QPoint &pos) {
     QString name = contactIndex.data(Qt::UserRole + 1).toString();
     QString recPath = recIndex.data(Qt::UserRole).toString();
     bool hasRecording = !recPath.isEmpty() && QFile::exists(recPath);
+
+    // Se o caminho direto não foi encontrado, busca na pasta de gravações pelo número ou timestamp
+    if (!hasRecording && !number.isEmpty()) {
+        QString recDir = SettingsManager::instance().recordingPath();
+        QDir dir(recDir);
+        QStringList filters;
+        filters << QString("*%1*.wav").arg(number);
+        auto matches = dir.entryInfoList(filters, QDir::Files, QDir::Time);
+        if (!matches.isEmpty()) {
+            recPath = matches.first().absoluteFilePath();
+            hasRecording = true;
+            m_model->item(row, 4)->setText("🎙 Sim");
+            m_model->item(row, 4)->setData(recPath, Qt::UserRole);
+            m_model->item(row, 4)->setForeground(QColor("#E67E22"));
+        }
+    }
 
     QMenu menu(this);
 
@@ -213,10 +271,23 @@ void HistoryWidget::onContextMenu(const QPoint &pos) {
     actionPlay->setEnabled(hasRecording);
     connect(actionPlay, &QAction::triggered, this, [this, recPath]() {
         if (!recPath.isEmpty() && QFile::exists(recPath)) {
+            // Reproduz via SoundManager nos alto-falantes e abre player padrão do SO
+            SoundManager::instance().playAudioFile(recPath, false);
             QDesktopServices::openUrl(QUrl::fromLocalFile(recPath));
             emit playRecordingRequested(recPath);
+        } else {
+            QMessageBox::warning(this, "Gravação não Encontrada",
+                                 "O arquivo de áudio desta chamada não pôde ser localizado no diretório de gravações.");
         }
     });
+
+    if (hasRecording) {
+        auto actionFolder = menu.addAction("📂 Abrir Pasta da Gravação");
+        connect(actionFolder, &QAction::triggered, this, [recPath]() {
+            QFileInfo fi(recPath);
+            QDesktopServices::openUrl(QUrl::fromLocalFile(fi.dir().absolutePath()));
+        });
+    }
 
     menu.addSeparator();
 

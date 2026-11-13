@@ -32,6 +32,8 @@ public:
 
     void addRecord(HistoryCallType type, const QString &number, const QString &name,
                    const QString &duration, const QString &recordingPath = QString());
+    void updateLatestRecord(const QString &duration, const QString &recordingPath = QString());
+    void adjustTableColumns();
 
 signals:
     void callNumberRequested(const QString &number);

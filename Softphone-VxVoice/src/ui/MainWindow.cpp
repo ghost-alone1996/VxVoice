@@ -138,6 +138,8 @@ void MainWindow::setupUi() {
     m_tabWidget->addTab(m_contactsWidget, "👥 Contatos");
     m_tabWidget->addTab(m_recordingsWidget, "🎙 Gravação");
 
+    connect(m_tabWidget, &QTabWidget::currentChanged, this, &MainWindow::onTabChanged);
+
     rootLayout->addWidget(m_tabWidget, 1);
 
     updateHeaderIcons();
@@ -398,7 +400,50 @@ void MainWindow::onCallStateChanged(const QString &callId, SipManager::CallState
         if (m_activeCallDialog->isVisible()) {
             m_activeCallDialog->close();
         }
+
+        // Atualiza a linha do histórico com duração real e caminho do áudio gravado
+        auto active = SipManager::instance().activeCall();
+        int secs = active.durationSeconds;
+        QString durationStr = QString("%1:%2")
+            .arg(secs / 60, 2, 10, QChar('0'))
+            .arg(secs % 60, 2, 10, QChar('0'));
+        m_historyWidget->updateLatestRecord(durationStr, active.recordingPath);
+        m_recordingsWidget->refreshList();
     }
+}
+
+void MainWindow::onTabChanged(int index) {
+    int targetW = 380;
+    int targetH = 670;
+
+    switch (index) {
+    case 0: // Ligação / Discador
+        targetW = 380;
+        targetH = 670;
+        setMinimumWidth(360);
+        break;
+    case 1: // Histórico
+        targetW = 560;
+        targetH = 670;
+        setMinimumWidth(480);
+        m_historyWidget->adjustTableColumns();
+        break;
+    case 2: // Contatos
+        targetW = 680;
+        targetH = 670;
+        setMinimumWidth(580);
+        m_contactsWidget->adjustTableColumns();
+        break;
+    case 3: // Gravação
+        targetW = 620;
+        targetH = 670;
+        setMinimumWidth(520);
+        m_recordingsWidget->adjustTableColumns();
+        break;
+    }
+
+    // Adapta dinamicamente as dimensões da janela para exibir todo o conteúdo sem cortes
+    resize(targetW, targetH);
 }
 
 void MainWindow::onOpenAccountsDialog() {

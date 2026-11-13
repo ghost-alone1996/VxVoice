@@ -27,6 +27,7 @@ public:
     explicit RecordingsWidget(QWidget *parent = nullptr);
 
     void refreshList();
+    void adjustTableColumns();
     void addRecordingRecord(const QString &filePath, const QString &number,
                             const QString &name, const QString &callType, const QString &duration);
 

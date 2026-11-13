@@ -1,5 +1,6 @@
 #include "RecordingsWidget.h"
 #include "SettingsManager.h"
+#include "SoundManager.h"
 #include <QHeaderView>
 #include <QDir>
 #include <QFileInfo>
@@ -187,6 +188,17 @@ void RecordingsWidget::onSelectionChanged() {
     m_btnDelete->setEnabled(has);
 }
 
+void RecordingsWidget::adjustTableColumns() {
+    if (!m_tableView || !m_sourceModel) return;
+    m_tableView->resizeColumnsToContents();
+    auto header = m_tableView->horizontalHeader();
+    header->setSectionResizeMode(0, QHeaderView::Stretch);          // Arquivo
+    header->setSectionResizeMode(1, QHeaderView::ResizeToContents); // Contato
+    header->setSectionResizeMode(2, QHeaderView::ResizeToContents); // Data/Hora
+    header->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Duração
+    header->setSectionResizeMode(4, QHeaderView::ResizeToContents); // Tamanho
+}
+
 void RecordingsWidget::onPlayRecording() {
     auto selected = m_tableView->selectionModel()->selectedRows();
     if (selected.isEmpty()) return;
@@ -196,6 +208,7 @@ void RecordingsWidget::onPlayRecording() {
     QString filePath = m_sourceModel->index(row, 0).data(Qt::UserRole).toString();
 
     if (!filePath.isEmpty() && QFile::exists(filePath)) {
+        SoundManager::instance().playAudioFile(filePath, false);
         QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
     }
 }

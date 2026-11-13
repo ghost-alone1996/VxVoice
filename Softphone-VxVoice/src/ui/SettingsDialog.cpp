@@ -542,11 +542,12 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.4.4):</b><br>"
+        "<b>Novidades e Correções (v1.4.5):</b><br>"
         "<ul>"
-        "<li><b>Seleção Inteligente de Destino em Contatos:</b> Ao ligar para contatos que possuem ramal e número telefônico cadastrados, uma janela intuitiva permite escolher entre chamar o ramal SIP ou o telefone externo.</li>"
-        "<li><b>Estabilidade de Chamadas PJSIP:</b> Eliminação de encerramento inesperado ao iniciar novas chamadas e proteção de concorrência na engine SIP.</li>"
-        "<li><b>Atualizador de Sistema Aprimorado:</b> Suporte a script Debian de pré-remoção (prerm) e atualização direta do pacote .deb sem necessidade de desinstalar previamente.</li>"
+        "<li><b>Layout Adaptativo da Janela Principal:</b> A janela se adapta dinamicamente em largura e proporção para cada aba (Ligação, Histórico, Contatos, Gravação), ajustando automaticamente as colunas das tabelas.</li>"
+        "<li><b>Proporção da Tela de Escolha de Destino:</b> Dimensões ampliadas e confortáveis para o diálogo de seleção de ramal/telefone sem truncamento de texto.</li>"
+        "<li><b>Reprodução de Áudio no Histórico:</b> A opção de ouvir gravação com botão direito agora reproduz diretamente o arquivo pelo motor de áudio.</li>"
+        "<li><b>Ícone do Executável no Desktop:</b> Integração completa do ícone corporativo nos gerenciadores de janelas Linux (GNOME Shell / KDE) com identificador desktop e múltiplas resoluções.</li>"
         "</ul>"
     );
 

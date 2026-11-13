@@ -10,3 +10,4 @@ Categories=Network;Telephony;AudioVideo;
 MimeType=x-scheme-handler/sip;x-scheme-handler/sips;x-scheme-handler/tel;
 Keywords=SIP;VoIP;Softphone;Telephony;Call;
 StartupNotify=true
+StartupWMClass=VxVoice

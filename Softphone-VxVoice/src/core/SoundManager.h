@@ -20,12 +20,12 @@ public:
     void playPreview(const QString &ringtoneId);
     void stopPreview();
 
+    void playAudioFile(const QString &filePath, bool loop = false);
+    void stopAudioProcess();
+
 private:
     explicit SoundManager(QObject *parent = nullptr);
     ~SoundManager();
-
-    void playAudioFile(const QString &filePath, bool loop);
-    void stopAudioProcess();
 
     QProcess *m_playerProcess{nullptr};
     bool m_isRinging{false};

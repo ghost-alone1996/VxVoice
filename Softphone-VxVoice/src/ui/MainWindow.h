@@ -38,6 +38,7 @@ private slots:
     void onOpenAccountsDialog();
     void onOpenSettingsDialog();
     void onSaveContactFromHistory(const QString &name, const QString &number);
+    void onTabChanged(int index);
 
     void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void onQuitApplication();

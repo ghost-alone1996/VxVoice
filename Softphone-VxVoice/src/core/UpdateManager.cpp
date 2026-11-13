@@ -6,7 +6,7 @@
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "1.4.4"
+#define VXVOICE_VERSION "1.4.5"
 #endif
 
 UpdateManager& UpdateManager::instance() {

@@ -57,6 +57,7 @@ public:
     explicit ContactsWidget(QWidget *parent = nullptr);
 
     void addContact(const ContactInfo &contact);
+    void adjustTableColumns();
 
 public slots:
     void onBlfStatusChanged(const QString &extension, SipManager::BlfState state);

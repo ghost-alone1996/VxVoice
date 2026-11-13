@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 1.4.4
+    VERSION 1.4.5
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -124,11 +124,14 @@ if(UNIX AND NOT APPLE)
     install(FILES resources/vxvoice.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
     )
-    # Instalação do ícone oficial nos diretórios de ícones do Linux
-    install(FILES resources/icons/app_icon.png
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps
-        RENAME vxvoice.png
-    )
+    # Instalação do ícone oficial nos diretórios de ícones do Linux (múltiplas resoluções)
+    foreach(res 16 24 32 48 64 128 256)
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/${res}x${res}/vxvoice.png")
+            install(FILES "resources/icons/${res}x${res}/vxvoice.png"
+                DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${res}x${res}/apps"
+            )
+        endif()
+    endforeach()
     install(FILES resources/icons/app_icon.png
         DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps
         RENAME vxvoice.png

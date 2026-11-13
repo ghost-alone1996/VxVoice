@@ -513,6 +513,9 @@ void SipManager::toggleRecording(const QString &callId) {
 
             bool ok = m_currentCall->startCallRecording(filePath);
             m_calls[id].isRecording = ok;
+            if (ok) {
+                m_calls[id].recordingPath = filePath;
+            }
         } else {
             m_currentCall->stopCallRecording();
             m_calls[id].isRecording = false;

@@ -319,7 +319,19 @@ void ContactsWidget::populateInitialContacts() {
         row << itemNome << itemExt << itemNum << itemComp << itemEmail;
         m_sourceModel->appendRow(row);
     }
+    adjustTableColumns();
     updateCompanyFilterList();
+}
+
+void ContactsWidget::adjustTableColumns() {
+    if (!m_tableView || !m_sourceModel) return;
+    m_tableView->resizeColumnsToContents();
+    auto header = m_tableView->horizontalHeader();
+    header->setSectionResizeMode(0, QHeaderView::Stretch);          // Nome
+    header->setSectionResizeMode(1, QHeaderView::ResizeToContents); // Ramal
+    header->setSectionResizeMode(2, QHeaderView::ResizeToContents); // Número
+    header->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Empresa
+    header->setSectionResizeMode(4, QHeaderView::Stretch);          // E-mail
 }
 
 void ContactsWidget::onSearchTextChanged(const QString &text) {

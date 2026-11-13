@@ -9,12 +9,14 @@ int main(int argc, char *argv[]) {
     // Application metadata
     QApplication::setApplicationName("VxVoice");
     QApplication::setApplicationDisplayName("VxVoice");
+    QApplication::setDesktopFileName("vxvoice");
     QApplication::setOrganizationName("VxVoiceCorp");
     QApplication::setOrganizationDomain("vxvoice.corp");
     QApplication::setApplicationVersion(SettingsManager::APP_VERSION);
 
-    // Configure purple VX application icon
-    app.setWindowIcon(QIcon(":/icons/app_icon.png"));
+    // Configure application icon (resolves from system theme or internal resource)
+    QIcon appIcon = QIcon::fromTheme("vxvoice", QIcon(":/icons/app_icon.png"));
+    app.setWindowIcon(appIcon);
 
     // Quit behavior handled via closeEvent and settings
     QApplication::setQuitOnLastWindowClosed(false);
