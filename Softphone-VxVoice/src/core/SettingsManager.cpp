@@ -256,7 +256,19 @@ QList<SipAccountConfig> SettingsManager::accounts() const {
     int size = m_settings.beginReadArray("Accounts");
     if (size == 0) {
         m_settings.endArray();
-        return list;
+        m_settings.beginGroup("Accounts");
+        int count = 1;
+        while (m_settings.contains(QString("%1/server").arg(count)) ||
+               m_settings.contains(QString("%1/accountName").arg(count))) {
+            count++;
+        }
+        m_settings.endGroup();
+        if (count > 1) {
+            size = count - 1;
+            m_settings.beginReadArray("Accounts");
+        } else {
+            return list;
+        }
     }
 
     for (int i = 0; i < size; ++i) {
@@ -286,7 +298,8 @@ QList<SipAccountConfig> SettingsManager::accounts() const {
 }
 
 void SettingsManager::saveAccounts(const QList<SipAccountConfig> &accounts) {
-    m_settings.beginWriteArray("Accounts");
+    m_settings.remove("Accounts");
+    m_settings.beginWriteArray("Accounts", accounts.size());
     for (int i = 0; i < accounts.size(); ++i) {
         m_settings.setArrayIndex(i);
         const auto &acc = accounts[i];
@@ -303,6 +316,7 @@ void SettingsManager::saveAccounts(const QList<SipAccountConfig> &accounts) {
         m_settings.setValue("isEnabled", acc.isEnabled);
     }
     m_settings.endArray();
+    m_settings.sync();
     emit settingsChanged();
 }
 

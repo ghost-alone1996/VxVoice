@@ -8,6 +8,12 @@
 #include <QMap>
 #include "SettingsManager.h"
 
+namespace pj {
+    class Endpoint;
+}
+class VxAccount;
+class VxCall;
+
 class SipManager : public QObject {
     Q_OBJECT
 
@@ -102,6 +108,11 @@ public:
     bool hasActiveCall() const;
     CallData activeCall() const;
 
+    // Callbacks do PJSIP despachados com segurança para o loop do Qt
+    void handleRegState(int statusCode, const QString &reason);
+    void handleIncomingCall(VxCall *call, const QString &callId, const QString &remoteUri, const QString &remoteContact);
+    void handleCallState(VxCall *call, const QString &pjsipCallId, int invState, const QString &stateText, const QString &lastReason);
+
 signals:
     void incomingCall(const QString &callId, const QString &callerId, const QString &callerName);
     void callStateChanged(const QString &callId, SipManager::CallState state, const QString &stateText);
@@ -128,6 +139,11 @@ private:
 
     QMap<QString, BlfState> m_blfStates;
     QTimer *m_callDurationTimer{nullptr};
+
+    pj::Endpoint *m_endpoint{nullptr};
+    VxAccount *m_account{nullptr};
+    VxCall *m_currentCall{nullptr};
+    SipAccountConfig m_currentAccount;
 };
 
 #endif // SIPMANAGER_H

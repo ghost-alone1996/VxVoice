@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 1.4.0
+    VERSION 1.4.1
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -91,14 +91,11 @@ if(TARGET Qt6::Multimedia)
 endif()
 
 # Suporte ao motor físico PJSIP / PJSUA2
-option(ENABLE_PJSIP_REAL "Build with real PJSIP libraries instead of mock service" OFF)
-if(ENABLE_PJSIP_REAL)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(PJPROJECT REQUIRED libpjproject)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${PJPROJECT_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${PJPROJECT_LIBRARIES})
-    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_REAL_PJSIP)
-endif()
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PJPROJECT REQUIRED libpjproject)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PJPROJECT_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PJPROJECT_LIBRARIES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE USE_REAL_PJSIP)
 
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
