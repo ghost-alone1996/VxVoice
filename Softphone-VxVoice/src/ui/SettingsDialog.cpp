@@ -3,6 +3,8 @@
 #include "SoundManager.h"
 #include "SipManager.h"
 #include "UpdateManager.h"
+#include <QProcess>
+#include <QRegularExpression>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -123,11 +125,12 @@ QWidget* SettingsDialog::createAudioTab() {
     auto formLayout = new QFormLayout();
     formLayout->setSpacing(10);
 
-    // Entrada com botão de detecção Hot-Plug
+    // Entrada com botão de detecção Hot-Plug USB
     auto inDevLayout = new QHBoxLayout();
     m_comboInputDevice = new QComboBox(widget);
     m_btnRefreshDevices = new QPushButton("🔄 Atualizar USB", widget);
-    m_btnRefreshDevices->setToolTip("Detectar headsets e dispositivos de áudio USB conectados");
+    m_btnRefreshDevices->setToolTip("Escanear portas USB e listar headsets conectados");
+    m_btnRefreshDevices->setCursor(Qt::PointingHandCursor);
     connect(m_btnRefreshDevices, &QPushButton::clicked, this, &SettingsDialog::refreshAudioDeviceLists);
 
     inDevLayout->addWidget(m_comboInputDevice, 1);
@@ -177,11 +180,28 @@ QWidget* SettingsDialog::createAudioTab() {
     dspGroup->addWidget(m_chkVoiceActivityDetection);
     layout->addLayout(dspGroup);
 
-    // Botão de Teste de Áudio
-    m_btnTestAudio = new QPushButton("🔊 Testar Áudio dos Alto-falantes", widget);
+    // Testes de Áudio e Voz (Microfone e Alto-falantes)
+    auto testButtonsLayout = new QHBoxLayout();
+    testButtonsLayout->setSpacing(8);
+
+    m_btnTestVoice = new QPushButton("🎤 Testar Microfone (Falar e Ouvir)", widget);
+    m_btnTestVoice->setCursor(Qt::PointingHandCursor);
+    m_btnTestVoice->setToolTip("Grava 3 segundos de sua voz e reproduz de volta para conferir a captação");
+    connect(m_btnTestVoice, &QPushButton::clicked, this, &SettingsDialog::onTestVoice);
+
+    m_btnTestAudio = new QPushButton("🔊 Testar Alto-falantes", widget);
     m_btnTestAudio->setCursor(Qt::PointingHandCursor);
+    m_btnTestAudio->setToolTip("Toca um áudio nos fones/alto-falantes para conferir a reprodução");
     connect(m_btnTestAudio, &QPushButton::clicked, this, &SettingsDialog::onTestAudio);
-    layout->addWidget(m_btnTestAudio);
+
+    testButtonsLayout->addWidget(m_btnTestVoice, 1);
+    testButtonsLayout->addWidget(m_btnTestAudio, 1);
+    layout->addLayout(testButtonsLayout);
+
+    m_lblAudioTestStatus = new QLabel("Clique em 'Testar Microfone' para validar sua voz ou 'Testar Alto-falantes' para ouvir um som.", widget);
+    m_lblAudioTestStatus->setStyleSheet("color: #7F8C8D; font-size: 11px;");
+    m_lblAudioTestStatus->setAlignment(Qt::AlignCenter);
+    layout->addWidget(m_lblAudioTestStatus);
 
     layout->addStretch();
     refreshAudioDeviceLists();
@@ -198,19 +218,79 @@ void SettingsDialog::refreshAudioDeviceLists() {
     m_comboInputDevice->addItem("Padrão do Sistema");
     m_comboOutputDevice->addItem("Padrão do Sistema");
 
-#ifdef HAVE_QT_MULTIMEDIA
-    const auto inputs = QMediaDevices::audioInputs();
-    for (const auto &dev : inputs) {
-        m_comboInputDevice->addItem(dev.description());
+    struct DevInfo {
+        QString name;
+        QString desc;
+        bool isUsb{false};
+    };
+
+    auto scanDevices = [](const QString &type) -> QList<DevInfo> {
+        QList<DevInfo> list;
+        QProcess proc;
+        proc.start("pactl", {"list", type});
+        if (proc.waitForFinished(2500)) {
+            QString output = QString::fromUtf8(proc.readAllStandardOutput());
+            QStringList blocks = output.split(QRegularExpression("\n(?:Fonte|Source|Destino|Sink) #\\d+"));
+            for (const QString &b : blocks) {
+                if (b.trimmed().isEmpty()) continue;
+                QRegularExpression nameRegex(R"raw((?:Nome|Name):\s*(.+))raw");
+                QRegularExpression descRegex(R"raw((?:Descrição|Description):\s*(.+))raw");
+                QRegularExpression busRegex(R"raw(device\.bus\s*=\s*"([^"]+)")raw");
+                QRegularExpression prodRegex(R"raw(device\.product\.name\s*=\s*"([^"]+)")raw");
+
+                auto nameMatch = nameRegex.match(b);
+                auto descMatch = descRegex.match(b);
+                auto busMatch = busRegex.match(b);
+                auto prodMatch = prodRegex.match(b);
+
+                QString name = nameMatch.hasMatch() ? nameMatch.captured(1).trimmed() : "";
+                QString desc = descMatch.hasMatch() ? descMatch.captured(1).trimmed() : "";
+                QString bus = busMatch.hasMatch() ? busMatch.captured(1).trimmed() : "";
+                QString prod = prodMatch.hasMatch() ? prodMatch.captured(1).trimmed() : "";
+
+                if (name.contains(".monitor") || name.isEmpty()) continue;
+
+                DevInfo item;
+                item.name = name;
+                item.desc = !desc.isEmpty() ? desc : (!prod.isEmpty() ? prod : name);
+                item.isUsb = (bus == "usb" || name.contains(".usb") || item.desc.contains("usb", Qt::CaseInsensitive));
+                list.append(item);
+            }
+        }
+        return list;
+    };
+
+    auto sources = scanDevices("sources");
+    for (const auto &s : sources) {
+        QString label = s.isUsb ? QString("🎧 Headset USB: %1").arg(s.desc)
+                                : QString("🎙 %1").arg(s.desc);
+        m_comboInputDevice->addItem(label, s.name);
     }
-    const auto outputs = QMediaDevices::audioOutputs();
-    for (const auto &dev : outputs) {
-        m_comboOutputDevice->addItem(dev.description());
+
+    auto sinks = scanDevices("sinks");
+    for (const auto &s : sinks) {
+        QString label = s.isUsb ? QString("🎧 Headset USB: %1").arg(s.desc)
+                                : QString("🔊 %1").arg(s.desc);
+        m_comboOutputDevice->addItem(label, s.name);
     }
-#else
-    m_comboInputDevice->addItems({"Headset USB Corporativo", "Microfone Interno (Linha Analógica)"});
-    m_comboOutputDevice->addItems({"Headset USB Corporativo", "Alto-falantes Internos / Saída Estéreo"});
-#endif
+
+    // Se nenhum dispositivo adicional foi encontrado, tenta ler ALSA cards
+    if (m_comboInputDevice->count() <= 1 || m_comboOutputDevice->count() <= 1) {
+        QFile file("/proc/asound/cards");
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QString content = QString::fromUtf8(file.readAll());
+            QStringList lines = content.split('\n');
+            for (const QString &line : lines) {
+                if (line.contains("USB-Audio") || line.contains("Quantum")) {
+                    QString usbDev = line.section(':', 1).trimmed();
+                    if (!usbDev.isEmpty()) {
+                        m_comboInputDevice->addItem(QString("🎧 Headset USB: %1").arg(usbDev));
+                        m_comboOutputDevice->addItem(QString("🎧 Headset USB: %1").arg(usbDev));
+                    }
+                }
+            }
+        }
+    }
 
     int idxIn = m_comboInputDevice->findText(currentIn);
     if (idxIn >= 0) m_comboInputDevice->setCurrentIndex(idxIn);
@@ -220,10 +300,91 @@ void SettingsDialog::refreshAudioDeviceLists() {
 }
 
 void SettingsDialog::onTestAudio() {
+    m_btnTestAudio->setEnabled(false);
+    m_lblAudioTestStatus->setText("Tocando sinal de áudio nos alto-falantes...");
+    m_lblAudioTestStatus->setStyleSheet("color: #3498DB; font-weight: bold; font-size: 11px;");
     SoundManager::instance().playPreview("Cisco Ringtone 1");
-    QTimer::singleShot(2500, this, []() {
+    QTimer::singleShot(2500, this, [this]() {
         SoundManager::instance().stopPreview();
+        m_btnTestAudio->setEnabled(true);
+        m_lblAudioTestStatus->setText("✓ Teste de alto-falantes concluído!");
+        m_lblAudioTestStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 11px;");
     });
+}
+
+void SettingsDialog::onTestVoice() {
+    if (m_voiceCountdownTimer && m_voiceCountdownTimer->isActive()) {
+        m_voiceCountdownTimer->stop();
+        if (m_voiceRecProcess) {
+            m_voiceRecProcess->kill();
+        }
+        if (m_voicePlayProcess) {
+            m_voicePlayProcess->kill();
+        }
+        m_btnTestVoice->setText("🎤 Testar Microfone (Falar e Ouvir)");
+        m_btnTestVoice->setStyleSheet("");
+        m_lblAudioTestStatus->setText("Teste de voz cancelado.");
+        m_lblAudioTestStatus->setStyleSheet("color: #7F8C8D; font-size: 11px;");
+        return;
+    }
+
+    const QString testFile = "/tmp/vxvoice_test_mic.wav";
+    QFile::remove(testFile);
+
+    m_voiceCountdownSec = 3;
+    m_btnTestVoice->setText(QString("⏺ Gravando sua voz... (%1s)").arg(m_voiceCountdownSec));
+    m_btnTestVoice->setStyleSheet("background-color: #E74C3C; color: #FFFFFF; font-weight: bold; border-radius: 6px;");
+    m_lblAudioTestStatus->setText("Fale agora no microfone! Gravando amostra de voz de 3 segundos...");
+    m_lblAudioTestStatus->setStyleSheet("color: #E67E22; font-weight: bold; font-size: 11px;");
+
+    if (!m_voiceRecProcess) {
+        m_voiceRecProcess = new QProcess(this);
+    }
+    m_voiceRecProcess->start("pw-record", {"--channels", "1", "--rate", "16000", testFile});
+    if (!m_voiceRecProcess->waitForStarted(800)) {
+        m_voiceRecProcess->start("arecord", {"-d", "3", "-f", "S16_LE", "-r", "16000", testFile});
+    }
+
+    if (!m_voiceCountdownTimer) {
+        m_voiceCountdownTimer = new QTimer(this);
+    }
+    m_voiceCountdownTimer->disconnect();
+    connect(m_voiceCountdownTimer, &QTimer::timeout, this, [this, testFile]() {
+        m_voiceCountdownSec--;
+        if (m_voiceCountdownSec > 0) {
+            m_btnTestVoice->setText(QString("⏺ Gravando sua voz... (%1s)").arg(m_voiceCountdownSec));
+        } else {
+            m_voiceCountdownTimer->stop();
+
+            if (m_voiceRecProcess && m_voiceRecProcess->state() != QProcess::NotRunning) {
+                m_voiceRecProcess->terminate();
+                m_voiceRecProcess->waitForFinished(1000);
+            }
+
+            m_btnTestVoice->setText("🔊 Reproduzindo sua voz gravada...");
+            m_btnTestVoice->setStyleSheet("background-color: #2980B9; color: #FFFFFF; font-weight: bold; border-radius: 6px;");
+            m_lblAudioTestStatus->setText("Ouça sua voz gravada nos fones/alto-falantes para conferir a fidelidade.");
+            m_lblAudioTestStatus->setStyleSheet("color: #3498DB; font-weight: bold; font-size: 11px;");
+
+            if (!m_voicePlayProcess) {
+                m_voicePlayProcess = new QProcess(this);
+            }
+            m_voicePlayProcess->disconnect();
+            connect(m_voicePlayProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                    this, [this]() {
+                m_btnTestVoice->setText("🎤 Testar Microfone (Falar e Ouvir)");
+                m_btnTestVoice->setStyleSheet("");
+                m_lblAudioTestStatus->setText("✓ Teste de microfone concluído com sucesso! Sua voz foi captada e reproduzida.");
+                m_lblAudioTestStatus->setStyleSheet("color: #2ECC71; font-weight: bold; font-size: 11px;");
+            });
+
+            m_voicePlayProcess->start("pw-play", {testFile});
+            if (!m_voicePlayProcess->waitForStarted(800)) {
+                m_voicePlayProcess->start("paplay", {testFile});
+            }
+        }
+    });
+    m_voiceCountdownTimer->start(1000);
 }
 
 QWidget* SettingsDialog::createCodecsTab() {
@@ -232,17 +393,59 @@ QWidget* SettingsDialog::createCodecsTab() {
     layout->setContentsMargins(16, 16, 16, 16);
     layout->setSpacing(8);
 
-    auto tipLabel = new QLabel("Arraste e solte para definir a prioridade dos codecs de voz no PJSIP. "
-                               "Marque as opções para habilitar ou desabilitar cada codec.", widget);
+    auto tipLabel = new QLabel("Selecione um codec de voz e utilize os botões <b>Mover para Cima</b> ou <b>Mover para Baixo</b> "
+                               "para definir a ordem de prioridade no PJSIP. O primeiro codec habilitado terá a maior preferência nas chamadas.", widget);
     tipLabel->setWordWrap(true);
-    tipLabel->setStyleSheet("color: #95A5A6; font-size: 11px;");
+    tipLabel->setStyleSheet("color: #95A5A6; font-size: 12px;");
 
     m_codecsListWidget = new QListWidget(widget);
     m_codecsListWidget->setDragDropMode(QAbstractItemView::InternalMove);
 
+    auto btnRow = new QHBoxLayout();
+    btnRow->setSpacing(8);
+
+    m_btnCodecMoveUp = new QPushButton("⬆ Mover para Cima", widget);
+    m_btnCodecMoveUp->setCursor(Qt::PointingHandCursor);
+    m_btnCodecMoveUp->setEnabled(false);
+    connect(m_btnCodecMoveUp, &QPushButton::clicked, this, &SettingsDialog::onMoveCodecUp);
+
+    m_btnCodecMoveDown = new QPushButton("⬇ Mover para Baixo", widget);
+    m_btnCodecMoveDown->setCursor(Qt::PointingHandCursor);
+    m_btnCodecMoveDown->setEnabled(false);
+    connect(m_btnCodecMoveDown, &QPushButton::clicked, this, &SettingsDialog::onMoveCodecDown);
+
+    btnRow->addWidget(m_btnCodecMoveUp);
+    btnRow->addWidget(m_btnCodecMoveDown);
+    btnRow->addStretch();
+
+    connect(m_codecsListWidget, &QListWidget::currentRowChanged, this, [this](int row) {
+        int count = m_codecsListWidget->count();
+        m_btnCodecMoveUp->setEnabled(row > 0);
+        m_btnCodecMoveDown->setEnabled(row >= 0 && row < count - 1);
+    });
+
     layout->addWidget(tipLabel);
     layout->addWidget(m_codecsListWidget, 1);
+    layout->addLayout(btnRow);
     return widget;
+}
+
+void SettingsDialog::onMoveCodecUp() {
+    int row = m_codecsListWidget->currentRow();
+    if (row > 0) {
+        auto item = m_codecsListWidget->takeItem(row);
+        m_codecsListWidget->insertItem(row - 1, item);
+        m_codecsListWidget->setCurrentRow(row - 1);
+    }
+}
+
+void SettingsDialog::onMoveCodecDown() {
+    int row = m_codecsListWidget->currentRow();
+    if (row >= 0 && row < m_codecsListWidget->count() - 1) {
+        auto item = m_codecsListWidget->takeItem(row);
+        m_codecsListWidget->insertItem(row + 1, item);
+        m_codecsListWidget->setCurrentRow(row + 1);
+    }
 }
 
 QWidget* SettingsDialog::createRecordingTab() {
@@ -334,12 +537,13 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v1.2.0):</b><br>"
+        "<b>Novidades e Correções (v1.3.0):</b><br>"
         "<ul>"
-        "<li><b>Tema RED Otimizado:</b> Ajuste harmônico das abas da janela principal e correção da integração do card informativo/bina com a paleta corporativa vermelha.</li>"
-        "<li><b>Contatos Padronizados:</b> Proporção unificada e balanceada dos botões de ação (Ligar e E-mail) em todos os temas.</li>"
-        "<li><b>Atualizações Automáticas via Git:</b> Sincronização inteligente com o repositório Git corporativo diretamente pela interface.</li>"
-        "<li><b>Controle de Espera e Conferência:</b> Fluxo e feedback visual refinados para retenção e mesclagem de ramais.</li>"
+        "<li><b>Priorização Dinâmica de Codecs:</b> Botões explícitos para mover codecs para cima ou para baixo, determinando a preferência no PJSIP.</li>"
+        "<li><b>Teste de Voz Interativo:</b> Gravação e reprodução de áudio em tempo real para validação de clareza do microfone.</li>"
+        "<li><b>Detecção Nativa de Dispositivos USB:</b> Enumeração de headsets e placas de som USB (ex: JBL Quantum 400) com botão de atualização dinâmica.</li>"
+        "<li><b>Design System Multi-Temas:</b> Abas, bina e botões de contato com proporções perfeitas em todos os temas.</li>"
+        "<li><b>Atualizações Automáticas via Git:</b> Sincronização direta com o repositório Git.</li>"
         "</ul>"
     );
 

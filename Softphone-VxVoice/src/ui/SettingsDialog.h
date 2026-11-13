@@ -11,6 +11,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QProcess>
+#include <QTimer>
 #include "SettingsManager.h"
 
 class SettingsDialog : public QDialog {
@@ -26,6 +28,9 @@ private slots:
     void onSaveClicked();
     void onToggleRingtonePreview();
     void onTestAudio();
+    void onTestVoice();
+    void onMoveCodecUp();
+    void onMoveCodecDown();
     void onCheckGitUpdates();
     void onApplyGitUpdate();
 
@@ -67,10 +72,18 @@ private:
     QCheckBox *m_chkEchoCancellation{nullptr};
     QCheckBox *m_chkAutoGainControl{nullptr};
     QCheckBox *m_chkVoiceActivityDetection{nullptr};
+    QPushButton *m_btnTestVoice{nullptr};
     QPushButton *m_btnTestAudio{nullptr};
+    QLabel *m_lblAudioTestStatus{nullptr};
+    QProcess *m_voiceRecProcess{nullptr};
+    QProcess *m_voicePlayProcess{nullptr};
+    QTimer *m_voiceCountdownTimer{nullptr};
+    int m_voiceCountdownSec{0};
 
     // Aba Codecs
     QListWidget *m_codecsListWidget{nullptr};
+    QPushButton *m_btnCodecMoveUp{nullptr};
+    QPushButton *m_btnCodecMoveDown{nullptr};
 
     // Aba Gravação
     QLineEdit *m_recordingPathEdit{nullptr};
