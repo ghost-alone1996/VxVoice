@@ -9,7 +9,12 @@
 // =============================================================================
 // Helper: Registro de Threads Externas no PJLIB
 // =============================================================================
+static bool s_pjInitialized = false;
+
 static void ensurePjThread() {
+    if (!s_pjInitialized) {
+        return;
+    }
     if (!pj_thread_is_registered()) {
         try {
             pj::Endpoint::instance().libRegisterThread("qt_main_thread");
@@ -237,6 +242,7 @@ bool SipManager::initialize() {
         if (!m_endpoint) {
             m_endpoint = new pj::Endpoint();
             m_endpoint->libCreate();
+            s_pjInitialized = true;
 
             pj::EpConfig epCfg;
             m_logWriter = std::make_unique<VxSipLogWriter>(this);
@@ -285,6 +291,11 @@ bool SipManager::initialize() {
 }
 
 void SipManager::shutdown() {
+    if (!m_endpoint) {
+        m_calls.clear();
+        m_activeCallId.clear();
+        return;
+    }
     ensurePjThread();
     if (m_callDurationTimer && m_callDurationTimer->isActive()) {
         m_callDurationTimer->stop();
@@ -305,6 +316,7 @@ void SipManager::shutdown() {
         m_account = nullptr;
     }
     if (m_endpoint) {
+        s_pjInitialized = false;
         try {
             m_endpoint->libDestroy();
         } catch (...) {}

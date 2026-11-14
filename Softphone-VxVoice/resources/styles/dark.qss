@@ -493,3 +493,29 @@ QFrame#notificationCard {
     border: 2px solid #3498DB;
     border-radius: 10px;
 }
+
+/* Menus de Contexto (System Tray e Popups) */
+QMenu {
+    background-color: #151E27;
+    color: #ECF0F1;
+    border: 1px solid #2C3E50;
+    border-radius: 6px;
+    padding: 4px 0px;
+}
+
+QMenu::item {
+    padding: 6px 24px 6px 16px;
+    background-color: transparent;
+    color: #ECF0F1;
+}
+
+QMenu::item:selected {
+    background-color: #0284C7;
+    color: #FFFFFF;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #2C3E50;
+    margin: 4px 8px;
+}

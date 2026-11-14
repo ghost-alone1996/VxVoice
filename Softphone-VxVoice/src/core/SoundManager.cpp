@@ -8,6 +8,11 @@
 #include <QTimer>
 #include <QDebug>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <mmsystem.h>
+#endif
+
 SoundManager& SoundManager::instance() {
     static SoundManager s_instance;
     return s_instance;
@@ -126,6 +131,18 @@ void SoundManager::playAudioFile(const QString &filePath, bool loop) {
         return;
     }
 
+#ifdef Q_OS_WIN
+    const bool shouldLoop = loop || m_isRinging;
+    const QString nativePath = QDir::toNativeSeparators(filePath);
+    DWORD flags = SND_FILENAME | SND_ASYNC | SND_NODEFAULT;
+    if (shouldLoop) {
+        flags |= SND_LOOP;
+    }
+    if (!PlaySoundW(reinterpret_cast<LPCWSTR>(nativePath.utf16()), nullptr, flags)) {
+        qWarning() << "[SoundManager] Falha ao reproduzir áudio no Windows:" << nativePath;
+    }
+    return;
+#else
     QString program;
     QStringList args;
 
@@ -153,9 +170,13 @@ void SoundManager::playAudioFile(const QString &filePath, bool loop) {
     m_playerProcess->setStandardInputFile(QProcess::nullDevice());
 
     m_playerProcess->start(program, args);
+#endif
 }
 
 void SoundManager::stopAudioProcess() {
+#ifdef Q_OS_WIN
+    PlaySoundW(nullptr, nullptr, 0);
+#endif
     if (m_playerProcess && m_playerProcess->state() != QProcess::NotRunning) {
         m_playerProcess->terminate();
         if (!m_playerProcess->waitForFinished(200)) {

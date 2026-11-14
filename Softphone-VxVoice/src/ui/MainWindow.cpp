@@ -17,6 +17,7 @@
 #include <QStatusBar>
 #include <QDateTime>
 #include <QScreen>
+#include <QActionGroup>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -121,9 +122,16 @@ MainWindow::~MainWindow() {
 void MainWindow::setupUi() {
     setWindowTitle("VxVoice");
 
-    // Proporção padrão corporativa com ajuste para visor com 3 linhas
-    setMinimumSize(380, 670);
-    resize(380, 670);
+    // Proporção padrão corporativa ajustada para exibir todo o discador sem cortes
+    int targetW = 400;
+    int targetH = 720;
+    if (QScreen *scr = QApplication::primaryScreen()) {
+        QRect avail = scr->availableGeometry();
+        targetW = qMin(targetW, avail.width() - 40);
+        targetH = qMin(targetH, avail.height() - 40);
+    }
+    setMinimumSize(390, qMin(700, targetH));
+    resize(targetW, targetH);
 
     auto centralWidget = new QWidget(this);
     centralWidget->setObjectName("centralWidget");
@@ -243,9 +251,46 @@ void MainWindow::setupTrayIcon() {
         raise();
     });
 
+    auto themeMenu = m_trayMenu->addMenu("Tema");
+    auto themeGroup = new QActionGroup(themeMenu);
+    themeGroup->setExclusive(true);
+
+    struct ThemeEntry {
+        QString label;
+        ThemeManager::Theme theme;
+        QString settingKey;
+    };
+    const ThemeEntry themes[] = {
+        {"Roxo Corporativo (VxVoice)", ThemeManager::Theme::Purple, "Purple"},
+        {"Escuro (Dark)", ThemeManager::Theme::Dark, "Dark"},
+        {"Claro (Light)", ThemeManager::Theme::Light, "Light"},
+        {"Vermelho (Red)", ThemeManager::Theme::Red, "Red"}
+    };
+
+    QMap<ThemeManager::Theme, QAction*> themeActions;
+    for (const auto &entry : themes) {
+        QAction *act = themeMenu->addAction(entry.label);
+        act->setCheckable(true);
+        act->setChecked(ThemeManager::instance().currentTheme() == entry.theme);
+        themeGroup->addAction(act);
+        themeActions.insert(entry.theme, act);
+
+        connect(act, &QAction::triggered, this, [this, entry]() {
+            SettingsManager::instance().setTheme(entry.settingKey);
+            ThemeManager::instance().setTheme(entry.theme);
+            updateHeaderIcons();
+        });
+    }
+
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, [themeActions](ThemeManager::Theme activeTheme) {
+        if (themeActions.contains(activeTheme)) {
+            themeActions.value(activeTheme)->setChecked(true);
+        }
+    });
+
     m_trayMenu->addSeparator();
 
-    auto actionQuit = m_trayMenu->addAction("Sair Definitivo");
+    auto actionQuit = m_trayMenu->addAction("Sair");
     connect(actionQuit, &QAction::triggered, this, &MainWindow::onQuitApplication);
 
     m_trayIcon->setContextMenu(m_trayMenu);
