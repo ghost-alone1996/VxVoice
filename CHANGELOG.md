@@ -4,10 +4,16 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 
 ---
 
-## [v2.0.7] — 2026-11-14
+## [v2.0.8] — 2026-11-14
 
 ### Correções de Bugs
 - **Tela "Ligar para..." (`SelectContactNumberDialog`)**: Botões de seleção de número/ramal e subtítulo adaptados aos temas clássicos do Windows (`Windows 2000`, `Windows XP`, `Windows 7`), removendo cores fixas que destoavam do tema ativo.
+
+---
+
+## [v2.0.7] — 2026-11-14
+
+### Correções de Bugs
 - **Temas Clássicos e Contraste (`CallWidget`, `MainWindow`, `SettingsDialog`, `ChangelogDialog`, `UpdateProgressDialog`)**: Substituídas verificações isoladas de `Theme::Light` por `ThemeManager::isLightTheme(theme)`, corrigindo textos brancos sobre fundo claro nos temas Windows 2000, XP e 7 e aplicando ícones escuros no cabeçalho do tema Windows XP.
 - **Novidades e Correções (`ChangelogDialog`)**: Conteúdo atualizado dinamicamente para exibir as alterações reais da versão atual (`v2.0.7`).
 - **Aba Sobre (`SettingsDialog`)**: Removido o bloco antigo de resumo fixo (`v2.0.4`) e renomeado o botão para **Ver Novidades e Correções**.
@@ -49,7 +55,7 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 ## Instalação Rápida
 
 ### Windows (`.msi`)
-1. Baixe `vxvoice-2.0.7-Windows.msi` (ou `vxvoice-2.0.7-x64.msi`) na seção **Releases** do GitHub.
+1. Baixe `vxvoice-2.0.8-Windows.msi` (ou `vxvoice-2.0.8-x64.msi`) na seção **Releases** do GitHub.
 2. Execute o instalador `.msi` e siga o assistente de instalação.
 
 ### Linux (`.deb` / `.sh`)

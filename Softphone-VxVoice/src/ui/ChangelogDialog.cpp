@@ -66,10 +66,9 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Novidades e Correções — Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>🎨 Temas Clássicos Windows (2000, XP e 7) Aprimorados:</b> Correção completa de contraste e legibilidade em todas as telas, visores, ícones e diálogos nos temas Windows 2000, Windows XP e Windows 7.</li><br>"
-        "<li><b>📐 Janela Principal Mais Compacta:</b> Proporção da janela reduzida em 10% (360×648) mantendo todo o discador visível e bem alinhado.</li><br>"
-        "<li><b>🎙 Aba Gravação Simplificada:</b> Removido o botão <i>Ligar</i> da barra inferior de gravações.</li><br>"
-        "<li><b>ℹ Aba Sobre e Novidades:</b> Removido o resumo fixo antigo da aba Sobre, botão renomeado para <i>Ver Novidades e Correções</i> e histórico da versão atualizado.</li><br>"
+        "<li><b>📞 Tela \"Ligar para...\" Adaptada aos Temas Windows (v2.0.8):</b> Os botões de seleção de número/ramal e o subtítulo da tela de escolha de destino agora seguem integralmente os temas Windows 2000, Windows XP e Windows 7.</li><br>"
+        "<li><b>🎨 Temas Clássicos Windows (2000, XP e 7) Aprimorados (v2.0.7):</b> Correção de contraste e legibilidade em todas as telas, visores, ícones e diálogos.</li><br>"
+        "<li><b>📐 Janela Principal Mais Compacta e Aba Gravação Simplificada (v2.0.7):</b> Proporção reduzida em 10% (360×648), remoção do botão Ligar em Gravação e limpeza da aba Sobre.</li><br>"
         "<li><b>🌐 Perfis SIP e Contatos com Múltiplos Números (v2.0.6):</b> Aba dedicada de Perfis SIP nas Configurações com integração automática em Contas SIP, além de múltiplos números por contato.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);

@@ -1,4 +1,4 @@
-# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.7)
+# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.8)
 
 Este documento registra todas as adaptações, correções de bugs e melhorias implementadas para a versão Windows do **VxVoice Softphone (Qt 6 + PJSIP / PJSUA2)**.
 
@@ -85,8 +85,14 @@ Este documento registra todas as adaptações, correções de bugs e melhorias i
 
 ---
 
-## 5. Verificação e Publicação
+## 5. Correções (v2.0.8)
+
+- **Tela "Ligar para..." (`SelectContactNumberDialog.cpp`)**: Os botões de seleção de número/ramal e o subtítulo agora respeitam os temas clássicos do Windows (`Win2000`, `WinXP`, `Win7`) e `ThemeManager::isLightTheme()`, removendo estilos fixos que não se adaptavam ao tema ativo.
+
+---
+
+## 6. Verificação e Publicação
 
 - **Testes automatizados (`VxVoiceTests.exe`)**: compilado e executado após as alterações com todos os testes aprovados.
-- **Build & Empacotamento `.msi`:** `VxVoice.exe`, `vxvoice-2.0.7-Windows.msi` e `vxvoice-2.0.7-x64.msi` gerados via `build_windows_msi.ps1` (Qt 6.7.3 + MinGW 13.1 + PJSIP 2.14.1 + WiX 3.14).
-- **Release v2.0.7:** Commit, tag `v2.0.7` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.7-Windows.msi` e `vxvoice-2.0.7-x64.msi` anexados.
+- **Build & Empacotamento `.msi`:** `VxVoice.exe`, `vxvoice-2.0.8-Windows.msi` e `vxvoice-2.0.8-x64.msi` gerados via `build_windows_msi.ps1` (Qt 6.7.3 + MinGW 13.1 + PJSIP 2.14.1 + WiX 3.14).
+- **Release v2.0.8:** Commit, tag `v2.0.8` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.8-Windows.msi` e `vxvoice-2.0.8-x64.msi` anexados.
