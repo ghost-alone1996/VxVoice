@@ -18,14 +18,53 @@ ContactEditDialog::ContactEditDialog(const ContactInfo &contact, QWidget *parent
     : QDialog(parent) {
     setWindowTitle(contact.name.isEmpty() ? "Adicionar Contato" : "Editar Contato");
     setWindowIcon(QIcon(":/icons/app_icon.png"));
-    resize(360, 260);
+    setMinimumWidth(420);
     setupUi();
 
     m_editName->setText(contact.name);
     m_editNumber->setText(contact.number);
     m_editExtension->setText(contact.extension);
+    for (const QString &extra : contact.additionalNumbers) {
+        if (!extra.trimmed().isEmpty()) {
+            addExtraNumberRow(extra.trimmed());
+        }
+    }
     m_editEmail->setText(contact.email);
     m_editCompany->setText(contact.company);
+    adjustSize();
+}
+
+void ContactEditDialog::addExtraNumberRow(const QString &value) {
+    if (!m_extraNumbersLayout) return;
+
+    auto rowWidget = new QWidget(this);
+    auto rowLayout = new QHBoxLayout(rowWidget);
+    rowLayout->setContentsMargins(0, 0, 0, 0);
+    rowLayout->setSpacing(6);
+
+    auto edit = new QLineEdit(rowWidget);
+    edit->setPlaceholderText("Número adicional (ex: +55 11 99999-0000)");
+    edit->setText(value);
+
+    auto btnRemove = new QPushButton("✕", rowWidget);
+    btnRemove->setFixedSize(28, 28);
+    btnRemove->setCursor(Qt::PointingHandCursor);
+    btnRemove->setToolTip("Remover este número");
+
+    rowLayout->addWidget(edit, 1);
+    rowLayout->addWidget(btnRemove);
+
+    m_extraNumberEdits.append(edit);
+    m_extraNumbersLayout->addWidget(rowWidget);
+
+    connect(btnRemove, &QPushButton::clicked, this, [this, rowWidget, edit]() {
+        m_extraNumberEdits.removeAll(edit);
+        m_extraNumbersLayout->removeWidget(rowWidget);
+        rowWidget->deleteLater();
+        adjustSize();
+    });
+
+    adjustSize();
 }
 
 void ContactEditDialog::setupUi() {
@@ -37,8 +76,25 @@ void ContactEditDialog::setupUi() {
     m_editName = new QLineEdit(this);
     m_editName->setPlaceholderText("Ex: Roberto Albuquerque");
 
+    auto numberRow = new QHBoxLayout();
+    numberRow->setSpacing(6);
     m_editNumber = new QLineEdit(this);
     m_editNumber->setPlaceholderText("Ex: +55 (11) 98765-4321");
+
+    auto btnAddMoreNumber = new QPushButton("+ Adicionar Número", this);
+    btnAddMoreNumber->setCursor(Qt::PointingHandCursor);
+    btnAddMoreNumber->setToolTip("Adicionar mais um número de telefone para este contato");
+    connect(btnAddMoreNumber, &QPushButton::clicked, this, [this]() {
+        addExtraNumberRow();
+    });
+
+    numberRow->addWidget(m_editNumber, 1);
+    numberRow->addWidget(btnAddMoreNumber);
+
+    auto extraContainer = new QWidget(this);
+    m_extraNumbersLayout = new QVBoxLayout(extraContainer);
+    m_extraNumbersLayout->setContentsMargins(0, 0, 0, 0);
+    m_extraNumbersLayout->setSpacing(4);
 
     m_editExtension = new QLineEdit(this);
     m_editExtension->setPlaceholderText("Ex: 1001");
@@ -50,7 +106,8 @@ void ContactEditDialog::setupUi() {
     m_editCompany->setPlaceholderText("Ex: Vx Telecom / TI");
 
     formLayout->addRow("Nome Completo:*", m_editName);
-    formLayout->addRow("Número Telefônico:", m_editNumber);
+    formLayout->addRow("Número Telefônico:", numberRow);
+    formLayout->addRow("", extraContainer);
     formLayout->addRow("Ramal SIP:", m_editExtension);
     formLayout->addRow("E-mail:", m_editEmail);
     formLayout->addRow("Empresa / Setor:", m_editCompany);
@@ -69,7 +126,14 @@ void ContactEditDialog::setupUi() {
             QMessageBox::warning(this, "Validação", "O nome do contato é obrigatório.");
             return;
         }
-        if (m_editExtension->text().trimmed().isEmpty() && m_editNumber->text().trimmed().isEmpty()) {
+        bool hasAnyExtra = false;
+        for (QLineEdit *ed : m_extraNumberEdits) {
+            if (ed && !ed->text().trimmed().isEmpty()) {
+                hasAnyExtra = true;
+                break;
+            }
+        }
+        if (m_editExtension->text().trimmed().isEmpty() && m_editNumber->text().trimmed().isEmpty() && !hasAnyExtra) {
             QMessageBox::warning(this, "Validação", "Informe ao menos um Ramal ou Número de telefone.");
             return;
         }
@@ -86,6 +150,13 @@ ContactInfo ContactEditDialog::getContactInfo() const {
     c.name = m_editName->text().trimmed();
     c.number = m_editNumber->text().trimmed();
     c.extension = m_editExtension->text().trimmed();
+    for (QLineEdit *ed : m_extraNumberEdits) {
+        if (!ed) continue;
+        QString val = ed->text().trimmed();
+        if (!val.isEmpty() && val != c.number && val != c.extension && !c.additionalNumbers.contains(val)) {
+            c.additionalNumbers.append(val);
+        }
+    }
     c.email = m_editEmail->text().trimmed();
     c.company = m_editCompany->text().trimmed().isEmpty() ? "Geral" : m_editCompany->text().trimmed();
     return c;
@@ -313,7 +384,16 @@ void ContactsWidget::populateInitialContacts() {
             SipManager::instance().subscribeBlf(c.extension);
         }
 
-        auto itemNum = new QStandardItem(c.number);
+        QString numDisplay = c.number;
+        if (!c.additionalNumbers.isEmpty()) {
+            numDisplay = numDisplay.isEmpty()
+                ? c.additionalNumbers.join(", ")
+                : QString("%1 (+%2)").arg(numDisplay).arg(c.additionalNumbers.size());
+        }
+        auto itemNum = new QStandardItem(numDisplay);
+        if (!c.additionalNumbers.isEmpty()) {
+            itemNum->setToolTip(c.allNumbers().join("\n"));
+        }
         auto itemComp = new QStandardItem(c.company);
         auto itemEmail = new QStandardItem(c.email);
 
@@ -365,7 +445,14 @@ void ContactsWidget::onEditContactClicked() {
 
         m_sourceModel->item(row, 0)->setText(updated.name);
         m_sourceModel->item(row, 1)->setText(updated.extension);
-        m_sourceModel->item(row, 2)->setText(updated.number);
+        QString numDisplay = updated.number;
+        if (!updated.additionalNumbers.isEmpty()) {
+            numDisplay = numDisplay.isEmpty()
+                ? updated.additionalNumbers.join(", ")
+                : QString("%1 (+%2)").arg(numDisplay).arg(updated.additionalNumbers.size());
+        }
+        m_sourceModel->item(row, 2)->setText(numDisplay);
+        m_sourceModel->item(row, 2)->setToolTip(updated.additionalNumbers.isEmpty() ? QString() : updated.allNumbers().join("\n"));
         m_sourceModel->item(row, 3)->setText(updated.company);
         m_sourceModel->item(row, 4)->setText(updated.email);
 
@@ -395,18 +482,14 @@ void ContactsWidget::onDeleteContactClicked() {
 }
 
 void ContactsWidget::initiateContactCall(const ContactInfo &c) {
-    QString ext = c.extension.trimmed();
-    QString num = c.number.trimmed();
-    bool hasExt = !ext.isEmpty();
-    bool hasNum = !num.isEmpty();
-
-    if (!hasExt && !hasNum) {
+    const QStringList numbers = c.allNumbers();
+    if (numbers.isEmpty()) {
         QMessageBox::warning(this, "Contato sem Número",
                              QString("O contato '%1' não possui ramal ou número de telefone cadastrado.").arg(c.name));
         return;
     }
 
-    if (hasExt && hasNum && ext != num) {
+    if (numbers.size() > 1) {
         SelectContactNumberDialog dlg(c, this);
         if (dlg.exec() == QDialog::Accepted) {
             QString chosen = dlg.selectedNumber();
@@ -422,7 +505,7 @@ void ContactsWidget::initiateContactCall(const ContactInfo &c) {
         return;
     }
 
-    QString target = hasExt ? ext : num;
+    QString target = numbers.first();
     if (SipManager::isSelfExtension(target)) {
         QMessageBox::warning(this, "Ligação Não Permitida",
             QString("Não é possível realizar uma ligação para o ramal '%1', pois ele está atualmente logado na sua conta SIP.").arg(target));

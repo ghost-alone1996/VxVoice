@@ -18,7 +18,7 @@ AccountEditDialog::AccountEditDialog(const SipAccountConfig &account, QWidget *p
       m_isDefault(account.isDefault) {
     setWindowTitle(account.accountName.isEmpty() ? "Criar Conta SIP" : "Editar Conta SIP");
     setWindowIcon(QIcon(":/icons/app_icon.png"));
-    resize(420, 380);
+    setMinimumWidth(420);
     setupUi();
 
     m_editName->setText(account.accountName);
@@ -30,6 +30,26 @@ AccountEditDialog::AccountEditDialog(const SipAccountConfig &account, QWidget *p
     int transIdx = m_comboTransport->findText(account.transport);
     if (transIdx >= 0) m_comboTransport->setCurrentIndex(transIdx);
     m_chkEnabled->setChecked(account.isEnabled);
+
+    if (!account.profileId.isEmpty()) {
+        int profIdx = m_comboProfile->findData(account.profileId);
+        if (profIdx >= 0) {
+            m_comboProfile->setCurrentIndex(profIdx);
+        }
+    }
+    onProfileSelectionChanged();
+}
+
+void AccountEditDialog::onProfileSelectionChanged() {
+    if (!m_formLayout || !m_comboProfile) return;
+    const QString profileId = m_comboProfile->currentData().toString();
+    const bool manualMode = profileId.isEmpty();
+
+    m_formLayout->setRowVisible(m_editServer, manualMode);
+    m_formLayout->setRowVisible(m_spinPort, manualMode);
+    m_formLayout->setRowVisible(m_editDomain, manualMode);
+    m_formLayout->setRowVisible(m_comboTransport, manualMode);
+    adjustSize();
 }
 
 void AccountEditDialog::setupUi() {
@@ -37,7 +57,19 @@ void AccountEditDialog::setupUi() {
     mainLayout->setContentsMargins(16, 16, 16, 16);
     mainLayout->setSpacing(10);
 
-    auto formLayout = new QFormLayout();
+    m_formLayout = new QFormLayout();
+
+    m_comboProfile = new QComboBox(this);
+    m_comboProfile->addItem("Manual (Configuração Personalizada)", "");
+    const auto profiles = SettingsManager::instance().profiles();
+    for (const auto &p : profiles) {
+        m_comboProfile->addItem(
+            QString("%1 (%2:%3 / %4)").arg(p.name, p.server).arg(p.port > 0 ? p.port : 5060).arg(p.transport),
+            p.id
+        );
+    }
+    connect(m_comboProfile, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int) { onProfileSelectionChanged(); });
 
     m_editName = new QLineEdit(this);
     m_editName->setPlaceholderText("Ex: Ramal Comercial");
@@ -64,16 +96,17 @@ void AccountEditDialog::setupUi() {
     m_chkEnabled = new QCheckBox("Habilitar esta conta imediatamente", this);
     m_chkEnabled->setChecked(true);
 
-    formLayout->addRow("Nome de Exibição:", m_editName);
-    formLayout->addRow("Servidor SIP / Host:*", m_editServer);
-    formLayout->addRow("Porta SIP:", m_spinPort);
-    formLayout->addRow("Usuário / Ramal:*", m_editUsername);
-    formLayout->addRow("Senha:*", m_editPassword);
-    formLayout->addRow("Domínio PBX:", m_editDomain);
-    formLayout->addRow("Transporte:", m_comboTransport);
-    formLayout->addRow("", m_chkEnabled);
+    m_formLayout->addRow("Perfil SIP:", m_comboProfile);
+    m_formLayout->addRow("Nome de Exibição:", m_editName);
+    m_formLayout->addRow("Servidor SIP / Host:*", m_editServer);
+    m_formLayout->addRow("Porta SIP:", m_spinPort);
+    m_formLayout->addRow("Usuário / Ramal:*", m_editUsername);
+    m_formLayout->addRow("Senha:*", m_editPassword);
+    m_formLayout->addRow("Domínio PBX:", m_editDomain);
+    m_formLayout->addRow("Transporte:", m_comboTransport);
+    m_formLayout->addRow("", m_chkEnabled);
 
-    mainLayout->addLayout(formLayout);
+    mainLayout->addLayout(m_formLayout);
 
     auto btnLayout = new QHBoxLayout();
     btnLayout->addStretch();
@@ -85,8 +118,13 @@ void AccountEditDialog::setupUi() {
     btnSave->setDefault(true);
     btnSave->setAutoDefault(true);
     connect(btnSave, &QPushButton::clicked, this, [this]() {
-        if (m_editServer->text().trimmed().isEmpty() || m_editUsername->text().trimmed().isEmpty()) {
+        const QString profileId = m_comboProfile->currentData().toString();
+        if (profileId.isEmpty() && m_editServer->text().trimmed().isEmpty()) {
             QMessageBox::warning(this, "Validação", "Servidor SIP e Usuário/Ramal são obrigatórios.");
+            return;
+        }
+        if (m_editUsername->text().trimmed().isEmpty()) {
+            QMessageBox::warning(this, "Validação", "O campo Usuário / Ramal é obrigatório.");
             return;
         }
         accept();
@@ -106,16 +144,26 @@ void AccountEditDialog::setupUi() {
 SipAccountConfig AccountEditDialog::getAccountConfig() const {
     SipAccountConfig cfg;
     cfg.id = m_accountId;
-    cfg.accountName = m_editName->text().trimmed().isEmpty() ? m_editUsername->text() : m_editName->text().trimmed();
-    cfg.server = m_editServer->text().trimmed();
-    cfg.port = m_spinPort->value();
+    cfg.accountName = m_editName->text().trimmed().isEmpty() ? m_editUsername->text().trimmed() : m_editName->text().trimmed();
     cfg.username = m_editUsername->text().trimmed();
     cfg.password = m_editPassword->text();
-    cfg.domain = m_editDomain->text().trimmed();
-    cfg.transport = m_comboTransport->currentText();
     cfg.isEnabled = m_chkEnabled->isChecked();
     cfg.isDefault = m_isDefault;
-    cfg.profileId = "";
+
+    const QString profileId = m_comboProfile->currentData().toString();
+    cfg.profileId = profileId;
+    if (!profileId.isEmpty()) {
+        SipProfileConfig prof = SettingsManager::instance().findProfileById(profileId);
+        cfg.server = prof.server;
+        cfg.port = prof.port > 0 ? prof.port : 5060;
+        cfg.domain = prof.domain;
+        cfg.transport = prof.transport.isEmpty() ? "UDP" : prof.transport;
+    } else {
+        cfg.server = m_editServer->text().trimmed();
+        cfg.port = m_spinPort->value();
+        cfg.domain = m_editDomain->text().trimmed();
+        cfg.transport = m_comboTransport->currentText();
+    }
 
     return cfg;
 }

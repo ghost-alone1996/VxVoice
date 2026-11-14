@@ -21,6 +21,8 @@
 #include <QScrollBar>
 #include <QClipboard>
 #include <QGuiApplication>
+#include <QSpinBox>
+#include <QDateTime>
 
 #ifdef HAVE_QT_MULTIMEDIA
 #include <QMediaDevices>
@@ -47,6 +49,7 @@ void SettingsDialog::setupUi() {
 
     m_tabs = new QTabWidget(this);
     m_tabs->addTab(createGeneralTab(), "⚙ Geral");
+    m_tabs->addTab(createSipProfileTab(), "🌐 Perfil SIP");
     m_tabs->addTab(createAudioTab(), "🎙 Áudio e Voz");
     m_tabs->addTab(createCodecsTab(), "🎛 Codecs");
     m_tabs->addTab(createRecordingTab(), "⏺ Gravação");
@@ -133,12 +136,15 @@ QWidget* SettingsDialog::createGeneralTab() {
     ringtoneLayout->addWidget(m_comboRingtone, 1);
     ringtoneLayout->addWidget(m_btnPlayRingtone);
 
-    // Theme selector com os 4 temas VxVoice
+    // Theme selector com os 7 temas VxVoice (modernos + clássicos Windows)
     m_comboTheme = new QComboBox(widget);
-    m_comboTheme->addItem("🌑 Dark (Tons de azul escuro)");
-    m_comboTheme->addItem("☀️ Light (Tons de azul claro)");
-    m_comboTheme->addItem("🟣 Purple (Tons de roxo corporativo)");
-    m_comboTheme->addItem("🔴 Red (Tons de vermelho corporativo)");
+    m_comboTheme->addItem("🌑 Dark (Tons de azul escuro)", "Dark");
+    m_comboTheme->addItem("☀️ Light (Tons de azul claro)", "Light");
+    m_comboTheme->addItem("🟣 Purple (Tons de roxo corporativo)", "Purple");
+    m_comboTheme->addItem("🔴 Red (Tons de vermelho corporativo)", "Red");
+    m_comboTheme->addItem("🖥 Windows 2000 (Clássico)", "Win2000");
+    m_comboTheme->addItem("🪟 Windows XP (Luna Blue)", "WinXP");
+    m_comboTheme->addItem("💎 Windows 7 (Aero Glass)", "Win7");
 
     formLayout->addRow("Ringtone de Chamada:", ringtoneLayout);
     formLayout->addRow("Temas VxVoice:", m_comboTheme);
@@ -886,9 +892,13 @@ void SettingsDialog::loadSettings() {
     if (ringIdx >= 0) m_comboRingtone->setCurrentIndex(ringIdx);
 
     // Theme selector
-    QString savedTheme = sm.theme();
-    auto currentTheme = ThemeManager::themeFromString(savedTheme);
-    m_comboTheme->setCurrentIndex(static_cast<int>(currentTheme));
+    QString savedTheme = ThemeManager::themeToString(ThemeManager::themeFromString(sm.theme()));
+    int themeIdx = m_comboTheme->findData(savedTheme);
+    if (themeIdx >= 0) m_comboTheme->setCurrentIndex(themeIdx);
+
+    // Perfis SIP
+    m_profiles = sm.profiles();
+    refreshProfilesTable();
 
     // Audio & Voice
     m_sliderInputVolume->setValue(sm.inputVolume());
@@ -934,7 +944,8 @@ void SettingsDialog::saveSettings() {
     sm.setRingtone(m_comboRingtone->currentText());
 
     // Theme
-    auto selectedTheme = static_cast<ThemeManager::Theme>(m_comboTheme->currentIndex());
+    QString themeKey = m_comboTheme->currentData().toString();
+    auto selectedTheme = ThemeManager::themeFromString(themeKey);
     ThemeManager::instance().setTheme(selectedTheme);
     sm.setTheme(ThemeManager::themeToString(selectedTheme));
 
@@ -993,4 +1004,218 @@ void SettingsDialog::onToggleRingtonePreview() {
 void SettingsDialog::onSaveClicked() {
     saveSettings();
     accept();
+}
+
+// ===================================================================
+// Aba Perfil SIP & Diálogo de Edição de Perfil
+// ===================================================================
+
+static bool openSipProfileEditor(QWidget *parent, SipProfileConfig &prof, bool isNew) {
+    QDialog dlg(parent);
+    dlg.setWindowTitle(isNew ? "Novo Perfil SIP" : "Editar Perfil SIP");
+    dlg.setWindowIcon(QIcon(":/icons/app_icon.png"));
+    dlg.setMinimumWidth(420);
+
+    auto mainLayout = new QVBoxLayout(&dlg);
+    mainLayout->setContentsMargins(16, 16, 16, 16);
+    mainLayout->setSpacing(12);
+
+    auto form = new QFormLayout();
+    form->setSpacing(10);
+
+    auto editName = new QLineEdit(&dlg);
+    editName->setPlaceholderText("Ex: Matriz PABX Cloud");
+    editName->setText(prof.name);
+
+    auto editServer = new QLineEdit(&dlg);
+    editServer->setPlaceholderText("Ex: pbx.empresa.com.br ou 192.168.1.100");
+    editServer->setText(prof.server);
+
+    auto spinPort = new QSpinBox(&dlg);
+    spinPort->setRange(1, 65535);
+    spinPort->setValue(prof.port > 0 ? prof.port : 5060);
+
+    auto editDomain = new QLineEdit(&dlg);
+    editDomain->setPlaceholderText("Ex: empresa.com.br");
+    editDomain->setText(prof.domain);
+
+    auto comboTransport = new QComboBox(&dlg);
+    comboTransport->addItems({"UDP", "TCP", "TLS"});
+    int tIdx = comboTransport->findText(prof.transport.isEmpty() ? "UDP" : prof.transport);
+    if (tIdx >= 0) comboTransport->setCurrentIndex(tIdx);
+
+    form->addRow("Nome do Perfil:*", editName);
+    form->addRow("Servidor SIP/Host:*", editServer);
+    form->addRow("Porta SIP:", spinPort);
+    form->addRow("Domínio PBX:", editDomain);
+    form->addRow("Transporte:", comboTransport);
+    mainLayout->addLayout(form);
+
+    auto btnRow = new QHBoxLayout();
+    btnRow->addStretch();
+    auto btnCancel = new QPushButton("Cancelar", &dlg);
+    QObject::connect(btnCancel, &QPushButton::clicked, &dlg, &QDialog::reject);
+
+    auto btnOk = new QPushButton("Salvar Perfil", &dlg);
+    btnOk->setObjectName("primaryButton");
+    btnOk->setDefault(true);
+    QObject::connect(btnOk, &QPushButton::clicked, &dlg, [&]() {
+        if (editName->text().trimmed().isEmpty() || editServer->text().trimmed().isEmpty()) {
+            QMessageBox::warning(&dlg, "Validação", "Nome do Perfil e Servidor SIP/Host são obrigatórios.");
+            return;
+        }
+        dlg.accept();
+    });
+
+    btnRow->addWidget(btnCancel);
+    btnRow->addWidget(btnOk);
+    mainLayout->addLayout(btnRow);
+
+    if (dlg.exec() != QDialog::Accepted) {
+        return false;
+    }
+
+    if (prof.id.isEmpty()) {
+        prof.id = QString("prof_%1").arg(QDateTime::currentMSecsSinceEpoch());
+    }
+    prof.name = editName->text().trimmed();
+    prof.server = editServer->text().trimmed();
+    prof.port = spinPort->value();
+    prof.domain = editDomain->text().trimmed();
+    prof.transport = comboTransport->currentText();
+    return true;
+}
+
+QWidget* SettingsDialog::createSipProfileTab() {
+    auto widget = new QWidget();
+    auto layout = new QVBoxLayout(widget);
+    layout->setContentsMargins(16, 16, 16, 16);
+    layout->setSpacing(10);
+
+    auto lblInfo = new QLabel(
+        "Cadastre perfis SIP reutilizáveis (Servidor, Porta, Domínio e Transporte) para agilizar a criação de contas SIP:",
+        widget
+    );
+    lblInfo->setWordWrap(true);
+    layout->addWidget(lblInfo);
+
+    m_profilesTable = new QTableWidget(0, 5, widget);
+    m_profilesTable->setHorizontalHeaderLabels({"Perfil", "Servidor SIP/Host", "Porta", "Domínio PBX", "Transporte"});
+    m_profilesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_profilesTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_profilesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_profilesTable->verticalHeader()->setVisible(false);
+    m_profilesTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_profilesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    m_profilesTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    m_profilesTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+    m_profilesTable->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
+
+    connect(m_profilesTable, &QTableWidget::itemSelectionChanged, this, [this]() {
+        bool hasSel = !m_profilesTable->selectedItems().isEmpty();
+        m_btnProfileEdit->setEnabled(hasSel);
+        m_btnProfileCopy->setEnabled(hasSel);
+        m_btnProfileDelete->setEnabled(hasSel);
+    });
+    connect(m_profilesTable, &QTableWidget::doubleClicked, this, &SettingsDialog::onEditProfile);
+
+    layout->addWidget(m_profilesTable, 1);
+
+    auto btnRow = new QHBoxLayout();
+    btnRow->setSpacing(6);
+
+    m_btnProfileAdd = new QPushButton("➕ Adicionar", widget);
+    m_btnProfileAdd->setCursor(Qt::PointingHandCursor);
+    connect(m_btnProfileAdd, &QPushButton::clicked, this, &SettingsDialog::onAddProfile);
+
+    m_btnProfileEdit = new QPushButton("✏ Editar", widget);
+    m_btnProfileEdit->setEnabled(false);
+    m_btnProfileEdit->setCursor(Qt::PointingHandCursor);
+    connect(m_btnProfileEdit, &QPushButton::clicked, this, &SettingsDialog::onEditProfile);
+
+    m_btnProfileCopy = new QPushButton("📋 Copiar", widget);
+    m_btnProfileCopy->setEnabled(false);
+    m_btnProfileCopy->setCursor(Qt::PointingHandCursor);
+    connect(m_btnProfileCopy, &QPushButton::clicked, this, &SettingsDialog::onCopyProfile);
+
+    m_btnProfileDelete = new QPushButton("🗑 Excluir", widget);
+    m_btnProfileDelete->setEnabled(false);
+    m_btnProfileDelete->setCursor(Qt::PointingHandCursor);
+    connect(m_btnProfileDelete, &QPushButton::clicked, this, &SettingsDialog::onDeleteProfile);
+
+    btnRow->addWidget(m_btnProfileAdd);
+    btnRow->addWidget(m_btnProfileEdit);
+    btnRow->addWidget(m_btnProfileCopy);
+    btnRow->addWidget(m_btnProfileDelete);
+    btnRow->addStretch();
+
+    layout->addLayout(btnRow);
+    return widget;
+}
+
+void SettingsDialog::refreshProfilesTable() {
+    if (!m_profilesTable) return;
+    m_profilesTable->setRowCount(0);
+
+    for (const auto &p : m_profiles) {
+        int row = m_profilesTable->rowCount();
+        m_profilesTable->insertRow(row);
+        m_profilesTable->setItem(row, 0, new QTableWidgetItem(p.name));
+        m_profilesTable->setItem(row, 1, new QTableWidgetItem(p.server));
+        m_profilesTable->setItem(row, 2, new QTableWidgetItem(QString::number(p.port > 0 ? p.port : 5060)));
+        m_profilesTable->setItem(row, 3, new QTableWidgetItem(p.domain));
+        m_profilesTable->setItem(row, 4, new QTableWidgetItem(p.transport.isEmpty() ? "UDP" : p.transport));
+    }
+
+    bool hasSel = !m_profilesTable->selectedItems().isEmpty();
+    if (m_btnProfileEdit) m_btnProfileEdit->setEnabled(hasSel);
+    if (m_btnProfileCopy) m_btnProfileCopy->setEnabled(hasSel);
+    if (m_btnProfileDelete) m_btnProfileDelete->setEnabled(hasSel);
+}
+
+void SettingsDialog::onAddProfile() {
+    SipProfileConfig prof;
+    if (openSipProfileEditor(this, prof, true)) {
+        m_profiles.append(prof);
+        SettingsManager::instance().saveProfiles(m_profiles);
+        refreshProfilesTable();
+    }
+}
+
+void SettingsDialog::onEditProfile() {
+    int row = m_profilesTable ? m_profilesTable->currentRow() : -1;
+    if (row < 0 || row >= m_profiles.size()) return;
+
+    SipProfileConfig copy = m_profiles[row];
+    if (openSipProfileEditor(this, copy, false)) {
+        m_profiles[row] = copy;
+        SettingsManager::instance().saveProfiles(m_profiles);
+        refreshProfilesTable();
+    }
+}
+
+void SettingsDialog::onCopyProfile() {
+    int row = m_profilesTable ? m_profilesTable->currentRow() : -1;
+    if (row < 0 || row >= m_profiles.size()) return;
+
+    SipProfileConfig copy = m_profiles[row];
+    copy.id = QString("prof_%1").arg(QDateTime::currentMSecsSinceEpoch());
+    copy.name = copy.name + " (Cópia)";
+    m_profiles.append(copy);
+    SettingsManager::instance().saveProfiles(m_profiles);
+    refreshProfilesTable();
+}
+
+void SettingsDialog::onDeleteProfile() {
+    int row = m_profilesTable ? m_profilesTable->currentRow() : -1;
+    if (row < 0 || row >= m_profiles.size()) return;
+
+    auto ans = QMessageBox::question(this, "Excluir Perfil SIP",
+                                     QString("Deseja excluir o perfil '%1'?").arg(m_profiles[row].name),
+                                     QMessageBox::Yes | QMessageBox::No);
+    if (ans == QMessageBox::Yes) {
+        m_profiles.removeAt(row);
+        SettingsManager::instance().saveProfiles(m_profiles);
+        refreshProfilesTable();
+    }
 }

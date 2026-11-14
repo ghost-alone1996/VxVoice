@@ -187,33 +187,16 @@ void SettingsManager::setCodecs(const QList<CodecConfig> &codecs) {
 QList<SipProfileConfig> SettingsManager::profiles() const {
     QList<SipProfileConfig> list;
     int size = m_settings.beginReadArray("Profiles");
-    if (size == 0) {
-        m_settings.endArray();
-        SipProfileConfig def;
-        def.id = "prof_default";
-        def.name = "Perfil Padrão Corporativo";
-        def.stunServer = "stun.l.google.com:19302";
-        def.turnServer = "";
-        def.forceTls = false;
-        def.forceSrtp = false;
-
-        SipProfileConfig secure;
-        secure.id = "prof_secure";
-        secure.name = "Perfil Seguro (TLS + SRTP)";
-        secure.stunServer = "stun.l.google.com:19302";
-        secure.turnServer = "";
-        secure.forceTls = true;
-        secure.forceSrtp = true;
-
-        return { def, secure };
-    }
-
     for (int i = 0; i < size; ++i) {
         m_settings.setArrayIndex(i);
         SipProfileConfig prof;
         prof.id = m_settings.value("id").toString();
         prof.name = m_settings.value("name").toString();
-        prof.stunServer = m_settings.value("stunServer").toString();
+        prof.server = m_settings.value("server").toString();
+        prof.port = m_settings.value("port", 5060).toInt();
+        prof.domain = m_settings.value("domain").toString();
+        prof.transport = m_settings.value("transport", "UDP").toString();
+        prof.stunServer = m_settings.value("stunServer", "stun.l.google.com:19302").toString();
         prof.turnServer = m_settings.value("turnServer").toString();
         prof.turnUser = m_settings.value("turnUser").toString();
         prof.turnPassword = m_settings.value("turnPassword").toString();
@@ -226,12 +209,17 @@ QList<SipProfileConfig> SettingsManager::profiles() const {
 }
 
 void SettingsManager::saveProfiles(const QList<SipProfileConfig> &profiles) {
-    m_settings.beginWriteArray("Profiles");
+    m_settings.remove("Profiles");
+    m_settings.beginWriteArray("Profiles", profiles.size());
     for (int i = 0; i < profiles.size(); ++i) {
         m_settings.setArrayIndex(i);
         const auto &p = profiles[i];
-        m_settings.setValue("id", p.id.isEmpty() ? QString::number(i) : p.id);
+        m_settings.setValue("id", p.id.isEmpty() ? QString("prof_%1").arg(i + 1) : p.id);
         m_settings.setValue("name", p.name);
+        m_settings.setValue("server", p.server);
+        m_settings.setValue("port", p.port > 0 ? p.port : 5060);
+        m_settings.setValue("domain", p.domain);
+        m_settings.setValue("transport", p.transport.isEmpty() ? "UDP" : p.transport);
         m_settings.setValue("stunServer", p.stunServer);
         m_settings.setValue("turnServer", p.turnServer);
         m_settings.setValue("turnUser", p.turnUser);
@@ -240,15 +228,16 @@ void SettingsManager::saveProfiles(const QList<SipProfileConfig> &profiles) {
         m_settings.setValue("forceSrtp", p.forceSrtp);
     }
     m_settings.endArray();
+    m_settings.sync();
     emit settingsChanged();
 }
 
 SipProfileConfig SettingsManager::findProfileById(const QString &id) const {
-    auto profs = profiles();
+    if (id.isEmpty()) return SipProfileConfig();
+    const auto profs = profiles();
     for (const auto &p : profs) {
         if (p.id == id) return p;
     }
-    if (!profs.isEmpty()) return profs.first();
     return SipProfileConfig();
 }
 
@@ -311,7 +300,7 @@ QList<SipAccountConfig> SettingsManager::accounts() const {
         acc.password = m_settings.value("password").toString();
         acc.domain = m_settings.value("domain").toString();
         acc.transport = m_settings.value("transport", "UDP").toString();
-        acc.profileId = m_settings.value("profileId", "prof_default").toString();
+        acc.profileId = m_settings.value("profileId", "").toString();
         acc.isDefault = m_settings.value("isDefault", false).toBool();
         acc.isEnabled = m_settings.value("isEnabled", true).toBool();
 

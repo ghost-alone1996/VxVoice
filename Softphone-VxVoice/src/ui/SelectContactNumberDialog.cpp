@@ -1,13 +1,14 @@
 #include "SelectContactNumberDialog.h"
 #include "IconHelper.h"
 #include "ThemeManager.h"
+#include <QScrollArea>
 
 SelectContactNumberDialog::SelectContactNumberDialog(const ContactEntry &contact, QWidget *parent)
     : QDialog(parent) {
     setWindowTitle(QString("Ligar para %1").arg(contact.name));
     setWindowIcon(QIcon(":/icons/app_icon.png"));
     setModal(true);
-    setMinimumWidth(440);
+    setMinimumWidth(460);
     setupUi(contact);
     adjustSize();
 }
@@ -16,17 +17,17 @@ void SelectContactNumberDialog::setupUi(const ContactEntry &contact) {
     auto mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(18, 18, 18, 18);
     mainLayout->setSpacing(12);
-    mainLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     // Card com dados do contato
     auto card = new QFrame(this);
     card->setObjectName("callInfoFrame");
-    card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+    card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     auto cardLayout = new QVBoxLayout(card);
     cardLayout->setContentsMargins(16, 14, 16, 14);
     cardLayout->setSpacing(6);
 
-    auto lblName = new QLabel(QString("<b>%1</b>").arg(contact.name), card);
+    auto lblName = new QLabel(QString("<b>%1</b>").arg(contact.name.toHtmlEscaped()), card);
     lblName->setStyleSheet("font-size: 17px; font-weight: bold; background: transparent;");
     lblName->setAlignment(Qt::AlignCenter);
     lblName->setWordWrap(true);
@@ -37,10 +38,9 @@ void SelectContactNumberDialog::setupUi(const ContactEntry &contact) {
     lblSub->setAlignment(Qt::AlignCenter);
     lblSub->setWordWrap(true);
 
-    auto lblPrompt = new QLabel("Este contato possui ramal interno e telefone cadastrados.<br>Selecione para qual destino deseja ligar:", card);
+    auto lblPrompt = new QLabel("Este contato possui múltiplos números cadastrados.\nSelecione para qual destino deseja ligar:", card);
     lblPrompt->setWordWrap(true);
-    lblPrompt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-    lblPrompt->setStyleSheet("font-size: 13px; color: #E2E8F0; margin-top: 6px; background: transparent;");
+    lblPrompt->setStyleSheet("font-size: 13px; margin-top: 4px; background: transparent;");
     lblPrompt->setAlignment(Qt::AlignCenter);
 
     cardLayout->addWidget(lblName);
@@ -48,57 +48,71 @@ void SelectContactNumberDialog::setupUi(const ContactEntry &contact) {
     cardLayout->addWidget(lblPrompt);
     mainLayout->addWidget(card);
 
-    // Botões de escolha com estilo proeminente e altura confortável
-    auto btnRamal = new QPushButton(QString("📞 Ramal SIP:  %1").arg(contact.extension.trimmed()), this);
-    btnRamal->setObjectName("btnSelectRamal");
-    btnRamal->setFixedHeight(44);
-    btnRamal->setCursor(Qt::PointingHandCursor);
-    btnRamal->setStyleSheet(
-        "QPushButton#btnSelectRamal {"
-        "  background-color: #27AE60;"
-        "  color: #FFFFFF;"
-        "  font-weight: bold;"
-        "  font-size: 14px;"
-        "  border-radius: 6px;"
-        "  border: 1px solid #2ECC71;"
-        "  padding: 6px 14px;"
-        "}"
-        "QPushButton#btnSelectRamal:hover { background-color: #2ECC71; }"
-        "QPushButton#btnSelectRamal:pressed { background-color: #1E8449; }"
-    );
-    connect(btnRamal, &QPushButton::clicked, this, [this, contact]() {
-        m_selectedNumber = contact.extension.trimmed();
-        accept();
-    });
+    // Lista dinâmica de botões para cada número salvo
+    auto buttonsWidget = new QWidget(this);
+    auto buttonsLayout = new QVBoxLayout(buttonsWidget);
+    buttonsLayout->setContentsMargins(0, 0, 0, 0);
+    buttonsLayout->setSpacing(8);
 
-    auto btnNumero = new QPushButton(QString("📱 Telefone:  %1").arg(contact.number.trimmed()), this);
-    btnNumero->setObjectName("btnSelectNumero");
-    btnNumero->setFixedHeight(44);
-    btnNumero->setCursor(Qt::PointingHandCursor);
-    btnNumero->setStyleSheet(
-        "QPushButton#btnSelectNumero {"
-        "  background-color: #2980B9;"
-        "  color: #FFFFFF;"
-        "  font-weight: bold;"
-        "  font-size: 14px;"
-        "  border-radius: 6px;"
-        "  border: 1px solid #3498DB;"
-        "  padding: 6px 14px;"
-        "}"
-        "QPushButton#btnSelectNumero:hover { background-color: #3498DB; }"
-        "QPushButton#btnSelectNumero:pressed { background-color: #1F618D; }"
-    );
-    connect(btnNumero, &QPushButton::clicked, this, [this, contact]() {
-        m_selectedNumber = contact.number.trimmed();
-        accept();
-    });
+    const QStringList numbers = contact.allNumbers();
+    const QString extTrimmed = contact.extension.trimmed();
+    int phoneIndex = 1;
+
+    for (const QString &num : numbers) {
+        const bool isExt = (!extTrimmed.isEmpty() && num == extTrimmed);
+        QString btnLabel;
+        QString bgNormal, bgHover, bgPressed, borderColor;
+
+        if (isExt) {
+            btnLabel = QString("📞 Ramal SIP:  %1").arg(num);
+            bgNormal = "#27AE60"; bgHover = "#2ECC71"; bgPressed = "#1E8449"; borderColor = "#2ECC71";
+        } else {
+            btnLabel = (phoneIndex == 1)
+                ? QString("📱 Telefone:  %1").arg(num)
+                : QString("📱 Telefone %1:  %2").arg(phoneIndex).arg(num);
+            ++phoneIndex;
+            bgNormal = "#2980B9"; bgHover = "#3498DB"; bgPressed = "#1F618D"; borderColor = "#3498DB";
+        }
+
+        auto btn = new QPushButton(btnLabel, buttonsWidget);
+        btn->setFixedHeight(42);
+        btn->setCursor(Qt::PointingHandCursor);
+        btn->setStyleSheet(
+            QString("QPushButton {"
+                    "  background-color: %1;"
+                    "  color: #FFFFFF;"
+                    "  font-weight: bold;"
+                    "  font-size: 14px;"
+                    "  border-radius: 6px;"
+                    "  border: 1px solid %4;"
+                    "  padding: 6px 14px;"
+                    "}"
+                    "QPushButton:hover { background-color: %2; }"
+                    "QPushButton:pressed { background-color: %3; }")
+                .arg(bgNormal, bgHover, bgPressed, borderColor)
+        );
+        connect(btn, &QPushButton::clicked, this, [this, num]() {
+            m_selectedNumber = num;
+            accept();
+        });
+        buttonsLayout->addWidget(btn);
+    }
+
+    if (numbers.size() > 5) {
+        auto scrollArea = new QScrollArea(this);
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setFrameShape(QFrame::NoFrame);
+        scrollArea->setWidget(buttonsWidget);
+        scrollArea->setMinimumHeight(240);
+        scrollArea->setMaximumHeight(320);
+        mainLayout->addWidget(scrollArea);
+    } else {
+        mainLayout->addWidget(buttonsWidget);
+    }
 
     auto btnCancel = new QPushButton("Cancelar", this);
     btnCancel->setFixedHeight(36);
     btnCancel->setCursor(Qt::PointingHandCursor);
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
-
-    mainLayout->addWidget(btnRamal);
-    mainLayout->addWidget(btnNumero);
     mainLayout->addWidget(btnCancel);
 }

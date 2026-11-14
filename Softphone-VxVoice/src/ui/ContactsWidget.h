@@ -25,12 +25,15 @@ public:
 
 private:
     void setupUi();
+    void addExtraNumberRow(const QString &value = QString());
 
     QLineEdit *m_editName{nullptr};
     QLineEdit *m_editNumber{nullptr};
     QLineEdit *m_editExtension{nullptr};
     QLineEdit *m_editEmail{nullptr};
     QLineEdit *m_editCompany{nullptr};
+    QVBoxLayout *m_extraNumbersLayout{nullptr};
+    QList<QLineEdit*> m_extraNumberEdits;
 };
 
 class ContactsProxyModel : public QSortFilterProxyModel {

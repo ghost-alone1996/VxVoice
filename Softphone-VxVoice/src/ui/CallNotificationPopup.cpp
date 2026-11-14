@@ -135,16 +135,25 @@ void CallNotificationPopup::updateThemeVisuals() {
             "QPushButton { border: none; background: transparent; color: #BDC3C7; font-weight: bold; font-size: 14px; } "
             "QPushButton:hover { color: #38BDF8; }"
         );
-    } else if (theme == ThemeManager::Theme::Light) {
+    } else if (ThemeManager::isLightTheme(theme)) {
+        QString accent = (theme == ThemeManager::Theme::Win2000) ? "#0A246A"
+                       : (theme == ThemeManager::Theme::WinXP)   ? "#0054E3"
+                       : (theme == ThemeManager::Theme::Win7)    ? "#3399FF"
+                                                                 : "#0284C7";
+        QString bg = (theme == ThemeManager::Theme::Win2000) ? "#D4D0C8"
+                   : (theme == ThemeManager::Theme::WinXP)   ? "#ECE9D8"
+                                                             : "#FFFFFF";
+        QString radius = (theme == ThemeManager::Theme::Win2000) ? "0px" : "10px";
         m_cardFrame->setStyleSheet(
-            "QFrame#notificationCard { background-color: #FFFFFF; border: 2px solid #0284C7; border-radius: 10px; }"
+            QString("QFrame#notificationCard { background-color: %1; border: 2px solid %2; border-radius: %3; }")
+                .arg(bg, accent, radius)
         );
-        m_headerLabel->setStyleSheet("font-size: 12px; font-weight: bold; color: #0284C7; background: transparent;");
+        m_headerLabel->setStyleSheet(QString("font-size: 12px; font-weight: bold; color: %1; background: transparent;").arg(accent));
         m_callerNameLabel->setStyleSheet("font-size: 16px; font-weight: bold; color: #1E293B; background: transparent;");
         m_callerNumberLabel->setStyleSheet("font-size: 13px; color: #475569; font-weight: 500; background: transparent;");
         m_btnClose->setStyleSheet(
-            "QPushButton { border: none; background: transparent; color: #94A3B8; font-weight: bold; font-size: 14px; } "
-            "QPushButton:hover { color: #0284C7; }"
+            QString("QPushButton { border: none; background: transparent; color: #64748B; font-weight: bold; font-size: 14px; } "
+                    "QPushButton:hover { color: %1; }").arg(accent)
         );
     } else { // Purple (VxVoice)
         m_cardFrame->setStyleSheet(

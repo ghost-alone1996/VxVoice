@@ -25,6 +25,12 @@ void ThemeManager::setTheme(Theme theme) {
         path = ":/styles/light.qss";
     } else if (theme == Theme::Red) {
         path = ":/styles/red.qss";
+    } else if (theme == Theme::Win2000) {
+        path = ":/styles/win2000.qss";
+    } else if (theme == Theme::WinXP) {
+        path = ":/styles/winxp.qss";
+    } else if (theme == Theme::Win7) {
+        path = ":/styles/win7.qss";
     }
 
     QString qss = loadStyleSheet(path);
@@ -121,6 +127,48 @@ void ThemeManager::setTheme(Theme theme) {
             redPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor("#5A3E42"));
 
             qApp->setPalette(redPalette);
+        } else if (theme == Theme::Win2000) {
+            QPalette win2kPalette;
+            win2kPalette.setColor(QPalette::Window, QColor("#D4D0C8"));
+            win2kPalette.setColor(QPalette::WindowText, Qt::black);
+            win2kPalette.setColor(QPalette::Base, Qt::white);
+            win2kPalette.setColor(QPalette::AlternateBase, QColor("#ECEAE4"));
+            win2kPalette.setColor(QPalette::ToolTipBase, QColor("#FFFFE1"));
+            win2kPalette.setColor(QPalette::ToolTipText, Qt::black);
+            win2kPalette.setColor(QPalette::Text, Qt::black);
+            win2kPalette.setColor(QPalette::Button, QColor("#D4D0C8"));
+            win2kPalette.setColor(QPalette::ButtonText, Qt::black);
+            win2kPalette.setColor(QPalette::Highlight, QColor("#0A246A"));
+            win2kPalette.setColor(QPalette::HighlightedText, Qt::white);
+            qApp->setPalette(win2kPalette);
+        } else if (theme == Theme::WinXP) {
+            QPalette winXpPalette;
+            winXpPalette.setColor(QPalette::Window, QColor("#ECE9D8"));
+            winXpPalette.setColor(QPalette::WindowText, Qt::black);
+            winXpPalette.setColor(QPalette::Base, Qt::white);
+            winXpPalette.setColor(QPalette::AlternateBase, QColor("#F5F4EC"));
+            winXpPalette.setColor(QPalette::ToolTipBase, QColor("#FFFFE1"));
+            winXpPalette.setColor(QPalette::ToolTipText, Qt::black);
+            winXpPalette.setColor(QPalette::Text, Qt::black);
+            winXpPalette.setColor(QPalette::Button, QColor("#ECE9D8"));
+            winXpPalette.setColor(QPalette::ButtonText, Qt::black);
+            winXpPalette.setColor(QPalette::Highlight, QColor("#316AC5"));
+            winXpPalette.setColor(QPalette::HighlightedText, Qt::white);
+            qApp->setPalette(winXpPalette);
+        } else if (theme == Theme::Win7) {
+            QPalette win7Palette;
+            win7Palette.setColor(QPalette::Window, QColor("#EEF4FB"));
+            win7Palette.setColor(QPalette::WindowText, QColor("#1E293B"));
+            win7Palette.setColor(QPalette::Base, Qt::white);
+            win7Palette.setColor(QPalette::AlternateBase, QColor("#E4ECF7"));
+            win7Palette.setColor(QPalette::ToolTipBase, QColor("#F2F6FB"));
+            win7Palette.setColor(QPalette::ToolTipText, QColor("#1E293B"));
+            win7Palette.setColor(QPalette::Text, QColor("#1E293B"));
+            win7Palette.setColor(QPalette::Button, QColor("#EAF1FA"));
+            win7Palette.setColor(QPalette::ButtonText, QColor("#1E293B"));
+            win7Palette.setColor(QPalette::Highlight, QColor("#3399FF"));
+            win7Palette.setColor(QPalette::HighlightedText, Qt::white);
+            qApp->setPalette(win7Palette);
         }
 
         if (!qss.isEmpty()) {
@@ -136,29 +184,45 @@ ThemeManager::Theme ThemeManager::currentTheme() const {
 
 void ThemeManager::toggleTheme() {
     switch (m_currentTheme) {
-    case Theme::Dark:   setTheme(Theme::Light); break;
-    case Theme::Light:  setTheme(Theme::Purple); break;
-    case Theme::Purple: setTheme(Theme::Red); break;
-    case Theme::Red:    setTheme(Theme::Dark); break;
+    case Theme::Dark:    setTheme(Theme::Light); break;
+    case Theme::Light:   setTheme(Theme::Purple); break;
+    case Theme::Purple:  setTheme(Theme::Red); break;
+    case Theme::Red:     setTheme(Theme::Win2000); break;
+    case Theme::Win2000: setTheme(Theme::WinXP); break;
+    case Theme::WinXP:   setTheme(Theme::Win7); break;
+    case Theme::Win7:    setTheme(Theme::Dark); break;
     }
+}
+
+bool ThemeManager::isLightTheme(Theme theme) {
+    return theme == Theme::Light ||
+           theme == Theme::Win2000 ||
+           theme == Theme::WinXP ||
+           theme == Theme::Win7;
 }
 
 QString ThemeManager::themeName(Theme theme) const {
     switch (theme) {
-    case Theme::Dark:   return "Dark (Azul Escuro)";
-    case Theme::Light:  return "Light (Azul Claro)";
-    case Theme::Purple: return "Purple (Roxo Corporativo)";
-    case Theme::Red:    return "Red (Vermelho Corporativo)";
+    case Theme::Dark:    return "Dark (Azul Escuro)";
+    case Theme::Light:   return "Light (Azul Claro)";
+    case Theme::Purple:  return "Purple (Roxo Corporativo)";
+    case Theme::Red:     return "Red (Vermelho Corporativo)";
+    case Theme::Win2000: return "Windows 2000 (Clássico)";
+    case Theme::WinXP:   return "Windows XP (Luna)";
+    case Theme::Win7:    return "Windows 7 (Aero)";
     }
     return "Purple (Roxo Corporativo)";
 }
 
 QString ThemeManager::themeToString(Theme theme) {
     switch (theme) {
-    case Theme::Dark:   return "Dark";
-    case Theme::Light:  return "Light";
-    case Theme::Purple: return "Purple";
-    case Theme::Red:    return "Red";
+    case Theme::Dark:    return "Dark";
+    case Theme::Light:   return "Light";
+    case Theme::Purple:  return "Purple";
+    case Theme::Red:     return "Red";
+    case Theme::Win2000: return "Win2000";
+    case Theme::WinXP:   return "WinXP";
+    case Theme::Win7:    return "Win7";
     }
     return "Purple";
 }
@@ -168,6 +232,9 @@ ThemeManager::Theme ThemeManager::themeFromString(const QString &themeStr) {
     if (t == "dark") return Theme::Dark;
     if (t == "light") return Theme::Light;
     if (t == "red") return Theme::Red;
+    if (t == "win2000") return Theme::Win2000;
+    if (t == "winxp") return Theme::WinXP;
+    if (t == "win7") return Theme::Win7;
     return Theme::Purple;
 }
 

@@ -11,6 +11,8 @@
 #include <QCheckBox>
 #include "SettingsManager.h"
 
+class QFormLayout;
+
 class AccountEditDialog : public QDialog {
     Q_OBJECT
 
@@ -20,7 +22,10 @@ public:
 
 private:
     void setupUi();
+    void onProfileSelectionChanged();
 
+    QFormLayout *m_formLayout{nullptr};
+    QComboBox *m_comboProfile{nullptr};
     QLineEdit *m_editName{nullptr};
     QLineEdit *m_editServer{nullptr};
     QSpinBox *m_spinPort{nullptr};

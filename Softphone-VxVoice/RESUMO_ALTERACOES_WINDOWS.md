@@ -1,4 +1,4 @@
-# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.5)
+# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.6)
 
 Este documento registra todas as adaptações, correções de bugs e melhorias implementadas para a versão Windows do **VxVoice Softphone (Qt 6 + PJSIP / PJSUA2)**.
 
@@ -44,7 +44,32 @@ Este documento registra todas as adaptações, correções de bugs e melhorias i
 
 ---
 
-## 3. Verificação e Publicação
+## 3. Novidades e Melhorias (v2.0.6)
 
-- **Testes automatizados:** `VxVoiceTests.exe` compilado e executado com código de saída `0`.
-- **Release v2.0.5:** Tag `v2.0.5` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.5-Windows.msi` e `vxvoice-2.0.5-x64.msi` anexados.
+### Temas Clássicos Windows (`resources/styles/win2000.qss`, `winxp.qss`, `win7.qss`, `ThemeManager.*`, `MainWindow.cpp`, `CallWidget.cpp`, `CallNotificationPopup.cpp`, `SettingsDialog.cpp`)
+- Adicionados três novos temas clássicos fiéis ao visual histórico do Windows:
+  - **Windows 2000 Clássico (`win2000.qss`)**: cinza `#D4D0C8`, bordas chanfradas 3D (`outset`/`inset`), azul marinho `#0A246A` na seleção/foco e cantos retos.
+  - **Windows XP Luna (`winxp.qss`)**: fundo `#ECE9D8`, barra/destaque azul Luna `#0054E3`/`#316AC5`, botões com gradiente suave e bordas `#003C74`.
+  - **Windows 7 Aero (`win7.qss`)**: superfícies translúcidas/azul-claro `#F0F4F9` / `#EAF3FC`, gradientes vítreos `#EAF6FD` → `#BEE6FD` e realces `#3C7FB1`.
+- Todos os novos temas foram integrados ao `resources.qrc`, `ThemeManager` (`isLightTheme`, `themeName`, `themeToString`, `themeFromString`, `toggleTheme`), menu de bandeja (`System Tray`), `SettingsDialog`, `CallWidget` e `CallNotificationPopup`.
+
+### Contatos com Múltiplos Números (`ContactsManager.*`, `ContactsWidget.*`, `SelectContactNumberDialog.cpp`, `CallWidget.cpp`)
+- **`ContactEditDialog`**: adicionado botão **`+ Adicionar Número`** permitindo cadastrar múltiplos números adicionais por contato, com botão de remoção por linha e rolagem automática.
+- **Persistência e Busca (`ContactsManager`)**: suporte a `additionalNumbers` (`QStringList`) e `allNumbers()` na serialização JSON, busca por número (`findContactNameByNumber`), autocompletar (`searchContacts`) e exibição `(+N)` na tabela de contatos.
+- **`SelectContactNumberDialog`**: janela redimensionada dinamicamente (`setMinimumWidth(460)`, com `QScrollArea` para listas extensas) listando o Ramal SIP, Telefone principal e todos os números adicionais do contato para seleção antes da chamada.
+
+### Configurações — Aba Perfil SIP (`SettingsManager.*`, `SettingsDialog.*`)
+- Adicionada a aba **`🌐 Perfil SIP`** nas Configurações com listagem dos perfis cadastrados (`Nome`, `Servidor SIP/Host`, `Porta`, `Domínio PBX`, `Transporte`) e botões **Adicionar**, **Editar**, **Copiar** e **Excluir**.
+- Diálogo de criação/edição de Perfil SIP contemplando os campos: `Nome do Perfil`, `Servidor SIP / Host`, `Porta SIP`, `Domínio PBX` e `Transporte` (`UDP`, `TCP`, `TLS`).
+
+### Conta SIP integrada ao Perfil SIP (`AccountsDialog.*`, `SettingsManager.*`)
+- Adicionado seletor **`Perfil SIP:`** na janela de criação/edição de Conta SIP (`AccountEditDialog`).
+- Quando um Perfil SIP cadastrado é selecionado, os campos já definidos no perfil (`Servidor SIP / Host`, `Porta SIP`, `Domínio PBX` e `Transporte`) são ocultados automaticamente (`setRowVisible(..., false)`), mantendo apenas **`Nome de Exibição`**, **`Usuário / Ramal`**, **`Senha`** e **`Habilitar`**. Ao selecionar `"Configuração Manual (Personalizada)"`, os campos voltam a ser exibidos.
+
+---
+
+## 4. Verificação e Publicação
+
+- **Testes automatizados (`VxVoiceTests.exe`)**: `8 passed, 0 failed, 0 skipped, 0 blacklisted` (incluindo `testThemeMappings` com os temas Win2000/WinXP/Win7, `testContactsSearch` com múltiplos números e `testSipProfilesPersistence`).
+- **Build & Empacotamento `.msi`:** `VxVoice.exe`, `vxvoice-2.0.6-Windows.msi` e `vxvoice-2.0.6-x64.msi` gerados via `build_windows_msi.ps1` (Qt 6.7.3 + MinGW 13.1 + PJSIP 2.14.1 + WiX 3.14).
+- **Release v2.0.6:** Commit, tag `v2.0.6` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.6-Windows.msi` e `vxvoice-2.0.6-x64.msi` anexados.

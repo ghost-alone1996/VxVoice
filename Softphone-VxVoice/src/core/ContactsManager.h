@@ -3,17 +3,36 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QList>
 
 struct ContactEntry {
     QString name;
     QString number;
     QString extension;
+    QStringList additionalNumbers;
     QString email;
     QString company;
 
+    QStringList allNumbers() const {
+        QStringList list;
+        auto appendUnique = [&list](const QString &val) {
+            const QString trimmed = val.trimmed();
+            if (!trimmed.isEmpty() && !list.contains(trimmed)) {
+                list.append(trimmed);
+            }
+        };
+        appendUnique(extension);
+        appendUnique(number);
+        for (const QString &extra : additionalNumbers) {
+            appendUnique(extra);
+        }
+        return list;
+    }
+
     bool operator==(const ContactEntry &o) const {
-        return name == o.name && number == o.number && extension == o.extension;
+        return name == o.name && number == o.number && extension == o.extension &&
+               additionalNumbers == o.additionalNumbers;
     }
 };
 

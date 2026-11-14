@@ -54,13 +54,12 @@ QString ContactsManager::findContactNameByNumber(const QString &numberOrExt) con
 
     QString qDigits = normalizeDigits(q);
 
-    // 1. Busca exata por ramal ou número
+    // 1. Busca exata por ramal, número principal ou números adicionais
     for (const auto &c : m_contacts) {
-        if (c.extension.compare(q, Qt::CaseInsensitive) == 0) {
-            return c.name;
-        }
-        if (c.number.compare(q, Qt::CaseInsensitive) == 0) {
-            return c.name;
+        for (const QString &candidate : c.allNumbers()) {
+            if (candidate.compare(q, Qt::CaseInsensitive) == 0) {
+                return c.name;
+            }
         }
     }
 
@@ -72,9 +71,14 @@ QString ContactsManager::findContactNameByNumber(const QString &numberOrExt) con
                 return c.name;
             }
 
-            QString numDigits = normalizeDigits(c.number);
-            if (!numDigits.isEmpty()) {
-                if (numDigits == qDigits || numDigits.endsWith(qDigits) || qDigits.endsWith(numDigits)) {
+            QStringList phoneCandidates;
+            if (!c.number.trimmed().isEmpty()) phoneCandidates.append(c.number);
+            phoneCandidates.append(c.additionalNumbers);
+
+            for (const QString &phone : phoneCandidates) {
+                QString numDigits = normalizeDigits(phone);
+                if (!numDigits.isEmpty() &&
+                    (numDigits == qDigits || numDigits.endsWith(qDigits) || qDigits.endsWith(numDigits))) {
                     return c.name;
                 }
             }
@@ -93,18 +97,16 @@ QList<ContactEntry> ContactsManager::searchContacts(const QString &query) const 
 
     for (const auto &c : m_contacts) {
         bool match = false;
-        if (c.name.contains(q, Qt::CaseInsensitive)) {
+        if (c.name.contains(q, Qt::CaseInsensitive) ||
+            (!c.company.isEmpty() && c.company.contains(q, Qt::CaseInsensitive))) {
             match = true;
-        } else if (!c.extension.isEmpty() && c.extension.contains(q, Qt::CaseInsensitive)) {
-            match = true;
-        } else if (!c.number.isEmpty() && c.number.contains(q, Qt::CaseInsensitive)) {
-            match = true;
-        } else if (!c.company.isEmpty() && c.company.contains(q, Qt::CaseInsensitive)) {
-            match = true;
-        } else if (!qDigits.isEmpty()) {
-            if (normalizeDigits(c.extension).contains(qDigits) ||
-                normalizeDigits(c.number).contains(qDigits)) {
-                match = true;
+        } else {
+            for (const QString &candidate : c.allNumbers()) {
+                if (candidate.contains(q, Qt::CaseInsensitive) ||
+                    (!qDigits.isEmpty() && normalizeDigits(candidate).contains(qDigits))) {
+                    match = true;
+                    break;
+                }
             }
         }
         if (match) {
@@ -148,6 +150,7 @@ void ContactsManager::loadContacts() {
         c.name = settings.value("name").toString();
         c.number = settings.value("number").toString();
         c.extension = settings.value("extension").toString();
+        c.additionalNumbers = settings.value("additionalNumbers").toStringList();
         c.email = settings.value("email").toString();
         c.company = settings.value("company").toString();
 
@@ -173,6 +176,7 @@ void ContactsManager::saveContacts() {
         settings.setValue("name", m_contacts[i].name);
         settings.setValue("number", m_contacts[i].number);
         settings.setValue("extension", m_contacts[i].extension);
+        settings.setValue("additionalNumbers", m_contacts[i].additionalNumbers);
         settings.setValue("email", m_contacts[i].email);
         settings.setValue("company", m_contacts[i].company);
     }

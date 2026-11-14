@@ -40,10 +40,15 @@ private slots:
     void onSipLogReceived(const QString &line, int level);
     void onFilterSipLogs(const QString &filterText);
     void onShowChangelog();
+    void onAddProfile();
+    void onEditProfile();
+    void onCopyProfile();
+    void onDeleteProfile();
 
 private:
     void setupUi();
     QWidget* createGeneralTab();
+    QWidget* createSipProfileTab();
     QWidget* createAudioTab();
     QWidget* createCodecsTab();
     QWidget* createRecordingTab();
@@ -53,8 +58,17 @@ private:
     void loadSettings();
     void saveSettings();
     void refreshAudioDeviceLists();
+    void refreshProfilesTable();
 
     QTabWidget *m_tabs{nullptr};
+
+    // Aba Perfil SIP
+    QTableWidget *m_profilesTable{nullptr};
+    QPushButton *m_btnProfileAdd{nullptr};
+    QPushButton *m_btnProfileEdit{nullptr};
+    QPushButton *m_btnProfileCopy{nullptr};
+    QPushButton *m_btnProfileDelete{nullptr};
+    QList<SipProfileConfig> m_profiles;
 
     // Aba Sobre & Atualização
     QLabel *m_lblAboutTitle{nullptr};

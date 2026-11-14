@@ -221,8 +221,9 @@ void MainWindow::setupUi() {
 }
 
 void MainWindow::updateHeaderIcons() {
-    bool isLight = (ThemeManager::instance().currentTheme() == ThemeManager::Theme::Light);
-    QColor iconColor = isLight ? QColor("#2C3E50") : QColor("#F5EEF8");
+    auto theme = ThemeManager::instance().currentTheme();
+    bool useDarkIcon = ThemeManager::isLightTheme(theme) && theme != ThemeManager::Theme::WinXP;
+    QColor iconColor = useDarkIcon ? QColor("#1E293B") : QColor("#F5EEF8");
 
     if (m_btnAccounts) {
         m_btnAccounts->setIcon(IconHelper::createUserIcon(iconColor, 20));
@@ -264,7 +265,10 @@ void MainWindow::setupTrayIcon() {
         {"Roxo Corporativo (VxVoice)", ThemeManager::Theme::Purple, "Purple"},
         {"Escuro (Dark)", ThemeManager::Theme::Dark, "Dark"},
         {"Claro (Light)", ThemeManager::Theme::Light, "Light"},
-        {"Vermelho (Red)", ThemeManager::Theme::Red, "Red"}
+        {"Vermelho (Red)", ThemeManager::Theme::Red, "Red"},
+        {"Windows 2000 (Clássico)", ThemeManager::Theme::Win2000, "Win2000"},
+        {"Windows XP (Luna)", ThemeManager::Theme::WinXP, "WinXP"},
+        {"Windows 7 (Aero)", ThemeManager::Theme::Win7, "Win7"}
     };
 
     QMap<ThemeManager::Theme, QAction*> themeActions;

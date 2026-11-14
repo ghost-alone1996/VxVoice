@@ -1,0 +1,225 @@
+/* ===================================================================
+   VxVoice - Windows 2000 Classic Theme
+   Base Palette: #D4D0C8 (3D Face), #FFFFFF, #808080, #0A246A (Active Blue)
+   =================================================================== */
+
+* {
+    color: #000000;
+}
+
+QMainWindow, QDialog, QWidget#centralWidget {
+    background-color: #D4D0C8;
+    color: #000000;
+    font-family: "Tahoma", "MS Sans Serif", "Segoe UI", sans-serif;
+    font-size: 12px;
+}
+
+QToolTip {
+    background-color: #FFFFE1;
+    color: #000000;
+    border: 1px solid #000000;
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+QFrame#headerFrame {
+    background-color: #D4D0C8;
+    border-top: 2px solid #FFFFFF;
+    border-bottom: 2px solid #808080;
+    padding: 6px 10px;
+}
+
+QLineEdit, QSpinBox, QPlainTextEdit, QListWidget, QTableView, QTableWidget {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-right: 2px solid #FFFFFF;
+    border-bottom: 2px solid #FFFFFF;
+    border-radius: 0px;
+    padding: 4px 6px;
+    selection-background-color: #0A246A;
+    selection-color: #FFFFFF;
+}
+
+QLineEdit#callerIdDisplay {
+    font-size: 17px;
+    font-weight: bold;
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+QComboBox {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-right: 2px solid #FFFFFF;
+    border-bottom: 2px solid #FFFFFF;
+    border-radius: 0px;
+    padding: 4px 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    color: #000000;
+    selection-background-color: #0A246A;
+    selection-color: #FFFFFF;
+    border: 1px solid #404040;
+}
+
+QPushButton {
+    background-color: #D4D0C8;
+    color: #000000;
+    border-top: 2px solid #FFFFFF;
+    border-left: 2px solid #FFFFFF;
+    border-right: 2px solid #404040;
+    border-bottom: 2px solid #404040;
+    border-radius: 0px;
+    padding: 5px 12px;
+}
+
+QPushButton:hover {
+    background-color: #DFDCD5;
+}
+
+QPushButton:pressed {
+    border-top: 2px solid #404040;
+    border-left: 2px solid #404040;
+    border-right: 2px solid #FFFFFF;
+    border-bottom: 2px solid #FFFFFF;
+    padding: 6px 11px 4px 13px;
+}
+
+QPushButton:disabled {
+    color: #808080;
+}
+
+QPushButton#primaryButton {
+    background-color: #0A246A;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+QPushButton#primaryButton:hover {
+    background-color: #163B9A;
+}
+
+QPushButton#exitButton {
+    background-color: #A52A2A;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+QPushButton#exitButton:hover {
+    background-color: #C0392B;
+}
+
+QPushButton[class="dialBtn"] {
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #D4D0C8;
+    color: #000000;
+}
+
+QPushButton#callButton, QPushButton#contactCallButton {
+    background-color: #1E7E34;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QPushButton#callButton:hover, QPushButton#contactCallButton:hover {
+    background-color: #218838;
+}
+
+QPushButton#hangupButton, QPushButton#contactDeleteButton {
+    background-color: #A71D2A;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QPushButton#hangupButton:hover, QPushButton#contactDeleteButton:hover {
+    background-color: #C82333;
+}
+
+QPushButton#hangupButton:disabled {
+    background-color: #B8B4AC;
+    color: #707070;
+}
+
+QTabWidget::pane {
+    border-top: 2px solid #FFFFFF;
+    border-left: 2px solid #FFFFFF;
+    border-right: 2px solid #404040;
+    border-bottom: 2px solid #404040;
+    background-color: #D4D0C8;
+}
+
+QTabBar::tab {
+    background-color: #C8C4BC;
+    color: #000000;
+    border-top: 2px solid #FFFFFF;
+    border-left: 2px solid #FFFFFF;
+    border-right: 2px solid #404040;
+    padding: 6px 10px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: #D4D0C8;
+    font-weight: bold;
+    margin-bottom: -1px;
+}
+
+QHeaderView::section {
+    background-color: #D4D0C8;
+    color: #000000;
+    border-top: 1px solid #FFFFFF;
+    border-left: 1px solid #FFFFFF;
+    border-right: 1px solid #808080;
+    border-bottom: 1px solid #808080;
+    padding: 4px 8px;
+    font-weight: bold;
+}
+
+QGroupBox {
+    border: 1px solid #808080;
+    margin-top: 10px;
+    padding-top: 8px;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+}
+
+QMenu {
+    background-color: #D4D0C8;
+    color: #000000;
+    border-top: 2px solid #FFFFFF;
+    border-left: 2px solid #FFFFFF;
+    border-right: 2px solid #404040;
+    border-bottom: 2px solid #404040;
+    padding: 3px;
+}
+
+QMenu::item {
+    padding: 5px 24px 5px 16px;
+    background-color: transparent;
+    color: #000000;
+}
+
+QMenu::item:selected {
+    background-color: #0A246A;
+    color: #FFFFFF;
+}
+
+QMenu::separator {
+    height: 2px;
+    background-color: #808080;
+    margin: 4px 4px;
+}

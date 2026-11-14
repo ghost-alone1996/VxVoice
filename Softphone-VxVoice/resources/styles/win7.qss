@@ -1,0 +1,206 @@
+/* ===================================================================
+   VxVoice - Windows 7 Aero Glass Theme
+   Base Palette: #F0F4FA (Aero Light), #D9E4F1, #89A4C7, #3399FF
+   =================================================================== */
+
+* {
+    color: #1E293B;
+}
+
+QMainWindow, QDialog, QWidget#centralWidget {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #EEF4FB, stop:1 #DCE7F5);
+    color: #1E293B;
+    font-family: "Segoe UI", "Tahoma", sans-serif;
+    font-size: 13px;
+}
+
+QToolTip {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #E4ECF7);
+    color: #1E293B;
+    border: 1px solid #76889B;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+QFrame#headerFrame {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E6EFFA, stop:0.5 #D4E3F6, stop:1 #C2D6F0);
+    border-bottom: 1px solid #9CB4D4;
+    padding: 6px 10px;
+}
+
+QLineEdit, QSpinBox, QPlainTextEdit, QListWidget, QTableView, QTableWidget {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    border: 1px solid #ABADB3;
+    border-radius: 3px;
+    padding: 5px 8px;
+    selection-background-color: #3399FF;
+    selection-color: #FFFFFF;
+}
+
+QLineEdit:focus, QSpinBox:focus {
+    border: 1px solid #3C7FB1;
+}
+
+QLineEdit#callerIdDisplay {
+    font-size: 17px;
+    font-weight: bold;
+    background-color: #FFFFFF;
+    color: #0F2C59;
+}
+
+QComboBox {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F8FAFD, stop:1 #E5ECF5);
+    color: #1E293B;
+    border: 1px solid #89A4C7;
+    border-radius: 3px;
+    padding: 4px 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    selection-background-color: #3399FF;
+    selection-color: #FFFFFF;
+    border: 1px solid #89A4C7;
+}
+
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F9FBFE, stop:0.48 #EAF1FA, stop:0.52 #DAE6F5, stop:1 #E7EFF9);
+    color: #1E293B;
+    border: 1px solid #707070;
+    border-radius: 4px;
+    padding: 5px 12px;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #EAF6FD, stop:0.48 #D9F0FC, stop:0.52 #BEE6FD, stop:1 #A7D9F5);
+    border: 1px solid #3C7FB1;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E5F4FC, stop:1 #98D1EF);
+    border: 1px solid #2C628B;
+}
+
+QPushButton:disabled {
+    color: #838A94;
+    border-color: #ADB2B5;
+}
+
+QPushButton#primaryButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #55A6F5, stop:0.5 #2682E2, stop:1 #1B68BE);
+    color: #FFFFFF;
+    font-weight: bold;
+    border: 1px solid #155299;
+}
+
+QPushButton#primaryButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #6AB4FA, stop:0.5 #3592F0, stop:1 #2275CF);
+}
+
+QPushButton#exitButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #EA6B62, stop:0.5 #D13A30, stop:1 #B3261E);
+    color: #FFFFFF;
+    font-weight: bold;
+    border: 1px solid #8A1B15;
+}
+
+QPushButton[class="dialBtn"] {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton#callButton, QPushButton#contactCallButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4ECB71, stop:0.5 #27AE60, stop:1 #1E8449);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid #196F3D;
+}
+
+QPushButton#hangupButton, QPushButton#contactDeleteButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #EC7063, stop:0.5 #C0392B, stop:1 #922B21);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid #78281F;
+}
+
+QPushButton#hangupButton:disabled {
+    background: #DCE4EE;
+    color: #838A94;
+    border-color: #B7C4D4;
+}
+
+QTabWidget::pane {
+    border: 1px solid #89A4C7;
+    border-radius: 4px;
+    background-color: #F4F8FD;
+}
+
+QTabBar::tab {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F6F9FD, stop:1 #DCE6F4);
+    color: #1E293B;
+    border: 1px solid #89A4C7;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding: 6px 10px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: #F4F8FD;
+    border-top: 2px solid #3399FF;
+    font-weight: bold;
+}
+
+QHeaderView::section {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #DFE8F3);
+    color: #1E293B;
+    border: 1px solid #BAC8D9;
+    padding: 5px 8px;
+    font-weight: bold;
+}
+
+QGroupBox {
+    border: 1px solid #9CB4D4;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding-top: 8px;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+    color: #1B68BE;
+}
+
+QMenu {
+    background-color: #F2F6FB;
+    color: #1E293B;
+    border: 1px solid #89A4C7;
+    border-radius: 4px;
+    padding: 4px 0px;
+}
+
+QMenu::item {
+    padding: 6px 24px 6px 16px;
+    background-color: transparent;
+    color: #1E293B;
+}
+
+QMenu::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #EBF4FD, stop:1 #C7E0FA);
+    color: #0F2C59;
+    border: 1px solid #7DA2CE;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #C9D7E8;
+    margin: 4px 8px;
+}

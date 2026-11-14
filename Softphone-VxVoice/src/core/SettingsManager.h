@@ -8,6 +8,10 @@
 struct SipProfileConfig {
     QString id;
     QString name;
+    QString server;
+    int port{5060};
+    QString domain;
+    QString transport{"UDP"}; // UDP, TCP, TLS
     QString stunServer{"stun.l.google.com:19302"};
     QString turnServer;
     QString turnUser;
@@ -39,7 +43,7 @@ class SettingsManager : public QObject {
     Q_OBJECT
 
 public:
-    static constexpr const char* APP_VERSION = "2.0.5";
+    static constexpr const char* APP_VERSION = "2.0.6";
 
     static SettingsManager& instance();
 

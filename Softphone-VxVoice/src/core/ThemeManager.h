@@ -13,6 +13,9 @@ public:
         Light,   // Tons de azul claro
         Purple,  // Tons de roxo (VxVoice)
         Red,     // Tons de vermelho
+        Win2000, // Clássico Windows 2000
+        WinXP,   // Clássico Windows XP Luna
+        Win7,    // Clássico Windows 7 Aero
         VxVoice = Purple
     };
     Q_ENUM(Theme)
@@ -23,6 +26,7 @@ public:
     Theme currentTheme() const;
     void toggleTheme();
     QString themeName(Theme theme) const;
+    static bool isLightTheme(Theme theme);
 
     static QString themeToString(Theme theme);
     static Theme themeFromString(const QString &themeStr);

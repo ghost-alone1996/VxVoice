@@ -259,17 +259,22 @@ void CallWidget::showEvent(QShowEvent *event) {
 void CallWidget::updateThemeVisuals() {
     ThemeManager::Theme theme = ThemeManager::instance().currentTheme();
 
-    if (theme == ThemeManager::Theme::Light) {
+    if (theme == ThemeManager::Theme::Light ||
+        theme == ThemeManager::Theme::Win2000 ||
+        theme == ThemeManager::Theme::WinXP ||
+        theme == ThemeManager::Theme::Win7) {
+        QString borderCol = (theme == ThemeManager::Theme::Win2000) ? "#808080"
+                          : (theme == ThemeManager::Theme::WinXP)   ? "#7F9DB9"
+                          : (theme == ThemeManager::Theme::Win7)    ? "#89A4C7"
+                                                                    : "#CBD5E0";
+        QString radius = (theme == ThemeManager::Theme::Win2000) ? "0px" : "6px";
         m_topInfoFrame->setStyleSheet(
-            "QFrame#callInfoFrame { "
-            "  background-color: #FFFFFF; "
-            "  border: 1px solid #CBD5E0; "
-            "  border-radius: 6px; "
-            "  padding: 6px 10px; "
-            "}"
+            QString("QFrame#callInfoFrame { background-color: #FFFFFF; border: 1px solid %1; border-radius: %2; padding: 6px 10px; }")
+                .arg(borderCol, radius)
         );
         m_inCallControlsFrame->setStyleSheet(
-            "QFrame { background-color: #F8F9FA; border: 1px solid #CBD5E0; border-radius: 6px; padding: 4px; }"
+            QString("QFrame { background-color: #F8F9FA; border: 1px solid %1; border-radius: %2; padding: 4px; }")
+                .arg(borderCol, radius)
         );
     } else if (theme == ThemeManager::Theme::Dark) {
         m_topInfoFrame->setStyleSheet(
@@ -309,7 +314,7 @@ void CallWidget::updateThemeVisuals() {
         );
     }
 
-    QColor backspaceColor = (theme == ThemeManager::Theme::Light) ? QColor("#2C3E50") : QColor("#ECF0F1");
+    QColor backspaceColor = ThemeManager::isLightTheme(theme) ? QColor("#2C3E50") : QColor("#ECF0F1");
     if (m_btnBackspace) {
         m_btnBackspace->setIcon(IconHelper::createBackspaceIcon(backspaceColor, 20));
     }
@@ -324,23 +329,13 @@ void CallWidget::updateCompleterModel() {
 
     const auto contacts = ContactsManager::instance().contacts();
     for (const auto &c : contacts) {
-        QString primary = !c.extension.isEmpty() ? c.extension : c.number;
-        if (primary.isEmpty()) continue;
-
-        QString label = QString("%1 (%2)").arg(c.name, primary);
-        auto item = new QStandardItem(label);
-        item->setData(primary, Qt::UserRole);
-        item->setData(c.name, Qt::UserRole + 1);
-        item->setIcon(IconHelper::createUserIcon(QColor("#8E44AD"), 16));
-        m_completerModel->appendRow(item);
-
-        if (!c.number.isEmpty() && !c.extension.isEmpty() && c.number != c.extension) {
-            QString labelExt = QString("%1 (%2)").arg(c.name, c.number);
-            auto itemExt = new QStandardItem(labelExt);
-            itemExt->setData(c.number, Qt::UserRole);
-            itemExt->setData(c.name, Qt::UserRole + 1);
-            itemExt->setIcon(IconHelper::createUserIcon(QColor("#8E44AD"), 16));
-            m_completerModel->appendRow(itemExt);
+        for (const QString &num : c.allNumbers()) {
+            QString label = QString("%1 (%2)").arg(c.name, num);
+            auto item = new QStandardItem(label);
+            item->setData(num, Qt::UserRole);
+            item->setData(c.name, Qt::UserRole + 1);
+            item->setIcon(IconHelper::createUserIcon(QColor("#8E44AD"), 16));
+            m_completerModel->appendRow(item);
         }
     }
 }
