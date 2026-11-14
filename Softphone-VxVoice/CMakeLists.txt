@@ -101,11 +101,45 @@ if(TARGET Qt6::Multimedia)
 endif()
 
 # Suporte ao motor físico PJSIP / PJSUA2
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(PJPROJECT REQUIRED libpjproject)
-target_include_directories(${PROJECT_NAME} PRIVATE ${PJPROJECT_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PJPROJECT_LIBRARIES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE USE_REAL_PJSIP)
+set(PJSIP_ROOT "C:/Qt/pjsip-mingw64" CACHE PATH "Caminho raiz de instalação do PJSIP no Windows")
+if(WIN32 AND EXISTS "${PJSIP_ROOT}/include/pjsua2.hpp")
+    message(STATUS "Usando PJSIP local em: ${PJSIP_ROOT}")
+    target_include_directories(${PROJECT_NAME} PRIVATE "${PJSIP_ROOT}/include")
+    target_link_directories(${PROJECT_NAME} PRIVATE "${PJSIP_ROOT}/lib")
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        pjsua2-x86_64-w64-mingw32
+        pjsua-x86_64-w64-mingw32
+        pjsip-ua-x86_64-w64-mingw32
+        pjsip-simple-x86_64-w64-mingw32
+        pjsip-x86_64-w64-mingw32
+        pjmedia-codec-x86_64-w64-mingw32
+        pjmedia-videodev-x86_64-w64-mingw32
+        pjmedia-audiodev-x86_64-w64-mingw32
+        pjmedia-x86_64-w64-mingw32
+        pjnath-x86_64-w64-mingw32
+        pjlib-util-x86_64-w64-mingw32
+        srtp-x86_64-w64-mingw32
+        resample-x86_64-w64-mingw32
+        gsmcodec-x86_64-w64-mingw32
+        speex-x86_64-w64-mingw32
+        ilbccodec-x86_64-w64-mingw32
+        g7221codec-x86_64-w64-mingw32
+        pj-x86_64-w64-mingw32
+        winmm ole32 ws2_32 wsock32 iphlpapi dsound uuid pthread
+    )
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        USE_REAL_PJSIP
+        PJ_AUTOCONF=1
+        PJ_IS_BIG_ENDIAN=0
+        PJ_IS_LITTLE_ENDIAN=1
+    )
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PJPROJECT REQUIRED libpjproject)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${PJPROJECT_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${PJPROJECT_LIBRARIES})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_REAL_PJSIP)
+endif()
 
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
