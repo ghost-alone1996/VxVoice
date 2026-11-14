@@ -1,5 +1,5 @@
 ==============================================================================
-VxVoice Enterprise SIP Softphone - Versão 2.0.2 (Windows x64)
+VxVoice Enterprise SIP Softphone - Versão 2.0.3 (Windows x64)
 Empresa: VxNET Comunicações e Telecomunicações
 Website: https://www.vxnet.com.br
 Suporte: suporte@vxnet.com.br

@@ -133,16 +133,12 @@ QWidget* SettingsDialog::createGeneralTab() {
     ringtoneLayout->addWidget(m_comboRingtone, 1);
     ringtoneLayout->addWidget(m_btnPlayRingtone);
 
-    // Theme selector com os 8 temas VxVoice
+    // Theme selector com os 4 temas VxVoice
     m_comboTheme = new QComboBox(widget);
     m_comboTheme->addItem("🌑 Dark (Tons de azul escuro)");
     m_comboTheme->addItem("☀️ Light (Tons de azul claro)");
     m_comboTheme->addItem("🟣 Purple (Tons de roxo corporativo)");
     m_comboTheme->addItem("🔴 Red (Tons de vermelho corporativo)");
-    m_comboTheme->addItem("🩵 Blue Baby");
-    m_comboTheme->addItem("🌊 Blue Capri");
-    m_comboTheme->addItem("🌸 Rosa Amaranth");
-    m_comboTheme->addItem("🌺 Rosa Hot Magenta");
 
     formLayout->addRow("Ringtone de Chamada:", ringtoneLayout);
     formLayout->addRow("Temas VxVoice:", m_comboTheme);
@@ -537,8 +533,7 @@ QWidget* SettingsDialog::createAboutTab() {
     m_lblAboutTitle = new QLabel("<b>VxVoice</b>", widget);
     auto updateAboutTitleColor = [this](ThemeManager::Theme t) {
         if (!m_lblAboutTitle) return;
-        const bool isLightBg = (t == ThemeManager::Theme::Light || t == ThemeManager::Theme::BlueBaby);
-        const QString color = isLightBg ? "#000000" : "#FFFFFF";
+        const QString color = (t == ThemeManager::Theme::Light) ? "#000000" : "#FFFFFF";
         m_lblAboutTitle->setStyleSheet(QString("font-size: 16px; font-weight: bold; color: %1;").arg(color));
     };
     updateAboutTitleColor(ThemeManager::instance().currentTheme());
@@ -628,12 +623,12 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v2.0.2):</b><br>"
+        "<b>Novidades e Correções (v2.0.3):</b><br>"
         "<ul>"
-        "<li><b>Proporção Única na Tela Principal:</b> Janela principal unificada usando a proporção da aba Ligação, com adaptação automática das colunas e barras de rolagem em Histórico, Contatos e Gravação.</li>"
-        "<li><b>Temas VxVoice:</b> Seletor renomeado para 'Temas VxVoice' com 4 novos temas: Blue Baby, Blue Capri, Rosa Amaranth e Rosa Hot Magenta.</li>"
-        "<li><b>Proporção da Janela Contas SIP:</b> Ajuste automático das colunas ao conteúdo com redimensionamento proporcional da janela.</li>"
-        "<li><b>Testes Automatizados &amp; Histórico:</b> Suíte Qt Test integrada ao CMake/CTest e histórico completo de versões em Markdown.</li>"
+        "<li><b>Status de Registro na Inicialização:</b> O status configurado em Geral agora não altera o status atual ao salvar e é aplicado somente quando o VxVoice inicia junto com o Sistema Operacional.</li>"
+        "<li><b>Histórico sem Duplicidade:</b> Correção de múltiplos registros para uma única chamada no Histórico.</li>"
+        "<li><b>Proteção em Contatos:</b> Bloqueio com aviso ao tentar ligar para o próprio ramal atualmente logado na conta SIP.</li>"
+        "<li><b>Contas SIP e Temas:</b> Ajuste proporcional das colunas na janela Contas SIP e manutenção dos temas oficiais (Dark, Light, Purple e Red).</li>"
         "</ul>"
     );
 
@@ -937,9 +932,6 @@ void SettingsDialog::saveSettings() {
 
     int regStatus = qBound(0, m_comboRegistrationStatus->currentIndex(), 2);
     sm.setRegistrationStatus(regStatus);
-    if (m_chkStartWithSystem->isChecked()) {
-        SipManager::instance().setPresence(static_cast<SipManager::UserPresence>(regStatus));
-    }
 
     sm.setRingtone(m_comboRingtone->currentText());
 

@@ -9,14 +9,10 @@ class ThemeManager : public QObject {
 
 public:
     enum class Theme {
-        Dark,           // Tons de azul escuro
-        Light,          // Tons de azul claro
-        Purple,         // Tons de roxo (VxVoice)
-        Red,            // Tons de vermelho
-        BlueBaby,       // Azul Bebê
-        BlueCapri,      // Azul Capri
-        RosaAmaranth,   // Rosa Amaranth
-        RosaHotMagenta, // Rosa Hot Magenta
+        Dark,    // Tons de azul escuro
+        Light,   // Tons de azul claro
+        Purple,  // Tons de roxo (VxVoice)
+        Red,     // Tons de vermelho
         VxVoice = Purple
     };
     Q_ENUM(Theme)

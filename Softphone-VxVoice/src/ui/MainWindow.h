@@ -75,6 +75,7 @@ private:
 
     bool m_reallyQuit{false};
     bool m_startupTrayNotified{false};
+    QString m_recordedHistoryCallId;
 };
 
 #endif // MAINWINDOW_H

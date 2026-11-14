@@ -4,6 +4,16 @@ Registro completo de evolução, correções e melhorias do **VxVoice Enterprise
 
 ---
 
+## [v2.0.3] — 2026-11-13
+### Correções de Bugs
+- **Status de Registro (Configurações > Geral)**: Ao selecionar ou salvar o Status de Registro em Configurações, o status atual em execução não é mais alterado imediatamente; a configuração passa a ser aplicada somente quando o VxVoice inicia junto com o Sistema Operacional (`--autostart`).
+- **Temas VxVoice**: Removidos os temas experimentais (`Blue Baby`, `Blue Capri`, `Rosa Amaranth`, `Rosa Hot Magenta`), mantendo os 4 temas oficiais (`Dark`, `Light`, `Purple`, `Red`).
+- **Contatos — Bloqueio de Auto-chamada**: Impede iniciar chamada pela aba Contatos quando o ramal/número de destino for igual ao ramal atualmente logado na conta SIP, exibindo janela de aviso.
+- **Histórico sem Duplicidade**: Corrigido o registro múltiplo para uma única chamada (deduplicação por `callId` no `MainWindow`).
+- **Contas SIP**: Ajuste automático das colunas (`Status`, `Ramal`, `Transporte`, `Padrão` com `ResizeToContents` e `Conta SIP`/`Servidor` com `Stretch`) acompanhando a proporção da janela sem espaço vazio.
+
+---
+
 ## [v2.0.2] — 2026-11-13
 ### Melhorias e Novas Funcionalidades
 - **Proporção Única na Tela Principal**: A janela principal (`MainWindow`) passa a manter proporção única baseada na aba **Ligação** (`380x670 px`). Nas abas **Histórico**, **Contatos** e **Gravação**, todas as colunas se adaptam automaticamente ao conteúdo (`ResizeToContents`) com barras de rolagem horizontal e vertical (`ScrollBarAsNeeded`).

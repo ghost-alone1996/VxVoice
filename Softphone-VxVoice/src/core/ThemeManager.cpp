@@ -25,14 +25,6 @@ void ThemeManager::setTheme(Theme theme) {
         path = ":/styles/light.qss";
     } else if (theme == Theme::Red) {
         path = ":/styles/red.qss";
-    } else if (theme == Theme::BlueBaby) {
-        path = ":/styles/blue_baby.qss";
-    } else if (theme == Theme::BlueCapri) {
-        path = ":/styles/blue_capri.qss";
-    } else if (theme == Theme::RosaAmaranth) {
-        path = ":/styles/rosa_amaranth.qss";
-    } else if (theme == Theme::RosaHotMagenta) {
-        path = ":/styles/rosa_hot_magenta.qss";
     }
 
     QString qss = loadStyleSheet(path);
@@ -129,58 +121,6 @@ void ThemeManager::setTheme(Theme theme) {
             redPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor("#5A3E42"));
 
             qApp->setPalette(redPalette);
-        } else if (theme == Theme::BlueBaby) {
-            QPalette p;
-            p.setColor(QPalette::Window, QColor("#EBF6FC"));
-            p.setColor(QPalette::WindowText, QColor("#0F2942"));
-            p.setColor(QPalette::Base, QColor("#F5FBFF"));
-            p.setColor(QPalette::AlternateBase, QColor("#D9EFFB"));
-            p.setColor(QPalette::Text, QColor("#0F2942"));
-            p.setColor(QPalette::Button, QColor("#C5E4F6"));
-            p.setColor(QPalette::ButtonText, QColor("#0F2942"));
-            p.setColor(QPalette::Link, QColor("#0284C7"));
-            p.setColor(QPalette::Highlight, QColor("#0284C7"));
-            p.setColor(QPalette::HighlightedText, Qt::white);
-            qApp->setPalette(p);
-        } else if (theme == Theme::BlueCapri) {
-            QPalette p;
-            p.setColor(QPalette::Window, QColor("#082032"));
-            p.setColor(QPalette::WindowText, QColor("#E8F8FF"));
-            p.setColor(QPalette::Base, QColor("#04121C"));
-            p.setColor(QPalette::AlternateBase, QColor("#0C2D48"));
-            p.setColor(QPalette::Text, QColor("#E8F8FF"));
-            p.setColor(QPalette::Button, QColor("#0D2D47"));
-            p.setColor(QPalette::ButtonText, QColor("#E8F8FF"));
-            p.setColor(QPalette::Link, QColor("#00BFFF"));
-            p.setColor(QPalette::Highlight, QColor("#0099CC"));
-            p.setColor(QPalette::HighlightedText, Qt::white);
-            qApp->setPalette(p);
-        } else if (theme == Theme::RosaAmaranth) {
-            QPalette p;
-            p.setColor(QPalette::Window, QColor("#260E18"));
-            p.setColor(QPalette::WindowText, QColor("#FDF0F4"));
-            p.setColor(QPalette::Base, QColor("#14060C"));
-            p.setColor(QPalette::AlternateBase, QColor("#3A1525"));
-            p.setColor(QPalette::Text, QColor("#FDF0F4"));
-            p.setColor(QPalette::Button, QColor("#381424"));
-            p.setColor(QPalette::ButtonText, QColor("#FDF0F4"));
-            p.setColor(QPalette::Link, QColor("#E52B50"));
-            p.setColor(QPalette::Highlight, QColor("#C21E56"));
-            p.setColor(QPalette::HighlightedText, Qt::white);
-            qApp->setPalette(p);
-        } else if (theme == Theme::RosaHotMagenta) {
-            QPalette p;
-            p.setColor(QPalette::Window, QColor("#21091B"));
-            p.setColor(QPalette::WindowText, QColor("#FFF0FB"));
-            p.setColor(QPalette::Base, QColor("#12040F"));
-            p.setColor(QPalette::AlternateBase, QColor("#340E2B"));
-            p.setColor(QPalette::Text, QColor("#FFF0FB"));
-            p.setColor(QPalette::Button, QColor("#36102D"));
-            p.setColor(QPalette::ButtonText, QColor("#FFF0FB"));
-            p.setColor(QPalette::Link, QColor("#FF1DCE"));
-            p.setColor(QPalette::Highlight, QColor("#D900A7"));
-            p.setColor(QPalette::HighlightedText, Qt::white);
-            qApp->setPalette(p);
         }
 
         if (!qss.isEmpty()) {
@@ -196,41 +136,29 @@ ThemeManager::Theme ThemeManager::currentTheme() const {
 
 void ThemeManager::toggleTheme() {
     switch (m_currentTheme) {
-    case Theme::Dark:           setTheme(Theme::Light); break;
-    case Theme::Light:          setTheme(Theme::Purple); break;
-    case Theme::Purple:         setTheme(Theme::Red); break;
-    case Theme::Red:            setTheme(Theme::BlueBaby); break;
-    case Theme::BlueBaby:       setTheme(Theme::BlueCapri); break;
-    case Theme::BlueCapri:      setTheme(Theme::RosaAmaranth); break;
-    case Theme::RosaAmaranth:   setTheme(Theme::RosaHotMagenta); break;
-    case Theme::RosaHotMagenta: setTheme(Theme::Dark); break;
+    case Theme::Dark:   setTheme(Theme::Light); break;
+    case Theme::Light:  setTheme(Theme::Purple); break;
+    case Theme::Purple: setTheme(Theme::Red); break;
+    case Theme::Red:    setTheme(Theme::Dark); break;
     }
 }
 
 QString ThemeManager::themeName(Theme theme) const {
     switch (theme) {
-    case Theme::Dark:           return "Dark (Azul Escuro)";
-    case Theme::Light:          return "Light (Azul Claro)";
-    case Theme::Purple:         return "Purple (Roxo Corporativo)";
-    case Theme::Red:            return "Red (Vermelho Corporativo)";
-    case Theme::BlueBaby:       return "Blue Baby";
-    case Theme::BlueCapri:      return "Blue Capri";
-    case Theme::RosaAmaranth:   return "Rosa Amaranth";
-    case Theme::RosaHotMagenta: return "Rosa Hot Magenta";
+    case Theme::Dark:   return "Dark (Azul Escuro)";
+    case Theme::Light:  return "Light (Azul Claro)";
+    case Theme::Purple: return "Purple (Roxo Corporativo)";
+    case Theme::Red:    return "Red (Vermelho Corporativo)";
     }
     return "Purple (Roxo Corporativo)";
 }
 
 QString ThemeManager::themeToString(Theme theme) {
     switch (theme) {
-    case Theme::Dark:           return "Dark";
-    case Theme::Light:          return "Light";
-    case Theme::Purple:         return "Purple";
-    case Theme::Red:            return "Red";
-    case Theme::BlueBaby:       return "BlueBaby";
-    case Theme::BlueCapri:      return "BlueCapri";
-    case Theme::RosaAmaranth:   return "RosaAmaranth";
-    case Theme::RosaHotMagenta: return "RosaHotMagenta";
+    case Theme::Dark:   return "Dark";
+    case Theme::Light:  return "Light";
+    case Theme::Purple: return "Purple";
+    case Theme::Red:    return "Red";
     }
     return "Purple";
 }
@@ -240,10 +168,6 @@ ThemeManager::Theme ThemeManager::themeFromString(const QString &themeStr) {
     if (t == "dark") return Theme::Dark;
     if (t == "light") return Theme::Light;
     if (t == "red") return Theme::Red;
-    if (t == "bluebaby" || t == "blue baby") return Theme::BlueBaby;
-    if (t == "bluecapri" || t == "blue capri") return Theme::BlueCapri;
-    if (t == "rosaamaranth" || t == "rosa amaranth") return Theme::RosaAmaranth;
-    if (t == "rosahotmagenta" || t == "rosa hot magenta") return Theme::RosaHotMagenta;
     return Theme::Purple;
 }
 

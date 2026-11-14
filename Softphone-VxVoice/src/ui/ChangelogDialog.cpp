@@ -56,10 +56,10 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>📐 Proporção Única na Tela Principal:</b> A janela principal mantém agora uma proporção única baseada na aba <i>Ligação</i>. Nas abas <i>Histórico</i>, <i>Contatos</i> e <i>Gravação</i>, as colunas se adaptam automaticamente ao conteúdo com barras de rolagem horizontal e vertical.</li><br>"
-        "<li><b>🎨 Novos Temas VxVoice:</b> Seletor renomeado para <i>Temas VxVoice</i> com 4 novos estilos visuais: <b>Blue Baby</b>, <b>Blue Capri</b>, <b>Rosa Amaranth</b> e <b>Rosa Hot Magenta</b>.</li><br>"
-        "<li><b>🪟 Janela Contas SIP Proporcional:</b> As colunas da tabela de Contas SIP se ajustam automaticamente ao conteúdo e a proporção da janela acompanha o ajuste.</li><br>"
-        "<li><b>✅ Testes Automatizados &amp; Histórico:</b> Suíte de testes automatizados com Qt Test / CTest e histórico completo de versões documentado em <code>CHANGELOG.md</code>.</li>"
+        "<li><b>🟢 Status de Registro na Inicialização:</b> O status de registro configurado em <i>Configurações &gt; Gerais</i> não altera o status atual ao salvar e é aplicado exclusivamente quando o VxVoice inicia junto com o Sistema Operacional.</li><br>"
+        "<li><b>📋 Histórico sem Duplicidade:</b> Correção do bug que gravava múltiplos registros para a mesma chamada no Histórico.</li><br>"
+        "<li><b>🛡 Proteção ao Ligar para o Próprio Ramal:</b> Impede ligar pela agenda de Contatos para o mesmo ramal que está atualmente logado na conta SIP, exibindo um aviso.</li><br>"
+        "<li><b>🪟 Contas SIP &amp; Temas:</b> Ajuste proporcional das colunas da janela Contas SIP e manutenção dos 4 temas oficiais (<i>Dark</i>, <i>Light</i>, <i>Purple</i> e <i>Red</i>).</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);
 

@@ -2,6 +2,7 @@
 #include "SelectContactNumberDialog.h"
 #include "IconHelper.h"
 #include "SipManager.h"
+#include "SettingsManager.h"
 #include <QHeaderView>
 #include <QFormLayout>
 #include <QMessageBox>
@@ -405,11 +406,25 @@ void ContactsWidget::initiateContactCall(const ContactInfo &c) {
         return;
     }
 
+    auto defAcc = SettingsManager::instance().defaultAccount();
+    QString loggedExt = (defAcc.isEnabled && !defAcc.username.trimmed().isEmpty())
+        ? defAcc.username.trimmed()
+        : QString();
+
+    auto isSelfExtension = [&loggedExt](const QString &dest) {
+        return !loggedExt.isEmpty() && dest.trimmed() == loggedExt;
+    };
+
     if (hasExt && hasNum && ext != num) {
         SelectContactNumberDialog dlg(c, this);
         if (dlg.exec() == QDialog::Accepted) {
             QString chosen = dlg.selectedNumber();
             if (!chosen.isEmpty()) {
+                if (isSelfExtension(chosen)) {
+                    QMessageBox::warning(this, "Ligação Não Permitida",
+                        QString("Não é possível realizar uma ligação para o ramal '%1', pois ele está atualmente logado na sua conta SIP.").arg(chosen));
+                    return;
+                }
                 emit callRequested(chosen);
             }
         }
@@ -417,6 +432,11 @@ void ContactsWidget::initiateContactCall(const ContactInfo &c) {
     }
 
     QString target = hasExt ? ext : num;
+    if (isSelfExtension(target)) {
+        QMessageBox::warning(this, "Ligação Não Permitida",
+            QString("Não é possível realizar uma ligação para o ramal '%1', pois ele está atualmente logado na sua conta SIP.").arg(target));
+        return;
+    }
     emit callRequested(target);
 }
 

@@ -30,9 +30,10 @@ MainWindow::MainWindow(QWidget *parent)
     setupTrayIcon();
     setupConnections();
 
-    // Sincroniza estado inicial do SIP e Status de Registro salvo (quando inicialização com SO está ativa)
+    // Sincroniza estado inicial do SIP e aplica Status de Registro somente quando iniciado junto com o SO (--autostart)
     SipManager::instance().initialize();
-    int savedPresence = SettingsManager::instance().startWithSystem()
+    bool startedWithOs = qApp->arguments().contains("--autostart") && SettingsManager::instance().startWithSystem();
+    int savedPresence = startedWithOs
         ? qBound(0, SettingsManager::instance().registrationStatus(), 2)
         : 0;
     m_comboPresence->blockSignals(true);
@@ -426,7 +427,10 @@ void MainWindow::onIncomingCall(const QString &callId, const QString &number, co
 
     m_callWidget->onIncomingCall(callId, number, effectiveName);
     m_notificationPopup->showIncomingCall(callId, number, effectiveName);
-    m_historyWidget->addRecord(HistoryCallType::Incoming, number, effectiveName, "00:00");
+    if (!callId.isEmpty() && callId != m_recordedHistoryCallId) {
+        m_recordedHistoryCallId = callId;
+        m_historyWidget->addRecord(HistoryCallType::Incoming, number, effectiveName, "00:00");
+    }
 
     m_activeCallDialog->setupCall(callId, number, effectiveName);
 }
@@ -437,7 +441,10 @@ void MainWindow::onCallStateChanged(const QString &callId, SipManager::CallState
         QString contactName = ContactsManager::instance().findContactNameByNumber(active.remoteNumber);
         QString effectiveName = !contactName.isEmpty() ? contactName : active.remoteName;
 
-        m_historyWidget->addRecord(HistoryCallType::Outgoing, active.remoteNumber, effectiveName, "00:00");
+        if (!callId.isEmpty() && callId != m_recordedHistoryCallId) {
+            m_recordedHistoryCallId = callId;
+            m_historyWidget->addRecord(HistoryCallType::Outgoing, active.remoteNumber, effectiveName, "00:00");
+        }
         m_activeCallDialog->setupCall(callId, active.remoteNumber, effectiveName);
 
         QPoint winPos = pos();
@@ -487,6 +494,7 @@ void MainWindow::onCallStateChanged(const QString &callId, SipManager::CallState
             .arg(secs % 60, 2, 10, QChar('0'));
         m_historyWidget->updateLatestRecord(durationStr, active.recordingPath);
         m_recordingsWidget->refreshList();
+        m_recordedHistoryCallId.clear();
     }
 }
 

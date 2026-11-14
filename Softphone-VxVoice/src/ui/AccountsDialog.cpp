@@ -225,8 +225,9 @@ void AccountsDialog::loadAccounts() {
 void AccountsDialog::adjustDialogToColumns() {
     if (!m_tableView || !m_model) return;
 
-    m_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_tableView->horizontalHeader()->setStretchLastSection(false);
+    auto header = m_tableView->horizontalHeader();
+    header->setSectionResizeMode(QHeaderView::ResizeToContents);
+    header->setStretchLastSection(false);
     m_tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_tableView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_tableView->resizeColumnsToContents();
@@ -234,17 +235,25 @@ void AccountsDialog::adjustDialogToColumns() {
     int totalColsWidth = 0;
     for (int col = 0; col < m_model->columnCount(); ++col) {
         totalColsWidth += qMax(m_tableView->columnWidth(col),
-                               m_tableView->horizontalHeader()->sectionSizeHint(col));
+                               header->sectionSizeHint(col));
     }
 
-    int minLayoutWidth = layout() ? layout()->sizeHint().width() : 600;
-    int targetWidth = qMax(totalColsWidth + 56, qMax(minLayoutWidth, 620));
+    // Expande as colunas descritivas (Conta SIP e Servidor) para preencher exatamente a largura da janela sem espaço vazio
+    header->setSectionResizeMode(0, QHeaderView::ResizeToContents); // Status
+    header->setSectionResizeMode(1, QHeaderView::Stretch);          // Conta SIP
+    header->setSectionResizeMode(2, QHeaderView::Stretch);          // Servidor
+    header->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Ramal
+    header->setSectionResizeMode(4, QHeaderView::ResizeToContents); // Transporte
+    header->setSectionResizeMode(5, QHeaderView::ResizeToContents); // Padrão
+
+    int minLayoutWidth = layout() ? layout()->sizeHint().width() : 620;
+    int targetWidth = qMax(totalColsWidth + 56, qMax(minLayoutWidth, 640));
     targetWidth = qMin(targetWidth, 1120);
 
     int rowCount = m_model->rowCount();
     int targetHeight = qBound(380, 190 + rowCount * 36, 620);
 
-    setMinimumWidth(qMin(targetWidth, 620));
+    setMinimumWidth(qMin(targetWidth, 640));
     resize(targetWidth, targetHeight);
 }
 

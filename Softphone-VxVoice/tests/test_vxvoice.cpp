@@ -14,11 +14,7 @@ private slots:
             ThemeManager::Theme::Dark,
             ThemeManager::Theme::Light,
             ThemeManager::Theme::Purple,
-            ThemeManager::Theme::Red,
-            ThemeManager::Theme::BlueBaby,
-            ThemeManager::Theme::BlueCapri,
-            ThemeManager::Theme::RosaAmaranth,
-            ThemeManager::Theme::RosaHotMagenta
+            ThemeManager::Theme::Red
         };
 
         for (auto t : themes) {
@@ -33,11 +29,11 @@ private slots:
         auto &sm = SettingsManager::instance();
         const QString original = sm.theme();
 
-        sm.setTheme("BlueBaby");
-        QCOMPARE(sm.theme(), QString("BlueBaby"));
+        sm.setTheme("Dark");
+        QCOMPARE(sm.theme(), QString("Dark"));
 
-        sm.setTheme("RosaHotMagenta");
-        QCOMPARE(sm.theme(), QString("RosaHotMagenta"));
+        sm.setTheme("Red");
+        QCOMPARE(sm.theme(), QString("Red"));
 
         sm.setTheme(original);
     }
