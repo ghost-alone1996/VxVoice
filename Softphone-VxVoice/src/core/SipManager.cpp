@@ -641,7 +641,7 @@ void SipManager::handleIncomingCall(VxCall *call, const QString &callId, const Q
 
     // Resolução inteligente da BINA na chamada recebida
     QString resolvedName = ContactsManager::instance().findContactNameByNumber(callerNumber);
-    QString callerName = !resolvedName.isEmpty() ? resolvedName : (remoteContact.isEmpty() ? callerNumber : remoteContact);
+    QString callerName = !resolvedName.isEmpty() ? resolvedName : callerNumber;
 
     CallData cd;
     cd.callId = callId;
