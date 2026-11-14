@@ -219,6 +219,33 @@ void AccountsDialog::loadAccounts() {
     }
 
     onSelectionChanged();
+    adjustDialogToColumns();
+}
+
+void AccountsDialog::adjustDialogToColumns() {
+    if (!m_tableView || !m_model) return;
+
+    m_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_tableView->horizontalHeader()->setStretchLastSection(false);
+    m_tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_tableView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_tableView->resizeColumnsToContents();
+
+    int totalColsWidth = 0;
+    for (int col = 0; col < m_model->columnCount(); ++col) {
+        totalColsWidth += qMax(m_tableView->columnWidth(col),
+                               m_tableView->horizontalHeader()->sectionSizeHint(col));
+    }
+
+    int minLayoutWidth = layout() ? layout()->sizeHint().width() : 600;
+    int targetWidth = qMax(totalColsWidth + 56, qMax(minLayoutWidth, 620));
+    targetWidth = qMin(targetWidth, 1120);
+
+    int rowCount = m_model->rowCount();
+    int targetHeight = qBound(380, 190 + rowCount * 36, 620);
+
+    setMinimumWidth(qMin(targetWidth, 620));
+    resize(targetWidth, targetHeight);
 }
 
 void AccountsDialog::saveAccounts() {

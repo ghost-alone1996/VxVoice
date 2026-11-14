@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 2.0.1
+    VERSION 2.0.2
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -20,7 +20,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     Network
 )
-find_package(Qt6 OPTIONAL_COMPONENTS Multimedia)
+find_package(Qt6 OPTIONAL_COMPONENTS Multimedia Test)
 
 # Arquivos de código-fonte
 set(SOURCES
@@ -111,6 +111,36 @@ if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         WIN32_EXECUTABLE TRUE
     )
+endif()
+
+# ==============================================================================
+# Testes Automatizados (Qt Test / CTest)
+# ==============================================================================
+if(Qt6Test_FOUND)
+    enable_testing()
+    add_executable(VxVoiceTests
+        tests/test_vxvoice.cpp
+        src/core/ThemeManager.cpp
+        src/core/ThemeManager.h
+        src/core/SettingsManager.cpp
+        src/core/SettingsManager.h
+        src/core/ContactsManager.cpp
+        src/core/ContactsManager.h
+        src/core/UpdateManager.cpp
+        src/core/UpdateManager.h
+        ${RESOURCES}
+    )
+    target_include_directories(VxVoiceTests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+    )
+    target_link_libraries(VxVoiceTests PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Network
+        Qt6::Test
+    )
+    add_test(NAME VxVoiceUnitTests COMMAND VxVoiceTests)
 endif()
 
 # ==============================================================================

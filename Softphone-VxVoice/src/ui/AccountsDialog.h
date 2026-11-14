@@ -52,6 +52,7 @@ private:
     void setupUi();
     void loadAccounts();
     void saveAccounts();
+    void adjustDialogToColumns();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

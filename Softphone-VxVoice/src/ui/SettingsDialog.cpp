@@ -133,15 +133,19 @@ QWidget* SettingsDialog::createGeneralTab() {
     ringtoneLayout->addWidget(m_comboRingtone, 1);
     ringtoneLayout->addWidget(m_btnPlayRingtone);
 
-    // Theme selector com os 4 temas requeridos
+    // Theme selector com os 8 temas VxVoice
     m_comboTheme = new QComboBox(widget);
     m_comboTheme->addItem("🌑 Dark (Tons de azul escuro)");
     m_comboTheme->addItem("☀️ Light (Tons de azul claro)");
     m_comboTheme->addItem("🟣 Purple (Tons de roxo corporativo)");
     m_comboTheme->addItem("🔴 Red (Tons de vermelho corporativo)");
+    m_comboTheme->addItem("🩵 Blue Baby");
+    m_comboTheme->addItem("🌊 Blue Capri");
+    m_comboTheme->addItem("🌸 Rosa Amaranth");
+    m_comboTheme->addItem("🌺 Rosa Hot Magenta");
 
     formLayout->addRow("Ringtone de Chamada:", ringtoneLayout);
-    formLayout->addRow("Tema Visual do Softphone:", m_comboTheme);
+    formLayout->addRow("Temas VxVoice:", m_comboTheme);
 
     layout->addLayout(formLayout);
     layout->addStretch();
@@ -533,7 +537,8 @@ QWidget* SettingsDialog::createAboutTab() {
     m_lblAboutTitle = new QLabel("<b>VxVoice</b>", widget);
     auto updateAboutTitleColor = [this](ThemeManager::Theme t) {
         if (!m_lblAboutTitle) return;
-        const QString color = (t == ThemeManager::Theme::Light) ? "#000000" : "#FFFFFF";
+        const bool isLightBg = (t == ThemeManager::Theme::Light || t == ThemeManager::Theme::BlueBaby);
+        const QString color = isLightBg ? "#000000" : "#FFFFFF";
         m_lblAboutTitle->setStyleSheet(QString("font-size: 16px; font-weight: bold; color: %1;").arg(color));
     };
     updateAboutTitleColor(ThemeManager::instance().currentTheme());
@@ -623,12 +628,12 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v2.0.1):</b><br>"
+        "<b>Novidades e Correções (v2.0.2):</b><br>"
         "<ul>"
-        "<li><b>Instância Única (System Tray):</b> Ao clicar no executável enquanto o VxVoice já está minimizado no System Tray, a janela existente é restaurada em vez de abrir uma segunda instância.</li>"
-        "<li><b>Sub-opções de Inicialização com o SO:</b> 'Iniciar minimizado no System Tray' e 'Status de Registro' agora ficam agrupados e bloqueados em cinza quando 'Iniciar junto com o Sistema Operacional' estiver desmarcado.</li>"
-        "<li><b>Busca Automática de Atualizações no GitHub:</b> Verificação automática ao iniciar o aplicativo com opção de aplicar ou adiar a atualização.</li>"
-        "<li><b>Instaladores Multiplataforma:</b> Pacote Linux .deb, instalador .sh compactado em .zip e pacote corporativo Windows .msi.</li>"
+        "<li><b>Proporção Única na Tela Principal:</b> Janela principal unificada usando a proporção da aba Ligação, com adaptação automática das colunas e barras de rolagem em Histórico, Contatos e Gravação.</li>"
+        "<li><b>Temas VxVoice:</b> Seletor renomeado para 'Temas VxVoice' com 4 novos temas: Blue Baby, Blue Capri, Rosa Amaranth e Rosa Hot Magenta.</li>"
+        "<li><b>Proporção da Janela Contas SIP:</b> Ajuste automático das colunas ao conteúdo com redimensionamento proporcional da janela.</li>"
+        "<li><b>Testes Automatizados &amp; Histórico:</b> Suíte Qt Test integrada ao CMake/CTest e histórico completo de versões em Markdown.</li>"
         "</ul>"
     );
 

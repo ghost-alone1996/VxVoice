@@ -325,13 +325,12 @@ void ContactsWidget::populateInitialContacts() {
 
 void ContactsWidget::adjustTableColumns() {
     if (!m_tableView || !m_sourceModel) return;
-    m_tableView->resizeColumnsToContents();
     auto header = m_tableView->horizontalHeader();
-    header->setSectionResizeMode(0, QHeaderView::Stretch);          // Nome
-    header->setSectionResizeMode(1, QHeaderView::ResizeToContents); // Ramal
-    header->setSectionResizeMode(2, QHeaderView::ResizeToContents); // Número
-    header->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Empresa
-    header->setSectionResizeMode(4, QHeaderView::Stretch);          // E-mail
+    header->setSectionResizeMode(QHeaderView::ResizeToContents);
+    header->setStretchLastSection(false);
+    m_tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_tableView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_tableView->resizeColumnsToContents();
 }
 
 void ContactsWidget::onSearchTextChanged(const QString &text) {

@@ -4,6 +4,10 @@
         <file>styles/dark.qss</file>
         <file>styles/light.qss</file>
         <file>styles/red.qss</file>
+        <file>styles/blue_baby.qss</file>
+        <file>styles/blue_capri.qss</file>
+        <file>styles/rosa_amaranth.qss</file>
+        <file>styles/rosa_hot_magenta.qss</file>
         <file>icons/app_icon.png</file>
         <file>sounds/ringtone_1.wav</file>
         <file>sounds/ringtone_2.wav</file>

@@ -56,11 +56,10 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>🪟 Instância Única (System Tray):</b> Ao clicar no executável enquanto o VxVoice já está minimizado no System Tray, a janela já aberta é restaurada automaticamente sem duplicar o aplicativo.</li><br>"
-        "<li><b>🚀 Sub-opções de Inicialização com o Sistema:</b> <i>Iniciar minimizado no System Tray</i> e <i>Status de Registro</i> agora ficam agrupados abaixo de <i>Iniciar junto com o Sistema Operacional</i> e ficam bloqueados em cinza quando desmarcado.</li><br>"
-        "<li><b>🔄 Busca Automática de Atualizações no GitHub:</b> Verificação automática ao abrir o VxVoice com opção de atualizar na hora ou depois.</li><br>"
-        "<li><b>🎨 Aba Sobre &amp; Repositório GitHub:</b> Link direto para o repositório no GitHub, contraste adaptativo por tema e botão <i>Aplicar Atualização</i> dinâmico.</li><br>"
-        "<li><b>📦 Instaladores Multiplataforma:</b> Pacote Linux <code>.deb</code>, instalador <code>.sh</code> compactado em <code>.zip</code> e pacote corporativo Windows <code>.msi</code>.</li>"
+        "<li><b>📐 Proporção Única na Tela Principal:</b> A janela principal mantém agora uma proporção única baseada na aba <i>Ligação</i>. Nas abas <i>Histórico</i>, <i>Contatos</i> e <i>Gravação</i>, as colunas se adaptam automaticamente ao conteúdo com barras de rolagem horizontal e vertical.</li><br>"
+        "<li><b>🎨 Novos Temas VxVoice:</b> Seletor renomeado para <i>Temas VxVoice</i> com 4 novos estilos visuais: <b>Blue Baby</b>, <b>Blue Capri</b>, <b>Rosa Amaranth</b> e <b>Rosa Hot Magenta</b>.</li><br>"
+        "<li><b>🪟 Janela Contas SIP Proporcional:</b> As colunas da tabela de Contas SIP se ajustam automaticamente ao conteúdo e a proporção da janela acompanha o ajuste.</li><br>"
+        "<li><b>✅ Testes Automatizados &amp; Histórico:</b> Suíte de testes automatizados com Qt Test / CTest e histórico completo de versões documentado em <code>CHANGELOG.md</code>.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);
 

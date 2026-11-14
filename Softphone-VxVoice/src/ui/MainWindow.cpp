@@ -491,37 +491,20 @@ void MainWindow::onCallStateChanged(const QString &callId, SipManager::CallState
 }
 
 void MainWindow::onTabChanged(int index) {
-    int targetW = 380;
-    int targetH = 670;
-
+    // Mantém a proporção única da tela principal tendo a aba Ligação como referência
     switch (index) {
-    case 0: // Ligação / Discador
-        targetW = 380;
-        targetH = 670;
-        setMinimumWidth(360);
-        break;
     case 1: // Histórico
-        targetW = 560;
-        targetH = 670;
-        setMinimumWidth(480);
         m_historyWidget->adjustTableColumns();
         break;
     case 2: // Contatos
-        targetW = 680;
-        targetH = 670;
-        setMinimumWidth(580);
         m_contactsWidget->adjustTableColumns();
         break;
     case 3: // Gravação
-        targetW = 620;
-        targetH = 670;
-        setMinimumWidth(520);
         m_recordingsWidget->adjustTableColumns();
         break;
+    default:
+        break;
     }
-
-    // Adapta dinamicamente as dimensões da janela para exibir todo o conteúdo sem cortes
-    resize(targetW, targetH);
 }
 
 void MainWindow::onOpenAccountsDialog() {

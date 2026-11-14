@@ -112,13 +112,12 @@ void HistoryWidget::updateLatestRecord(const QString &duration, const QString &r
 
 void HistoryWidget::adjustTableColumns() {
     if (!m_tableView || !m_model) return;
-    m_tableView->resizeColumnsToContents();
     auto header = m_tableView->horizontalHeader();
-    header->setSectionResizeMode(0, QHeaderView::ResizeToContents); // Tipo
-    header->setSectionResizeMode(1, QHeaderView::Stretch);          // Contato/Número
-    header->setSectionResizeMode(2, QHeaderView::ResizeToContents); // Data/Hora
-    header->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Duração
-    header->setSectionResizeMode(4, QHeaderView::ResizeToContents); // Gravação
+    header->setSectionResizeMode(QHeaderView::ResizeToContents);
+    header->setStretchLastSection(false);
+    m_tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_tableView->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_tableView->resizeColumnsToContents();
 }
 
 void HistoryWidget::loadHistory() {

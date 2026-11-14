@@ -5,87 +5,59 @@ description: >-
   corporativo VxVoice em C++ e Qt 6 com backend PJSIP.
 ---
 
-# VxVoice Softphone - Skill de Desenvolvimento e Manutenção
+# VxVoice Softphone - Skill de Engenharia Sênior
 
-Esta skill documenta os fluxos operacionais, padrões de arquitetura, convenções de código e diretrizes de manutenção do softphone corporativo **VxVoice**, desenvolvido em **C++17** e **Qt 6 (Qt Widgets)**.
-
----
-
-## 🏗️ 1. Visão Geral da Arquitetura
-
-O sistema é dividido em três camadas desacopladas:
-
-1. **Camada de Telefonia & Serviços (`src/core/`):**
-   - `SipManager`: Interface de controle SIP baseada no padrão Observer (Signals & Slots) pronta para conectar à API C++ do PJSIP (`pjsua2.hpp`).
-   - `SettingsManager`: Gerenciamento e persistência de preferências com `QSettings`, incluindo autostart no SO (Linux `.desktop` e Windows Registry) e preferência de minimização no System Tray.
-   - `ThemeManager`: Gerenciamento dinâmico de folhas de estilo QSS (`VxVoice Roxo`, `Dark Clássico`, `Light`) e paletas do sistema.
-   - `SoundManager`: Motor de áudio para ringtones em loop e pré-escuta de toques de chamada recebida.
-
-2. **Camada de Apresentação & Telas (`src/ui/`):**
-   - `MainWindow`: Janela principal compacta com cabeçalho de acesso rápido, status com bolinhas coloridas (Pixel-Perfect), visor digital e `QTabWidget` central.
-   - `CallWidget`: Aba de discagem com display, teclado numérico 4x3 e botões de chamada e encerramento.
-   - `HistoryWidget`: Histórico categorizado de chamadas (Recebida ↙, Efetuada ↗, Perdida ✕) com menu de contexto (clique direito) para ligar, salvar contato, copiar número, excluir e ouvir gravação.
-   - `ContactsWidget`: Agenda corporativa com filtro duplo (texto e combobox de empresa), janela completa de cadastro e botões de ligar e enviar e-mail na mesma escala.
-   - `RecordingsWidget`: Gestão de gravações de áudio vinculadas aos contatos e ao histórico de chamadas, com reprodução e abertura de diretório.
-   - `ActiveCallDialog`: Janela dedicada para ligações ativas com cronômetro, mute, hold, transferência SIP, gravação e DTMF.
-   - `CallNotificationPopup`: Toast flutuante sem bordas (Frameless) com botões redondos de atender (verde com fone) e recusar (vermelho com X).
-   - `IconHelper`: Gerador vetorial em tempo de execução via `QPainter` para garantir nitidez dos ícones em qualquer sistema operacional.
-
-3. **Recursos & Identidade Visual (`resources/`):**
-   - `styles/vxvoice.qss`: Tema oficial corporativo roxo (`#171226`, `#1E1632`, `#8E44AD`).
-   - `styles/dark.qss`: Tema escuro neutro corporativo (`#1A2530`).
-   - `styles/light.qss`: Tema claro corporativo (`#F5F7FA`).
-   - `icons/app_icon.png`: Ícone oficial com as iniciais "VX" em degradê roxo.
-   - `sounds/`: Arquivos de áudio para toques de chamada (`ringtone_1` a `ringtone_4`).
+Esta skill orienta o desenvolvimento do softphone corporativo **VxVoice** sob o papel de **Engenheiro de Software Sênior**, especialista em **PJSIP**, **C++17 / Qt 6 (Qt Widgets)** e **UX/UI moderno, intuitivo e autoexplicativo**.
 
 ---
 
-## 🛠️ 2. Procedimentos de Build e Execução
+## 🎯 1. Diretrizes de Engenharia Sênior e Qualidade
 
-### Pré-requisitos
-- Compilador C++17 (GCC 9+, Clang 10+ ou MSVC 2019+)
-- CMake 3.16+
-- Qt 6 (Componentes: `Core`, `Gui`, `Widgets`, `Network`)
+1. **Arquitetura & Código Limpo**:
+   - Código padronizado, organizado, modular, seguro e eficiente com os recursos do Sistema Operacional.
+   - Separação clara entre núcleo (`src/core/`), interface (`src/ui/`), recursos (`resources/`) e testes (`tests/`).
+2. **UX/UI Moderno e Consistente**:
+   - **Proporção Única na Tela Principal**: A janela principal (`MainWindow`) usa a aba `Ligação` como referência única (`380x670 px`). Nas abas `Histórico`, `Contatos` e `Gravação`, todas as colunas usam `QHeaderView::ResizeToContents` (`setStretchLastSection(false)`) com barras de rolagem (`Qt::ScrollBarAsNeeded`) para exibir conteúdo completo sem distorcer a janela.
+   - **Contas SIP (`AccountsDialog`)**: Colunas ajustadas ao conteúdo com redimensionamento proporcional da janela.
+   - **Temas VxVoice (`ThemeManager`)**: Suporte a 8 temas persistentes (`Dark`, `Light`, `Purple`, `Red`, `Blue Baby`, `Blue Capri`, `Rosa Amaranth`, `Rosa Hot Magenta`), com contraste adequado em cada tema.
+3. **Testes Automatizados**:
+   - Sempre compilar e executar a suíte de testes automatizados (`VxVoiceTests` via `ctest --output-on-failure`) para validar as funções existentes antes de fechar uma versão.
+4. **Empacotamento Multiplataforma**:
+   - **Linux**: gerar pacote `.deb` (`cpack -G DEB`) e instalador `.sh` compactado em `.zip` (`build_linux_zip.sh`).
+   - **Windows**: gerar executável `.exe` e pacote corporativo `.msi` (`build_windows_msi.sh`).
+5. **Versionamento, Histórico `.md` e Sincronismo GitHub**:
+   - Toda entrega deve gerar uma nova versão semântica, atualizar o histórico em `Softphone-VxVoice/CHANGELOG.md` destacando as versões, criar commit + tag local e enviar ao repositório remoto (`git push origin main --tags` para `https://github.com/ghost-alone1996/VxVoice`).
+   - Manter o atualizador automático do VxVoice (`UpdateManager`) integrado diretamente ao repositório GitHub.
 
-### Compilação Padrão
+---
+
+## 🏗️ 2. Arquitetura do Projeto
+
+- **Camada Core (`src/core/`)**:
+  - `SipManager`: Motor SIP PJSIP (`pjsua2.hpp`) com sinais/slots thread-safe para GUI, codecs e logs SIP.
+  - `SettingsManager`: Persistência em `QSettings`, autostart OS (Linux `.desktop` / Windows Registry), sub-opções e status de registro.
+  - `ContactsManager`: Agenda corporativa com busca em tempo real e resolução de ramal/telefone.
+  - `ThemeManager`: Gerenciamento de folhas de estilo QSS (`resources/styles/*.qss`) e `QPalette`.
+  - `SoundManager`: Reprodução de ringtones e pré-escuta.
+  - `UpdateManager`: Consulta direta à API/Raw do GitHub (`ghost-alone1996/VxVoice`), download de releases e instalação automática.
+- **Camada UI (`src/ui/`)**:
+  - `MainWindow`, `CallWidget`, `HistoryWidget`, `ContactsWidget`, `RecordingsWidget`, `ActiveCallDialog`, `CallNotificationPopup`, `SelectContactNumberDialog`, `AccountsDialog`, `SettingsDialog`, `ChangelogDialog`, `UpdateProgressDialog`, `IconHelper`.
+
+---
+
+## 🛠️ 3. Build, Testes e Empacotamento
+
 ```bash
-cd Softphone-VxVoice
-mkdir -p build && cd build
+# Compilar e rodar testes automatizados
+cd Softphone-VxVoice/build
 cmake ..
 make -j$(nproc)
+ctest --output-on-failure
+
+# Empacotar Linux (.deb e .sh/.zip) e Windows (.msi)
+cpack -G DEB
+cp vxvoice-*.deb ../../
+cd ../..
+bash Softphone-VxVoice/build_linux_zip.sh
+bash Softphone-VxVoice/build_windows_msi.sh
 ```
-
-### Execução
-```bash
-# Execução normal
-./VxVoice
-
-# Iniciar minimizado na bandeja do sistema
-./VxVoice --autostart
-```
-
----
-
-## 📐 3. Padrões de Layout e Dimensionamento
-
-- **Proporção da MainWindow:** `380x640 px` (Fixado via `setMinimumSize(380, 640); resize(380, 640);`).
-- **Proporção da ActiveCallDialog:** `350x540 px` (Fixado via `setMinimumSize(350, 540); resize(350, 540);`), abrindo adjacente à janela principal.
-- **Tabelas com Ajuste ao Maior Conteúdo:**
-  Todas as tabelas de listagem (`QTableView`) devem utilizar:
-  ```cpp
-  m_tableView->verticalHeader()->setVisible(false);
-  m_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-  m_tableView->horizontalHeader()->setStretchLastSection(false);
-  m_tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-  ```
-  Isso assegura que nenhuma coluna sofra truncamento com reticências e que a rolagem horizontal apareça apenas quando o conteúdo exceder a largura da tela.
-
----
-
-## 🔌 4. Integração com Backend PJSIP (PJSUA2)
-
-Para plugar o motor de telefonia físico:
-1. No `CMakeLists.txt`, habilitar `ENABLE_PJSIP_REAL=ON`.
-2. Em `SipManager.cpp`, inicializar o `pj::Endpoint` e registrar contas com `pj::Account`.
-3. Direcionar os eventos recebidos nos callbacks do PJSIP para a GUI Thread utilizando `QMetaObject::invokeMethod(this, ...)` ou `emit callStateChanged(...)`.
-
