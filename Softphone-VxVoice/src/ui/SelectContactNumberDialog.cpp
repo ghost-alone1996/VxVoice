@@ -27,6 +27,12 @@ void SelectContactNumberDialog::setupUi(const ContactEntry &contact) {
     cardLayout->setContentsMargins(16, 14, 16, 14);
     cardLayout->setSpacing(6);
 
+    const ThemeManager::Theme currentTheme = ThemeManager::instance().currentTheme();
+    const bool isLight = ThemeManager::isLightTheme(currentTheme);
+    const bool isClassicWinTheme = (currentTheme == ThemeManager::Theme::Win2000 ||
+                                    currentTheme == ThemeManager::Theme::WinXP ||
+                                    currentTheme == ThemeManager::Theme::Win7);
+
     auto lblName = new QLabel(QString("<b>%1</b>").arg(contact.name.toHtmlEscaped()), card);
     lblName->setStyleSheet("font-size: 17px; font-weight: bold; background: transparent;");
     lblName->setAlignment(Qt::AlignCenter);
@@ -34,7 +40,10 @@ void SelectContactNumberDialog::setupUi(const ContactEntry &contact) {
 
     QString subText = contact.company.isEmpty() ? "Contato Corporativo" : contact.company;
     auto lblSub = new QLabel(subText, card);
-    lblSub->setStyleSheet("font-size: 13px; color: #9CA3AF; background: transparent;");
+    lblSub->setStyleSheet(
+        QString("font-size: 13px; color: %1; background: transparent;")
+            .arg(isLight ? "#475569" : "#9CA3AF")
+    );
     lblSub->setAlignment(Qt::AlignCenter);
     lblSub->setWordWrap(true);
 
@@ -77,20 +86,25 @@ void SelectContactNumberDialog::setupUi(const ContactEntry &contact) {
         auto btn = new QPushButton(btnLabel, buttonsWidget);
         btn->setFixedHeight(42);
         btn->setCursor(Qt::PointingHandCursor);
-        btn->setStyleSheet(
-            QString("QPushButton {"
-                    "  background-color: %1;"
-                    "  color: #FFFFFF;"
-                    "  font-weight: bold;"
-                    "  font-size: 14px;"
-                    "  border-radius: 6px;"
-                    "  border: 1px solid %4;"
-                    "  padding: 6px 14px;"
-                    "}"
-                    "QPushButton:hover { background-color: %2; }"
-                    "QPushButton:pressed { background-color: %3; }")
-                .arg(bgNormal, bgHover, bgPressed, borderColor)
-        );
+        if (isClassicWinTheme) {
+            // Mantém o estilo nativo do tema Windows ativo (Win2000, WinXP, Win7)
+            btn->setStyleSheet("QPushButton { font-weight: bold; font-size: 13px; padding: 6px 14px; }");
+        } else {
+            btn->setStyleSheet(
+                QString("QPushButton {"
+                        "  background-color: %1;"
+                        "  color: #FFFFFF;"
+                        "  font-weight: bold;"
+                        "  font-size: 14px;"
+                        "  border-radius: 6px;"
+                        "  border: 1px solid %4;"
+                        "  padding: 6px 14px;"
+                        "}"
+                        "QPushButton:hover { background-color: %2; }"
+                        "QPushButton:pressed { background-color: %3; }")
+                    .arg(bgNormal, bgHover, bgPressed, borderColor)
+            );
+        }
         connect(btn, &QPushButton::clicked, this, [this, num]() {
             m_selectedNumber = num;
             accept();
