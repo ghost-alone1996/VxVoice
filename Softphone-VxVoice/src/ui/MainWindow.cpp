@@ -350,12 +350,28 @@ void MainWindow::setupConnections() {
 
     connect(m_historyWidget, &HistoryWidget::saveContactRequested, this, &MainWindow::onSaveContactFromHistory);
 
-    connect(m_historyWidget, &HistoryWidget::playRecordingRequested, this, [this](const QString &filePath) {
-        int idx = m_tabWidget->indexOf(m_recordingsWidget);
-        if (idx >= 0 && m_tabWidget->isTabVisible(idx)) {
-            m_tabWidget->setCurrentWidget(m_recordingsWidget);
+    auto openRecordingPlayer = [this](const QString &filePath, const QString &displayTitle = QString()) {
+        if (!m_recordingPlayerDialog) {
+            m_recordingPlayerDialog = new RecordingPlayerDialog(this);
         }
-        m_recordingsWidget->playFile(filePath);
+        m_recordingPlayerDialog->playFile(filePath, displayTitle);
+        m_recordingPlayerDialog->show();
+        m_recordingPlayerDialog->raise();
+        m_recordingPlayerDialog->activateWindow();
+    };
+
+    connect(m_historyWidget, &HistoryWidget::playRecordingRequested, this, [openRecordingPlayer](const QString &filePath) {
+        openRecordingPlayer(filePath);
+    });
+
+    connect(m_recordingsWidget, &RecordingsWidget::playRecordingRequested, this, [openRecordingPlayer](const QString &filePath, const QString &displayTitle) {
+        openRecordingPlayer(filePath, displayTitle);
+    });
+
+    connect(m_recordingsWidget, &RecordingsWidget::recordingDeleted, this, [this](const QString &filePath) {
+        if (m_recordingPlayerDialog) {
+            m_recordingPlayerDialog->stopIfPlaying(filePath);
+        }
     });
 
     connect(m_recordingsWidget, &RecordingsWidget::callRequested, this, [this](const QString &number) {

@@ -1,6 +1,5 @@
 #include "RecordingsWidget.h"
 #include "SettingsManager.h"
-#include "SoundManager.h"
 #include <QHeaderView>
 #include <QDir>
 #include <QFileInfo>
@@ -15,14 +14,7 @@ RecordingsWidget::RecordingsWidget(QWidget *parent)
     refreshList();
 }
 
-RecordingsWidget::~RecordingsWidget() {
-#ifdef HAVE_QT_MULTIMEDIA
-    if (m_player) {
-        m_player->stop();
-        m_player->setSource(QUrl());
-    }
-#endif
-}
+RecordingsWidget::~RecordingsWidget() = default;
 
 void RecordingsWidget::setupUi() {
     auto mainLayout = new QVBoxLayout(this);
@@ -72,44 +64,6 @@ void RecordingsWidget::setupUi() {
 
     mainLayout->addWidget(m_tableView, 1);
 
-    // Embedded Audio Player Card
-    m_playerFrame = new QFrame(this);
-    m_playerFrame->setObjectName("callInfoFrame");
-    auto playerLayout = new QVBoxLayout(m_playerFrame);
-    playerLayout->setContentsMargins(8, 6, 8, 6);
-    playerLayout->setSpacing(4);
-
-    m_lblNowPlaying = new QLabel("🎙 Selecione uma gravação para ouvir no aplicativo", m_playerFrame);
-    m_lblNowPlaying->setStyleSheet("font-size: 12px; font-weight: bold; background: transparent;");
-    m_lblNowPlaying->setWordWrap(false);
-
-    auto sliderRow = new QHBoxLayout();
-    sliderRow->setSpacing(8);
-
-    m_seekSlider = new QSlider(Qt::Horizontal, m_playerFrame);
-    m_seekSlider->setRange(0, 0);
-    m_seekSlider->setEnabled(false);
-    connect(m_seekSlider, &QSlider::sliderPressed, this, [this]() {
-        m_isSliderPressed = true;
-    });
-    connect(m_seekSlider, &QSlider::sliderReleased, this, [this]() {
-        m_isSliderPressed = false;
-        onSliderMoved(m_seekSlider->value());
-    });
-    connect(m_seekSlider, &QSlider::sliderMoved, this, &RecordingsWidget::onSliderMoved);
-
-    m_lblTime = new QLabel("00:00 / 00:00", m_playerFrame);
-    m_lblTime->setStyleSheet("font-size: 11px; font-weight: bold; background: transparent;");
-    m_lblTime->setMinimumWidth(84);
-    m_lblTime->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
-    sliderRow->addWidget(m_seekSlider, 1);
-    sliderRow->addWidget(m_lblTime);
-
-    playerLayout->addWidget(m_lblNowPlaying);
-    playerLayout->addLayout(sliderRow);
-    mainLayout->addWidget(m_playerFrame);
-
     // Action Toolbar
     auto btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(6);
@@ -121,12 +75,6 @@ void RecordingsWidget::setupUi() {
     m_btnPlay->setEnabled(false);
     m_btnPlay->setCursor(Qt::PointingHandCursor);
     connect(m_btnPlay, &QPushButton::clicked, this, &RecordingsWidget::onPlayRecording);
-
-    m_btnStop = new QPushButton("⏹ Parar", this);
-    m_btnStop->setFixedHeight(actionBtnHeight);
-    m_btnStop->setEnabled(false);
-    m_btnStop->setCursor(Qt::PointingHandCursor);
-    connect(m_btnStop, &QPushButton::clicked, this, &RecordingsWidget::onStopPlayback);
 
     m_btnOpenFolder = new QPushButton("📂 Abrir Pasta", this);
     m_btnOpenFolder->setFixedHeight(actionBtnHeight);
@@ -140,64 +88,11 @@ void RecordingsWidget::setupUi() {
     connect(m_btnDelete, &QPushButton::clicked, this, &RecordingsWidget::onDeleteRecording);
 
     btnLayout->addWidget(m_btnPlay);
-    btnLayout->addWidget(m_btnStop);
     btnLayout->addWidget(m_btnOpenFolder);
     btnLayout->addStretch();
     btnLayout->addWidget(m_btnDelete);
 
     mainLayout->addLayout(btnLayout);
-
-#ifdef HAVE_QT_MULTIMEDIA
-    m_audioOutput = new QAudioOutput(this);
-    m_audioOutput->setVolume(1.0f);
-    m_player = new QMediaPlayer(this);
-    m_player->setAudioOutput(m_audioOutput);
-
-    connect(m_player, &QMediaPlayer::durationChanged, this, [this](qint64 duration) {
-        m_seekSlider->setRange(0, static_cast<int>(duration));
-        m_seekSlider->setEnabled(duration > 0);
-        updateTimeLabel(m_player->position(), duration);
-    });
-
-    connect(m_player, &QMediaPlayer::positionChanged, this, [this](qint64 pos) {
-        if (!m_isSliderPressed) {
-            m_seekSlider->setValue(static_cast<int>(pos));
-        }
-        updateTimeLabel(pos, m_player->duration());
-    });
-
-    connect(m_player, &QMediaPlayer::playbackStateChanged, this, [this](QMediaPlayer::PlaybackState state) {
-        if (state == QMediaPlayer::PlayingState) {
-            m_btnPlay->setText("⏸ Pausar");
-            m_btnPlay->setEnabled(true);
-            m_btnStop->setEnabled(true);
-        } else if (state == QMediaPlayer::PausedState) {
-            m_btnPlay->setText("▶ Continuar");
-            m_btnPlay->setEnabled(true);
-            m_btnStop->setEnabled(true);
-        } else {
-            m_btnPlay->setText("▶ Reproduzir");
-            m_btnStop->setEnabled(false);
-            m_seekSlider->setValue(0);
-            updateTimeLabel(0, m_player->duration());
-            onSelectionChanged();
-        }
-    });
-#endif
-}
-
-QString RecordingsWidget::formatMs(qint64 ms) {
-    if (ms < 0) ms = 0;
-    qint64 totalSec = ms / 1000;
-    qint64 mins = totalSec / 60;
-    qint64 secs = totalSec % 60;
-    return QString("%1:%2").arg(mins, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0'));
-}
-
-void RecordingsWidget::updateTimeLabel(qint64 positionMs, qint64 durationMs) {
-    if (m_lblTime) {
-        m_lblTime->setText(QString("%1 / %2").arg(formatMs(positionMs), formatMs(durationMs)));
-    }
 }
 
 void RecordingsWidget::refreshList() {
@@ -281,12 +176,7 @@ void RecordingsWidget::onSearchTextChanged(const QString &text) {
 
 void RecordingsWidget::onSelectionChanged() {
     bool has = m_tableView->selectionModel() && m_tableView->selectionModel()->hasSelection();
-#ifdef HAVE_QT_MULTIMEDIA
-    bool isPlayingOrPaused = m_player && (m_player->playbackState() != QMediaPlayer::StoppedState);
-    m_btnPlay->setEnabled(has || isPlayingOrPaused);
-#else
     m_btnPlay->setEnabled(has);
-#endif
     m_btnDelete->setEnabled(has);
 }
 
@@ -306,80 +196,18 @@ void RecordingsWidget::playFile(const QString &filePath, const QString &displayT
                              "O arquivo de áudio desta chamada não pôde ser localizado.");
         return;
     }
-
-    QString label = !displayTitle.isEmpty() ? displayTitle : QFileInfo(filePath).fileName();
-    m_currentPlayingPath = filePath;
-    m_lblNowPlaying->setText(QString("▶ Reproduzindo: %1").arg(label));
-
-#ifdef HAVE_QT_MULTIMEDIA
-    if (m_player) {
-        m_player->stop();
-        m_player->setSource(QUrl::fromLocalFile(filePath));
-        m_player->play();
-        return;
-    }
-#endif
-    SoundManager::instance().playAudioFile(filePath, false);
+    emit playRecordingRequested(filePath, displayTitle);
 }
 
 void RecordingsWidget::onPlayRecording() {
-#ifdef HAVE_QT_MULTIMEDIA
-    auto selected = m_tableView->selectionModel()->selectedRows();
-    QString selectedPath;
-    QString selectedTitle;
-    if (!selected.isEmpty()) {
-        QModelIndex sourceIdx = m_proxyModel->mapToSource(selected.first());
-        int row = sourceIdx.row();
-        selectedPath = m_sourceModel->index(row, 0).data(Qt::UserRole).toString();
-        selectedTitle = m_sourceModel->index(row, 0).data(Qt::DisplayRole).toString();
-    }
-
-    if (m_player) {
-        // Se já está tocando o mesmo arquivo (ou nenhum selecionado), alterna Pause/Resume
-        if (m_player->playbackState() == QMediaPlayer::PlayingState &&
-            (selectedPath.isEmpty() || selectedPath == m_currentPlayingPath)) {
-            m_player->pause();
-            return;
-        }
-        if (m_player->playbackState() == QMediaPlayer::PausedState &&
-            (selectedPath.isEmpty() || selectedPath == m_currentPlayingPath)) {
-            m_player->play();
-            return;
-        }
-    }
-
-    if (!selectedPath.isEmpty()) {
-        playFile(selectedPath, selectedTitle);
-    }
-#else
     auto selected = m_tableView->selectionModel()->selectedRows();
     if (selected.isEmpty()) return;
+
     QModelIndex sourceIdx = m_proxyModel->mapToSource(selected.first());
     int row = sourceIdx.row();
     QString filePath = m_sourceModel->index(row, 0).data(Qt::UserRole).toString();
     QString title = m_sourceModel->index(row, 0).data(Qt::DisplayRole).toString();
     playFile(filePath, title);
-#endif
-}
-
-void RecordingsWidget::onStopPlayback() {
-#ifdef HAVE_QT_MULTIMEDIA
-    if (m_player) {
-        m_player->stop();
-    }
-#endif
-    SoundManager::instance().stopRinging();
-    m_lblNowPlaying->setText("⏹ Reprodução parada");
-}
-
-void RecordingsWidget::onSliderMoved(int positionMs) {
-#ifdef HAVE_QT_MULTIMEDIA
-    if (m_player && m_player->isSeekable()) {
-        m_player->setPosition(static_cast<qint64>(positionMs));
-    }
-#else
-    Q_UNUSED(positionMs);
-#endif
 }
 
 void RecordingsWidget::onOpenFolder() {
@@ -399,17 +227,7 @@ void RecordingsWidget::onDeleteRecording() {
                                        "Deseja realmente remover esta gravação?",
                                        QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
-#ifdef HAVE_QT_MULTIMEDIA
-        if (m_player && m_currentPlayingPath == filePath) {
-            m_player->stop();
-            m_player->setSource(QUrl());
-            m_currentPlayingPath.clear();
-            m_lblNowPlaying->setText("🎙 Selecione uma gravação para ouvir no aplicativo");
-            m_seekSlider->setRange(0, 0);
-            m_seekSlider->setEnabled(false);
-            updateTimeLabel(0, 0);
-        }
-#endif
+        emit recordingDeleted(filePath);
         QFile::remove(filePath);
         refreshList();
     }

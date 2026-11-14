@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 2.0.9
+    VERSION 3.0.0
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -36,6 +36,7 @@ set(SOURCES
     src/ui/HistoryWidget.cpp
     src/ui/ContactsWidget.cpp
     src/ui/RecordingsWidget.cpp
+    src/ui/RecordingPlayerDialog.cpp
     src/ui/ActiveCallDialog.cpp
     src/ui/SettingsDialog.cpp
     src/ui/AccountsDialog.cpp
@@ -58,6 +59,7 @@ set(HEADERS
     src/ui/HistoryWidget.h
     src/ui/ContactsWidget.h
     src/ui/RecordingsWidget.h
+    src/ui/RecordingPlayerDialog.h
     src/ui/ActiveCallDialog.h
     src/ui/SettingsDialog.h
     src/ui/AccountsDialog.h

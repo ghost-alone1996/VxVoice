@@ -4,6 +4,14 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 
 ---
 
+## [v3.0.0] — 2026-11-14
+
+### Novas Funcionalidades e Melhorias
+- **Tela Dedicada do Reprodutor Interno (`RecordingPlayerDialog`)**: Criada uma janela própria para o reprodutor interno do VxVoice, exibida automaticamente ao reproduzir qualquer gravação (tanto pelo Histórico quanto pela aba Gravação), contendo barra de progresso, tempo (`MM:SS`), botões **Reproduzir/Pausar**, **Parar** e **Abrir Pasta da Gravação**.
+- **Menu de Contexto do Histórico (`HistoryWidget`)**: Removida a opção **Abrir Pasta da Gravação** do menu pop-up de clique direito sobre os registros de ligação, centralizando essa ação na tela do reprodutor.
+
+---
+
 ## [v2.0.9] — 2026-11-14
 
 ### Novas Funcionalidades e Melhorias
@@ -67,7 +75,7 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 ## Instalação Rápida
 
 ### Windows (`.msi`)
-1. Baixe `vxvoice-2.0.9-Windows.msi` (ou `vxvoice-2.0.9-x64.msi`) na seção **Releases** do GitHub.
+1. Baixe `vxvoice-3.0.0-Windows.msi` (ou `vxvoice-3.0.0-x64.msi`) na seção **Releases** do GitHub.
 2. Execute o instalador `.msi` e siga o assistente de instalação.
 
 ### Linux (`.deb` / `.sh`)

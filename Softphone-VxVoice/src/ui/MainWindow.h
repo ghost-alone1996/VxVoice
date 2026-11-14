@@ -16,6 +16,7 @@
 #include "RecordingsWidget.h"
 #include "CallNotificationPopup.h"
 #include "ActiveCallDialog.h"
+#include "RecordingPlayerDialog.h"
 #include "SipManager.h"
 
 class MainWindow : public QMainWindow {
@@ -73,6 +74,7 @@ private:
     // Popups and Windows
     CallNotificationPopup *m_notificationPopup{nullptr};
     ActiveCallDialog *m_activeCallDialog{nullptr};
+    RecordingPlayerDialog *m_recordingPlayerDialog{nullptr};
 
     bool m_reallyQuit{false};
     bool m_startupTrayNotified{false};

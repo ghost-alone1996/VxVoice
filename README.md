@@ -2,7 +2,7 @@
 
 Softphone VoIP corporativo desenvolvido em **C++17** com **Qt 6 (Qt Widgets)** e backend **PJSIP (PJSUA2)**, focado em leveza, estabilidade e produtividade para ambientes Windows e Linux.
 
-**Versão atual:** `v2.0.9` · **Licença:** [GNU GPL v3](Softphone-VxVoice/LICENSE)
+**Versão atual:** `v3.0.0` · **Licença:** [GNU GPL v3](Softphone-VxVoice/LICENSE)
 
 ---
 
@@ -24,7 +24,7 @@ Softphone VoIP corporativo desenvolvido em **C++17** com **Qt 6 (Qt Widgets)** e
 
 ### Gravações e Player Interno
 - **Aba Condicional (`🎙 Gravação`):** Exibida automaticamente na janela principal quando a opção **Gravar todas as chamadas automaticamente** estiver habilitada em **Configurações > Gravação**.
-- **Player Integrado:** Reprodutor embutido (`QMediaPlayer` + `QAudioOutput`) com barra de progresso, tempo (`MM:SS`), **Reproduzir/Pausar**, **Parar**, **Abrir Pasta** e **Excluir**.
+- **Janela Dedicada do Reprodutor (`RecordingPlayerDialog`):** Ao reproduzir qualquer gravação (pelo Histórico ou pela aba Gravação), abre uma janela própria com barra de progresso, tempo (`MM:SS`), **Reproduzir/Pausar**, **Parar** e **Abrir Pasta da Gravação**.
 
 ### Temas Visuais e Bandeja do Sistema
 - **7 Temas Integrados:**
@@ -41,7 +41,7 @@ Softphone VoIP corporativo desenvolvido em **C++17** com **Qt 6 (Qt Widgets)** e
 
 ### Windows (`.msi`)
 1. Baixe o instalador da versão mais recente na seção **Releases** (ou diretamente na raiz do repositório):
-   - `vxvoice-2.0.9-Windows.msi` / `vxvoice-2.0.9-x64.msi`
+   - `vxvoice-3.0.0-Windows.msi` / `vxvoice-3.0.0-x64.msi`
 2. Execute o instalador `.msi` e siga o assistente de instalação.
 
 ### Linux

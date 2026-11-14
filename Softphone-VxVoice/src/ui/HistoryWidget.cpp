@@ -276,14 +276,6 @@ void HistoryWidget::onContextMenu(const QPoint &pos) {
         }
     });
 
-    if (hasRecording) {
-        auto actionFolder = menu.addAction("📂 Abrir Pasta da Gravação");
-        connect(actionFolder, &QAction::triggered, this, [recPath]() {
-            QFileInfo fi(recPath);
-            QDesktopServices::openUrl(QUrl::fromLocalFile(fi.dir().absolutePath()));
-        });
-    }
-
     menu.addSeparator();
 
     auto actionDelete = menu.addAction("🗑 Excluir do Histórico");
