@@ -122,15 +122,15 @@ MainWindow::~MainWindow() {
 void MainWindow::setupUi() {
     setWindowTitle("VxVoice");
 
-    // Proporção padrão corporativa ajustada para exibir todo o discador sem cortes
-    int targetW = 400;
-    int targetH = 720;
+    // Proporção padrão reduzida em 10% para manter o softphone compacto sem cortar o discador
+    int targetW = 360;
+    int targetH = 648;
     if (QScreen *scr = QApplication::primaryScreen()) {
         QRect avail = scr->availableGeometry();
         targetW = qMin(targetW, avail.width() - 40);
         targetH = qMin(targetH, avail.height() - 40);
     }
-    setMinimumSize(390, qMin(700, targetH));
+    setMinimumSize(350, qMin(630, targetH));
     resize(targetW, targetH);
 
     auto centralWidget = new QWidget(this);
@@ -222,7 +222,7 @@ void MainWindow::setupUi() {
 
 void MainWindow::updateHeaderIcons() {
     auto theme = ThemeManager::instance().currentTheme();
-    bool useDarkIcon = ThemeManager::isLightTheme(theme) && theme != ThemeManager::Theme::WinXP;
+    bool useDarkIcon = ThemeManager::isLightTheme(theme);
     QColor iconColor = useDarkIcon ? QColor("#1E293B") : QColor("#F5EEF8");
 
     if (m_btnAccounts) {

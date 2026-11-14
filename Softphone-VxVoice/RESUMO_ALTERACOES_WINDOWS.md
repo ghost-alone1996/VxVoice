@@ -1,4 +1,4 @@
-# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.6)
+# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.7)
 
 Este documento registra todas as adaptações, correções de bugs e melhorias implementadas para a versão Windows do **VxVoice Softphone (Qt 6 + PJSIP / PJSUA2)**.
 
@@ -68,8 +68,25 @@ Este documento registra todas as adaptações, correções de bugs e melhorias i
 
 ---
 
-## 4. Verificação e Publicação
+## 4. Correções e Melhorias (v2.0.7)
 
-- **Testes automatizados (`VxVoiceTests.exe`)**: `8 passed, 0 failed, 0 skipped, 0 blacklisted` (incluindo `testThemeMappings` com os temas Win2000/WinXP/Win7, `testContactsSearch` com múltiplos números e `testSipProfilesPersistence`).
-- **Build & Empacotamento `.msi`:** `VxVoice.exe`, `vxvoice-2.0.6-Windows.msi` e `vxvoice-2.0.6-x64.msi` gerados via `build_windows_msi.ps1` (Qt 6.7.3 + MinGW 13.1 + PJSIP 2.14.1 + WiX 3.14).
-- **Release v2.0.6:** Commit, tag `v2.0.6` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.6-Windows.msi` e `vxvoice-2.0.6-x64.msi` anexados.
+### Correções de Temas Clássicos e Contraste (`CallWidget.cpp`, `MainWindow.cpp`, `SettingsDialog.cpp`, `ChangelogDialog.cpp`, `UpdateProgressDialog.cpp`)
+- Substituídas verificações isoladas de `ThemeManager::Theme::Light` por `ThemeManager::isLightTheme(theme)` em `CallWidget` (`updateAccountDisplay`, `refreshStatusLine`), `SettingsDialog` (`m_lblAboutTitle`), `ChangelogDialog` e `UpdateProgressDialog`, corrigindo textos brancos/claros sobre fundos claros nos temas **Windows 2000**, **Windows XP** e **Windows 7**.
+- Ajustado `MainWindow::updateHeaderIcons()` para aplicar ícones escuros (`#1E293B`) em todos os temas claros, incluindo **Windows XP**, garantindo visibilidade dos botões de Contas e Configurações no cabeçalho.
+
+### Aba Sobre e Novidades e Correções (`SettingsDialog.cpp`, `ChangelogDialog.cpp`)
+- Renomeado o botão da aba Sobre para **`Ver Novidades e Correções`**.
+- Removido o bloco de resumo fixo antigo (`v2.0.4`) exibido dentro da aba Sobre.
+- Atualizado o conteúdo de `ChangelogDialog` para exibir corretamente as alterações da versão atual (`v2.0.7`).
+
+### Melhorias de Usabilidade (`MainWindow.cpp`, `CallWidget.cpp`, `RecordingsWidget.*`)
+- **Proporção da Janela Principal:** Reduzida em 10% (`400x720` → `360x648`, mínimo `350x630`), com ajuste proporcional dos botões do discador para manter todo o conteúdo visível sem cortes.
+- **Aba Gravação:** Removido o botão **Ligar** da barra inferior de ações em `RecordingsWidget`.
+
+---
+
+## 5. Verificação e Publicação
+
+- **Testes automatizados (`VxVoiceTests.exe`)**: compilado e executado após as alterações com todos os testes aprovados.
+- **Build & Empacotamento `.msi`:** `VxVoice.exe`, `vxvoice-2.0.7-Windows.msi` e `vxvoice-2.0.7-x64.msi` gerados via `build_windows_msi.ps1` (Qt 6.7.3 + MinGW 13.1 + PJSIP 2.14.1 + WiX 3.14).
+- **Release v2.0.7:** Commit, tag `v2.0.7` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.7-Windows.msi` e `vxvoice-2.0.7-x64.msi` anexados.

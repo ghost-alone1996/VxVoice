@@ -74,13 +74,6 @@ void RecordingsWidget::setupUi() {
     m_btnPlay->setCursor(Qt::PointingHandCursor);
     connect(m_btnPlay, &QPushButton::clicked, this, &RecordingsWidget::onPlayRecording);
 
-    m_btnCall = new QPushButton("📞 Ligar", this);
-    m_btnCall->setObjectName("contactCallButton");
-    m_btnCall->setFixedHeight(actionBtnHeight);
-    m_btnCall->setEnabled(false);
-    m_btnCall->setCursor(Qt::PointingHandCursor);
-    connect(m_btnCall, &QPushButton::clicked, this, &RecordingsWidget::onCallContact);
-
     m_btnOpenFolder = new QPushButton("📂 Abrir Pasta", this);
     m_btnOpenFolder->setFixedHeight(actionBtnHeight);
     m_btnOpenFolder->setCursor(Qt::PointingHandCursor);
@@ -93,7 +86,6 @@ void RecordingsWidget::setupUi() {
     connect(m_btnDelete, &QPushButton::clicked, this, &RecordingsWidget::onDeleteRecording);
 
     btnLayout->addWidget(m_btnPlay);
-    btnLayout->addWidget(m_btnCall);
     btnLayout->addWidget(m_btnOpenFolder);
     btnLayout->addStretch();
     btnLayout->addWidget(m_btnDelete);
@@ -184,7 +176,6 @@ void RecordingsWidget::onSearchTextChanged(const QString &text) {
 void RecordingsWidget::onSelectionChanged() {
     bool has = m_tableView->selectionModel() && m_tableView->selectionModel()->hasSelection();
     m_btnPlay->setEnabled(has);
-    m_btnCall->setEnabled(has);
     m_btnDelete->setEnabled(has);
 }
 
@@ -209,19 +200,6 @@ void RecordingsWidget::onPlayRecording() {
     if (!filePath.isEmpty() && QFile::exists(filePath)) {
         SoundManager::instance().playAudioFile(filePath, false);
         QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
-    }
-}
-
-void RecordingsWidget::onCallContact() {
-    auto selected = m_tableView->selectionModel()->selectedRows();
-    if (selected.isEmpty()) return;
-
-    QModelIndex sourceIdx = m_proxyModel->mapToSource(selected.first());
-    int row = sourceIdx.row();
-    QString number = m_sourceModel->index(row, 0).data(Qt::UserRole + 1).toString();
-
-    if (!number.isEmpty()) {
-        emit callRequested(number);
     }
 }
 

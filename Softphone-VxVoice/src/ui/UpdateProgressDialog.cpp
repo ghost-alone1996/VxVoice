@@ -28,12 +28,16 @@ void UpdateProgressDialog::setupUi() {
     cardLayout->setContentsMargins(18, 16, 18, 16);
     cardLayout->setSpacing(12);
 
+    const bool isLight = ThemeManager::isLightTheme(ThemeManager::instance().currentTheme());
     m_lblTitle = new QLabel("🔄 Atualização de Software em Andamento...", card);
-    m_lblTitle->setStyleSheet("font-size: 15px; font-weight: bold; background: transparent; color: #3498DB;");
+    m_lblTitle->setStyleSheet("font-size: 15px; font-weight: bold; background: transparent; color: #2980B9;");
 
     m_lblStatus = new QLabel("Iniciando processo de atualização do VxVoice...", card);
     m_lblStatus->setWordWrap(true);
-    m_lblStatus->setStyleSheet("font-size: 13px; color: #E2E8F0; background: transparent;");
+    m_lblStatus->setStyleSheet(
+        QString("font-size: 13px; color: %1; background: transparent;")
+            .arg(isLight ? "#1E293B" : "#E2E8F0")
+    );
 
     m_progressBar = new QProgressBar(card);
     m_progressBar->setRange(0, 100);
@@ -41,19 +45,22 @@ void UpdateProgressDialog::setupUi() {
     m_progressBar->setTextVisible(true);
     m_progressBar->setFixedHeight(24);
     m_progressBar->setStyleSheet(
-        "QProgressBar {"
-        "  border: 1px solid rgba(255, 255, 255, 0.15);"
-        "  border-radius: 6px;"
-        "  text-align: center;"
-        "  font-weight: bold;"
-        "  font-size: 12px;"
-        "  background-color: rgba(0, 0, 0, 0.25);"
-        "  color: #FFFFFF;"
-        "}"
-        "QProgressBar::chunk {"
-        "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2980B9, stop:1 #27AE60);"
-        "  border-radius: 5px;"
-        "}"
+        QString("QProgressBar {"
+                "  border: 1px solid %1;"
+                "  border-radius: 6px;"
+                "  text-align: center;"
+                "  font-weight: bold;"
+                "  font-size: 12px;"
+                "  background-color: %2;"
+                "  color: %3;"
+                "}"
+                "QProgressBar::chunk {"
+                "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2980B9, stop:1 #27AE60);"
+                "  border-radius: 5px;"
+                "}")
+            .arg(isLight ? "#94A3B8" : "rgba(255, 255, 255, 0.15)",
+                 isLight ? "#E2E8F0" : "rgba(0, 0, 0, 0.25)",
+                 isLight ? "#0F172A" : "#FFFFFF")
     );
 
     cardLayout->addWidget(m_lblTitle);

@@ -539,7 +539,7 @@ QWidget* SettingsDialog::createAboutTab() {
     m_lblAboutTitle = new QLabel("<b>VxVoice</b>", widget);
     auto updateAboutTitleColor = [this](ThemeManager::Theme t) {
         if (!m_lblAboutTitle) return;
-        const QString color = (t == ThemeManager::Theme::Light) ? "#000000" : "#FFFFFF";
+        const QString color = ThemeManager::isLightTheme(t) ? "#000000" : "#FFFFFF";
         m_lblAboutTitle->setStyleSheet(QString("font-size: 16px; font-weight: bold; color: %1;").arg(color));
     };
     updateAboutTitleColor(ThemeManager::instance().currentTheme());
@@ -613,7 +613,7 @@ QWidget* SettingsDialog::createAboutTab() {
     );
     connect(m_btnApplyUpdate, &QPushButton::clicked, this, &SettingsDialog::onApplyGitUpdate);
 
-    m_btnShowChangelog = new QPushButton("📋 Ver Novidades e Melhorias", updateCard);
+    m_btnShowChangelog = new QPushButton("📋 Ver Novidades e Correções", updateCard);
     m_btnShowChangelog->setCursor(Qt::PointingHandCursor);
     connect(m_btnShowChangelog, &QPushButton::clicked, this, &SettingsDialog::onShowChangelog);
 
@@ -626,16 +626,6 @@ QWidget* SettingsDialog::createAboutTab() {
     updateLayout->addLayout(formGrid);
     updateLayout->addLayout(btnUpdateRow);
 
-    auto txtChangelog = new QTextEdit(widget);
-    txtChangelog->setReadOnly(true);
-    txtChangelog->setHtml(
-        "<b>Novidades e Correções (v2.0.4):</b><br>"
-        "<ul>"
-        "<li><b>Bloqueio de Ligação para o Próprio Ramal:</b> Correção do fechamento inesperado e bloqueio definitivo ao tentar ligar para o mesmo ramal logado na Conta SIP (incluindo contas com prefixo de tenant, como usuário 1021511 e ramal 1511), tanto pela aba Contatos quanto pelo discador.</li>"
-        "<li><b>Proporção da Janela de Escolha de Número:</b> Ajuste dinâmico ao conteúdo na janela que exibe Ramal SIP e Telefone do contato, evitando cortes no texto informativo.</li>"
-        "</ul>"
-    );
-
     layout->addWidget(m_lblAboutTitle);
     layout->addWidget(lblEmpresa);
     layout->addWidget(lblAno);
@@ -643,7 +633,7 @@ QWidget* SettingsDialog::createAboutTab() {
     layout->addWidget(lblLicense);
     layout->addWidget(lblGithubLink);
     layout->addWidget(updateCard);
-    layout->addWidget(txtChangelog, 1);
+    layout->addStretch();
 
     // Consulta inicial rápida de versão Git
     QTimer::singleShot(200, this, [this]() {

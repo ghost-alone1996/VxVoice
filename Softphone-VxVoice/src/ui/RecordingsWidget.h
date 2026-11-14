@@ -37,7 +37,6 @@ signals:
 private slots:
     void onSearchTextChanged(const QString &text);
     void onPlayRecording();
-    void onCallContact();
     void onOpenFolder();
     void onDeleteRecording();
     void onSelectionChanged();
@@ -51,7 +50,6 @@ private:
     QSortFilterProxyModel *m_proxyModel{nullptr};
 
     QPushButton *m_btnPlay{nullptr};
-    QPushButton *m_btnCall{nullptr};
     QPushButton *m_btnOpenFolder{nullptr};
     QPushButton *m_btnDelete{nullptr};
     QPushButton *m_btnRefresh{nullptr};

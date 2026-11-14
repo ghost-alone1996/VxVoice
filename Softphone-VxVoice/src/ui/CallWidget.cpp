@@ -75,7 +75,7 @@ void CallWidget::setupUi() {
     m_numberDisplay->setObjectName("callerIdDisplay");
     m_numberDisplay->setPlaceholderText("Digite o ramal ou busque um contato...");
     m_numberDisplay->setAlignment(Qt::AlignCenter);
-    m_numberDisplay->setFixedHeight(42);
+    m_numberDisplay->setFixedHeight(38);
     m_numberDisplay->installEventFilter(this);
 
     // Sistema de busca em tempo real com auto-completar inteligente nos contatos
@@ -103,7 +103,7 @@ void CallWidget::setupUi() {
     m_btnBackspace->setObjectName("btnDialBackspace");
     m_btnBackspace->setIcon(IconHelper::createBackspaceIcon(QColor("#ECF0F1"), 20));
     m_btnBackspace->setIconSize(QSize(20, 20));
-    m_btnBackspace->setFixedSize(46, 42);
+    m_btnBackspace->setFixedSize(44, 38);
     m_btnBackspace->setCursor(Qt::PointingHandCursor);
     m_btnBackspace->setToolTip("Apagar (Clique: 1 dígito • Segure: Limpar tudo)");
 
@@ -207,7 +207,7 @@ void CallWidget::setupUi() {
         btn->setProperty("digit", k.main);
         btn->setCursor(Qt::PointingHandCursor);
         btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        btn->setMinimumHeight(44);
+        btn->setMinimumHeight(38);
 
         if (k.sub.isEmpty()) {
             btn->setText(k.main);
@@ -227,7 +227,7 @@ void CallWidget::setupUi() {
     auto actionLayout = new QHBoxLayout();
     actionLayout->setSpacing(10);
 
-    const int mainActionH = 42;
+    const int mainActionH = 38;
 
     m_btnCall = new QPushButton("📞 Iniciar Chamada", this);
     m_btnCall->setObjectName("callButton");
@@ -347,8 +347,8 @@ void CallWidget::updateAccountDisplay() {
 
     ThemeManager::Theme theme = ThemeManager::instance().currentTheme();
     QString accColor = "#D7BDE2";
-    if (theme == ThemeManager::Theme::Light) {
-        accColor = "#1A5276";
+    if (ThemeManager::isLightTheme(theme)) {
+        accColor = (theme == ThemeManager::Theme::Win2000) ? "#000080" : "#1A5276";
     } else if (theme == ThemeManager::Theme::Dark) {
         accColor = "#3498DB";
     } else if (theme == ThemeManager::Theme::Red) {
@@ -375,8 +375,8 @@ void CallWidget::refreshStatusLine() {
 
     // Determina a cor base para texto em repouso de acordo com o tema
     QString defaultTextColor = "#F5EEF8";
-    if (theme == ThemeManager::Theme::Light) {
-        defaultTextColor = "#2C3E50";
+    if (ThemeManager::isLightTheme(theme)) {
+        defaultTextColor = (theme == ThemeManager::Theme::Win2000) ? "#000000" : "#1E293B";
     } else if (theme == ThemeManager::Theme::Dark) {
         defaultTextColor = "#ECF0F1";
     } else if (theme == ThemeManager::Theme::Red) {
@@ -385,8 +385,8 @@ void CallWidget::refreshStatusLine() {
         defaultTextColor = "#F5EEF8";
     }
 
-    QString activeColor = (theme == ThemeManager::Theme::Light) ? "#27AE60" : "#2ECC71";
-    QString ringingColor = (theme == ThemeManager::Theme::Light) ? "#D35400" : "#E67E22";
+    QString activeColor = ThemeManager::isLightTheme(theme) ? "#1E8449" : "#2ECC71";
+    QString ringingColor = ThemeManager::isLightTheme(theme) ? "#D35400" : "#E67E22";
 
     // Busca o nome nos contatos se disponível
     QString who = ContactsManager::instance().findContactNameByNumber(m_remoteNumber);
@@ -425,7 +425,7 @@ void CallWidget::refreshStatusLine() {
     } else if (m_callState == SipManager::CallState::Calling || m_callState == SipManager::CallState::Connecting) {
         // Discando / Chamando
         QString callingColor = "#3498DB";
-        if (theme == ThemeManager::Theme::Light) {
+        if (ThemeManager::isLightTheme(theme)) {
             callingColor = "#2980B9";
         } else if (theme == ThemeManager::Theme::Red) {
             callingColor = "#E74C3C";

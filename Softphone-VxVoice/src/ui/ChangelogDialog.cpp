@@ -30,11 +30,18 @@ void ChangelogDialog::setupUi() {
     headerLayout->setContentsMargins(16, 12, 16, 12);
     headerLayout->setSpacing(4);
 
-    auto lblTitle = new QLabel(QString("✨ VxVoice v%1").arg(SettingsManager::APP_VERSION), headerCard);
-    lblTitle->setStyleSheet("font-size: 18px; font-weight: bold; background: transparent;");
+    const bool isLight = ThemeManager::isLightTheme(ThemeManager::instance().currentTheme());
+    const QString titleColor = isLight ? "#0F172A" : "#FFFFFF";
+    const QString subColor = isLight ? "#475569" : "#9CA3AF";
+    const QString browserBorder = isLight ? "rgba(0, 0, 0, 0.18)" : "rgba(255, 255, 255, 0.12)";
+    const QString browserBg = isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.35)";
+    const QString browserText = isLight ? "#0F172A" : "#E2E8F0";
 
-    auto lblSub = new QLabel("Aplicativo atualizado com sucesso! Confira as novidades e melhorias:", headerCard);
-    lblSub->setStyleSheet("font-size: 13px; color: #9CA3AF; background: transparent;");
+    auto lblTitle = new QLabel(QString("✨ VxVoice v%1").arg(SettingsManager::APP_VERSION), headerCard);
+    lblTitle->setStyleSheet(QString("font-size: 18px; font-weight: bold; color: %1; background: transparent;").arg(titleColor));
+
+    auto lblSub = new QLabel("Aplicativo atualizado com sucesso! Confira as novidades e correções:", headerCard);
+    lblSub->setStyleSheet(QString("font-size: 13px; color: %1; background: transparent;").arg(subColor));
 
     headerLayout->addWidget(lblTitle);
     headerLayout->addWidget(lblSub);
@@ -44,21 +51,26 @@ void ChangelogDialog::setupUi() {
     m_textBrowser = new QTextBrowser(this);
     m_textBrowser->setOpenExternalLinks(true);
     m_textBrowser->setStyleSheet(
-        "QTextBrowser {"
-        "  border: 1px solid rgba(255, 255, 255, 0.1);"
-        "  border-radius: 6px;"
-        "  padding: 12px;"
-        "  font-size: 13px;"
-        "  line-height: 1.5;"
-        "}"
+        QString("QTextBrowser {"
+                "  background-color: %1;"
+                "  color: %2;"
+                "  border: 1px solid %3;"
+                "  border-radius: 6px;"
+                "  padding: 12px;"
+                "  font-size: 13px;"
+                "  line-height: 1.5;"
+                "}")
+            .arg(browserBg, browserText, browserBorder)
     );
 
     QString html = QString(
-        "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
+        "<h3 style='margin-top: 0;'>Novidades e Correções — Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>🛡 Bloqueio de Ligação para o Próprio Ramal:</b> Correção do erro que fechava o aplicativo e bloqueio definitivo ao tentar ligar para o ramal logado na Conta SIP (inclusive com prefixo de tenant), tanto em Contatos quanto no Discador.</li><br>"
-        "<li><b>📐 Proporção da Tela de Seleção de Contato:</b> A janela que pergunta entre Ramal SIP e Telefone agora se ajusta automaticamente ao conteúdo sem cortar textos.</li><br>"
-        "<li><b>📋 Histórico sem Duplicidade:</b> Registro único por chamada no Histórico.</li>"
+        "<li><b>🎨 Temas Clássicos Windows (2000, XP e 7) Aprimorados:</b> Correção completa de contraste e legibilidade em todas as telas, visores, ícones e diálogos nos temas Windows 2000, Windows XP e Windows 7.</li><br>"
+        "<li><b>📐 Janela Principal Mais Compacta:</b> Proporção da janela reduzida em 10% (360×648) mantendo todo o discador visível e bem alinhado.</li><br>"
+        "<li><b>🎙 Aba Gravação Simplificada:</b> Removido o botão <i>Ligar</i> da barra inferior de gravações.</li><br>"
+        "<li><b>ℹ Aba Sobre e Novidades:</b> Removido o resumo fixo antigo da aba Sobre, botão renomeado para <i>Ver Novidades e Correções</i> e histórico da versão atualizado.</li><br>"
+        "<li><b>🌐 Perfis SIP e Contatos com Múltiplos Números (v2.0.6):</b> Aba dedicada de Perfis SIP nas Configurações com integração automática em Contas SIP, além de múltiplos números por contato.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);
 
