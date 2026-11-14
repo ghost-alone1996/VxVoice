@@ -66,10 +66,10 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Novidades e Correções — Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>📞 Tela \"Ligar para...\" Adaptada aos Temas Windows (v2.0.8):</b> Os botões de seleção de número/ramal e o subtítulo da tela de escolha de destino agora seguem integralmente os temas Windows 2000, Windows XP e Windows 7.</li><br>"
-        "<li><b>🎨 Temas Clássicos Windows (2000, XP e 7) Aprimorados (v2.0.7):</b> Correção de contraste e legibilidade em todas as telas, visores, ícones e diálogos.</li><br>"
-        "<li><b>📐 Janela Principal Mais Compacta e Aba Gravação Simplificada (v2.0.7):</b> Proporção reduzida em 10% (360×648), remoção do botão Ligar em Gravação e limpeza da aba Sobre.</li><br>"
-        "<li><b>🌐 Perfis SIP e Contatos com Múltiplos Números (v2.0.6):</b> Aba dedicada de Perfis SIP nas Configurações com integração automática em Contas SIP, além de múltiplos números por contato.</li>"
+        "<li><b>🎧 Player Interno de Gravações (v2.0.9):</b> Novo player integrado na aba <i>Gravação</i> (Reproduzir/Pausar, Parar, barra de progresso/tempo e botão <i>Abrir Pasta</i>) para ouvir chamadas diretamente no aplicativo.</li><br>"
+        "<li><b>🎙 Exibição Condicional da Aba Gravação (v2.0.9):</b> A aba <i>Gravação</i> passa a ser exibida somente quando a opção <i>Gravar todas as chamadas automaticamente</i> está habilitada em Configurações &gt; Gravação.</li><br>"
+        "<li><b>🕒 Melhorias no Histórico (v2.0.9):</b> Item <i>Ouvir Gravação</i> desabilitado em cinza quando não há áudio gravado, fim da rolagem horizontal automática ao clicar em um registro e destaque visual claro da linha selecionada em todos os temas (incluindo Windows 2000, XP e 7).</li><br>"
+        "<li><b>📞 Tela \"Ligar para...\" e Temas Clássicos Windows (v2.0.8 / v2.0.7):</b> Adaptação completa dos botões e contraste para Windows 2000, XP e 7, além de janela 10% mais compacta.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);
 

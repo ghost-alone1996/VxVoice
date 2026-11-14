@@ -4,6 +4,18 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 
 ---
 
+## [v2.0.9] — 2026-11-14
+
+### Novas Funcionalidades e Melhorias
+- **Player Interno de Gravações (`RecordingsWidget`)**: Adicionado reprodutor de áudio integrado ao aplicativo (`QMediaPlayer` + `QAudioOutput`) com barra de progresso, tempo (`MM:SS`), botões **Reproduzir/Pausar**, **Parar**, **Abrir Pasta** e **Excluir** (liberando o arquivo antes da remoção no Windows).
+- **Visibilidade Condicional da Aba Gravação (`MainWindow`)**: A aba `🎙 Gravação` só é exibida na janela principal quando a opção **Gravar todas as chamadas automaticamente** (`autoRecord`) estiver habilitada em Configurações > Gravação, mesmo que existam gravações anteriores salvas.
+- **Histórico de Chamadas (`HistoryWidget` + Temas `.qss`)**:
+  - Opção **Ouvir Gravação** do menu de contexto agora aparece visualmente em **cinza** (`QMenu::item:disabled`) quando não existe gravação associada ao registro.
+  - Desativada a rolagem horizontal automática (`setAutoScroll(false)`) ao clicar em um registro no Histórico.
+  - Adicionado destaque visual claro de seleção de linha (`QTableView::item:selected`) em todos os temas, incluindo **Windows 2000**, **Windows XP** e **Windows 7**.
+
+---
+
 ## [v2.0.8] — 2026-11-14
 
 ### Correções de Bugs
@@ -55,7 +67,7 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 ## Instalação Rápida
 
 ### Windows (`.msi`)
-1. Baixe `vxvoice-2.0.8-Windows.msi` (ou `vxvoice-2.0.8-x64.msi`) na seção **Releases** do GitHub.
+1. Baixe `vxvoice-2.0.9-Windows.msi` (ou `vxvoice-2.0.9-x64.msi`) na seção **Releases** do GitHub.
 2. Execute o instalador `.msi` e siga o assistente de instalação.
 
 ### Linux (`.deb` / `.sh`)

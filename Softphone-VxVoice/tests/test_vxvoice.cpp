@@ -115,6 +115,20 @@ private slots:
         sm.saveProfiles(backup);
         QCOMPARE(sm.profiles().size(), backup.size());
     }
+
+    void testAutoRecordSettingPersistence() {
+        auto &sm = SettingsManager::instance();
+        bool original = sm.autoRecord();
+
+        sm.setAutoRecord(false);
+        QCOMPARE(sm.autoRecord(), false);
+
+        sm.setAutoRecord(true);
+        QCOMPARE(sm.autoRecord(), true);
+
+        sm.setAutoRecord(original);
+        QCOMPARE(sm.autoRecord(), original);
+    }
 };
 
 QTEST_MAIN(VxVoiceTestSuite)

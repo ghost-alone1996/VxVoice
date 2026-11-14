@@ -1,4 +1,4 @@
-# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.8)
+# Resumo de Alterações para Windows — VxVoice (v2.0.4 → v2.0.9)
 
 Este documento registra todas as adaptações, correções de bugs e melhorias implementadas para a versão Windows do **VxVoice Softphone (Qt 6 + PJSIP / PJSUA2)**.
 
@@ -91,8 +91,19 @@ Este documento registra todas as adaptações, correções de bugs e melhorias i
 
 ---
 
-## 6. Verificação e Publicação
+## 6. Melhorias e Correções (v2.0.9)
+
+- **Player Interno de Gravações (`RecordingsWidget.h/.cpp`)**: Implementado player embutido com `QMediaPlayer` / `QAudioOutput`, slider de posição, exibição de duração, controles **Reproduzir/Pausar**, **Parar**, **Abrir Pasta** e **Excluir** com liberação do handle de arquivo antes da exclusão no Windows.
+- **Visibilidade Condicional da Aba Gravação (`MainWindow.h/.cpp`)**: Adicionado `updateRecordingsTabVisibility()`, exibindo a aba `🎙 Gravação` somente quando `SettingsManager::autoRecord()` estiver habilitado.
+- **Histórico e Temas (`HistoryWidget.cpp` e `resources/styles/*.qss`)**:
+  - Adicionado `QMenu::item:disabled` em cinza nos 7 temas `.qss` para a opção **Ouvir Gravação** quando indisponível.
+  - Desabilitado `setAutoScroll(false)` em `HistoryWidget` e `RecordingsWidget` para evitar deslocamento horizontal automático ao clicar em registros.
+  - Adicionado destaque explícito de seleção (`QTableView::item:selected`) em todos os temas, especialmente **Windows 2000**, **Windows XP** e **Windows 7**.
+
+---
+
+## 7. Verificação e Publicação
 
 - **Testes automatizados (`VxVoiceTests.exe`)**: compilado e executado após as alterações com todos os testes aprovados.
-- **Build & Empacotamento `.msi`:** `VxVoice.exe`, `vxvoice-2.0.8-Windows.msi` e `vxvoice-2.0.8-x64.msi` gerados via `build_windows_msi.ps1` (Qt 6.7.3 + MinGW 13.1 + PJSIP 2.14.1 + WiX 3.14).
-- **Release v2.0.8:** Commit, tag `v2.0.8` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.8-Windows.msi` e `vxvoice-2.0.8-x64.msi` anexados.
+- **Build & Empacotamento `.msi`:** `VxVoice.exe`, `vxvoice-2.0.9-Windows.msi` e `vxvoice-2.0.9-x64.msi` gerados via `build_windows_msi.ps1` (Qt 6.7.3 + MinGW 13.1 + PJSIP 2.14.1 + WiX 3.14).
+- **Release v2.0.9:** Commit, tag `v2.0.9` e Release publicadas no GitHub (`ghost-alone1996/VxVoice`) com os pacotes `vxvoice-2.0.9-Windows.msi` e `vxvoice-2.0.9-x64.msi` anexados.

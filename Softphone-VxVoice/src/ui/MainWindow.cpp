@@ -218,6 +218,19 @@ void MainWindow::setupUi() {
     rootLayout->addWidget(m_tabWidget, 1);
 
     updateHeaderIcons();
+    updateRecordingsTabVisibility();
+}
+
+void MainWindow::updateRecordingsTabVisibility() {
+    if (!m_tabWidget || !m_recordingsWidget) return;
+    int idx = m_tabWidget->indexOf(m_recordingsWidget);
+    if (idx < 0) return;
+
+    const bool autoRecEnabled = SettingsManager::instance().autoRecord();
+    if (!autoRecEnabled && m_tabWidget->currentWidget() == m_recordingsWidget) {
+        m_tabWidget->setCurrentWidget(m_callWidget);
+    }
+    m_tabWidget->setTabVisible(idx, autoRecEnabled);
 }
 
 void MainWindow::updateHeaderIcons() {
@@ -336,6 +349,14 @@ void MainWindow::setupConnections() {
     });
 
     connect(m_historyWidget, &HistoryWidget::saveContactRequested, this, &MainWindow::onSaveContactFromHistory);
+
+    connect(m_historyWidget, &HistoryWidget::playRecordingRequested, this, [this](const QString &filePath) {
+        int idx = m_tabWidget->indexOf(m_recordingsWidget);
+        if (idx >= 0 && m_tabWidget->isTabVisible(idx)) {
+            m_tabWidget->setCurrentWidget(m_recordingsWidget);
+        }
+        m_recordingsWidget->playFile(filePath);
+    });
 
     connect(m_recordingsWidget, &RecordingsWidget::callRequested, this, [this](const QString &number) {
         m_tabWidget->setCurrentWidget(m_callWidget);
@@ -573,6 +594,7 @@ void MainWindow::onOpenAccountsDialog() {
 void MainWindow::onOpenSettingsDialog() {
     SettingsDialog dlg(this);
     dlg.exec();
+    updateRecordingsTabVisibility();
     m_recordingsWidget->refreshList();
 }
 

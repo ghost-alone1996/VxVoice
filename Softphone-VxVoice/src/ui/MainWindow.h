@@ -50,6 +50,7 @@ private:
     void setupConnections();
     void updateVisorAccount();
     void updateHeaderIcons();
+    void updateRecordingsTabVisibility();
 
     // UI Widgets Header
     QFrame *m_headerFrame{nullptr};

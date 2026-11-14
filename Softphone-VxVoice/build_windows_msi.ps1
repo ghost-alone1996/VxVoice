@@ -88,8 +88,8 @@ Write-Host "==> Compilando tabelas MSI com WiX Candle..." -ForegroundColor Cyan
     -out "$BuildDir\" `
     $MainWxs $HarvestWxs
 
-$MsiX64 = Join-Path $OutputDir "vxvoice-2.0.8-x64.msi"
-$MsiWin = Join-Path $OutputDir "vxvoice-2.0.8-Windows.msi"
+$MsiX64 = Join-Path $OutputDir "vxvoice-2.0.9-x64.msi"
+$MsiWin = Join-Path $OutputDir "vxvoice-2.0.9-Windows.msi"
 
 Write-Host "==> Gerando pacote .msi final com WiX Light..." -ForegroundColor Cyan
 & $LightExe -sval -ext WixUIExtension -cultures:pt-BR `

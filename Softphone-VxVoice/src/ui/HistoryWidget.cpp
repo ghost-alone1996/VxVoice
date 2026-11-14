@@ -32,6 +32,7 @@ void HistoryWidget::setupUi() {
     m_tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_tableView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_tableView->setAutoScroll(false);
     m_tableView->verticalHeader()->setVisible(false);
     m_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_tableView->horizontalHeader()->setStretchLastSection(false);
@@ -201,12 +202,10 @@ void HistoryWidget::onItemDoubleClicked(const QModelIndex &index) {
     if (!index.isValid()) return;
     int row = index.row();
 
-    // Se clicar diretamente na coluna de gravação e ela existir, reproduz
+    // Se clicar diretamente na coluna de gravação e ela existir, reproduz no player interno
     if (index.column() == 4) {
         QString recPath = m_model->item(row, 4)->data(Qt::UserRole).toString();
         if (!recPath.isEmpty() && QFile::exists(recPath)) {
-            SoundManager::instance().playAudioFile(recPath, false);
-            QDesktopServices::openUrl(QUrl::fromLocalFile(recPath));
             emit playRecordingRequested(recPath);
             return;
         }
@@ -270,9 +269,6 @@ void HistoryWidget::onContextMenu(const QPoint &pos) {
     actionPlay->setEnabled(hasRecording);
     connect(actionPlay, &QAction::triggered, this, [this, recPath]() {
         if (!recPath.isEmpty() && QFile::exists(recPath)) {
-            // Reproduz via SoundManager nos alto-falantes e abre player padrão do SO
-            SoundManager::instance().playAudioFile(recPath, false);
-            QDesktopServices::openUrl(QUrl::fromLocalFile(recPath));
             emit playRecordingRequested(recPath);
         } else {
             QMessageBox::warning(this, "Gravação não Encontrada",

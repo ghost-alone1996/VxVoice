@@ -515,6 +515,22 @@ QMenu::item:selected {
     color: #FFFFFF;
 }
 
+QMenu::item:disabled {
+    color: #94A3B8;
+    background-color: transparent;
+}
+
+QTableView::item:selected,
+QTableView::item:selected:active {
+    background-color: #DBEAFE;
+    color: #1E3A8A;
+}
+
+QTableView::item:selected:!active {
+    background-color: #EFF6FF;
+    color: #1E293B;
+}
+
 QMenu::separator {
     height: 1px;
     background-color: #E2E8F0;
