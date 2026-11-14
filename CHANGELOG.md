@@ -4,6 +4,14 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 
 ---
 
+## [v3.0.1] — 2026-11-14
+
+### Melhorias
+- **Proporção da Janela Principal (`MainWindow` + `CallWidget`)**: Reduzida em definitivo em 15% (`360×648` → `306×551 px`, mínimo `298×535 px`) com ajuste proporcional da altura mínima dos botões do discador.
+- **Aba Sobre (`SettingsDialog`)**: Removido o campo **Empresa** e adicionado **Autor: Leonardo Machado da Silva**.
+
+---
+
 ## [v3.0.0] — 2026-11-14
 
 ### Novas Funcionalidades e Melhorias
@@ -75,7 +83,7 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 ## Instalação Rápida
 
 ### Windows (`.msi`)
-1. Baixe `vxvoice-3.0.0-Windows.msi` (ou `vxvoice-3.0.0-x64.msi`) na seção **Releases** do GitHub.
+1. Baixe `vxvoice-3.0.1-Windows.msi` (ou `vxvoice-3.0.1-x64.msi`) na seção **Releases** do GitHub.
 2. Execute o instalador `.msi` e siga o assistente de instalação.
 
 ### Linux (`.deb` / `.sh`)

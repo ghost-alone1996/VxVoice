@@ -122,15 +122,15 @@ MainWindow::~MainWindow() {
 void MainWindow::setupUi() {
     setWindowTitle("VxVoice");
 
-    // Proporção padrão reduzida em 10% para manter o softphone compacto sem cortar o discador
-    int targetW = 360;
-    int targetH = 648;
+    // Proporção padrão reduzida em definitivo em 15% (360x648 -> 306x551) mantendo o softphone compacto
+    int targetW = 306;
+    int targetH = 551;
     if (QScreen *scr = QApplication::primaryScreen()) {
         QRect avail = scr->availableGeometry();
         targetW = qMin(targetW, avail.width() - 40);
         targetH = qMin(targetH, avail.height() - 40);
     }
-    setMinimumSize(350, qMin(630, targetH));
+    setMinimumSize(298, qMin(535, targetH));
     resize(targetW, targetH);
 
     auto centralWidget = new QWidget(this);

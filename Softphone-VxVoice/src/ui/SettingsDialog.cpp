@@ -545,7 +545,7 @@ QWidget* SettingsDialog::createAboutTab() {
     updateAboutTitleColor(ThemeManager::instance().currentTheme());
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, updateAboutTitleColor);
 
-    auto lblEmpresa = new QLabel("<b>Empresa:</b> VxNET Comunicações e Telecomunicações", widget);
+    auto lblAutor = new QLabel("<b>Autor:</b> Leonardo Machado da Silva", widget);
     auto lblAno = new QLabel("<b>Ano:</b> 2026", widget);
     auto lblVersion = new QLabel(QString("<b>Versão:</b> %1").arg(SettingsManager::APP_VERSION), widget);
     auto lblLicense = new QLabel("<b>Licença:</b> GNU General Public License v3.0 (GPLv3) / Open Source", widget);
@@ -627,7 +627,7 @@ QWidget* SettingsDialog::createAboutTab() {
     updateLayout->addLayout(btnUpdateRow);
 
     layout->addWidget(m_lblAboutTitle);
-    layout->addWidget(lblEmpresa);
+    layout->addWidget(lblAutor);
     layout->addWidget(lblAno);
     layout->addWidget(lblVersion);
     layout->addWidget(lblLicense);

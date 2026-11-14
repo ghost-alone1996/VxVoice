@@ -207,7 +207,7 @@ void CallWidget::setupUi() {
         btn->setProperty("digit", k.main);
         btn->setCursor(Qt::PointingHandCursor);
         btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        btn->setMinimumHeight(38);
+        btn->setMinimumHeight(34);
 
         if (k.sub.isEmpty()) {
             btn->setText(k.main);

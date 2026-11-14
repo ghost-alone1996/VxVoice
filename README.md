@@ -2,7 +2,7 @@
 
 Softphone VoIP corporativo desenvolvido em **C++17** com **Qt 6 (Qt Widgets)** e backend **PJSIP (PJSUA2)**, focado em leveza, estabilidade e produtividade para ambientes Windows e Linux.
 
-**Versão atual:** `v3.0.0` · **Licença:** [GNU GPL v3](Softphone-VxVoice/LICENSE)
+**Versão atual:** `v3.0.1` · **Licença:** [GNU GPL v3](Softphone-VxVoice/LICENSE)
 
 ---
 
@@ -41,7 +41,7 @@ Softphone VoIP corporativo desenvolvido em **C++17** com **Qt 6 (Qt Widgets)** e
 
 ### Windows (`.msi`)
 1. Baixe o instalador da versão mais recente na seção **Releases** (ou diretamente na raiz do repositório):
-   - `vxvoice-3.0.0-Windows.msi` / `vxvoice-3.0.0-x64.msi`
+   - `vxvoice-3.0.1-Windows.msi` / `vxvoice-3.0.1-x64.msi`
 2. Execute o instalador `.msi` e siga o assistente de instalação.
 
 ### Linux
