@@ -406,21 +406,12 @@ void ContactsWidget::initiateContactCall(const ContactInfo &c) {
         return;
     }
 
-    auto defAcc = SettingsManager::instance().defaultAccount();
-    QString loggedExt = (defAcc.isEnabled && !defAcc.username.trimmed().isEmpty())
-        ? defAcc.username.trimmed()
-        : QString();
-
-    auto isSelfExtension = [&loggedExt](const QString &dest) {
-        return !loggedExt.isEmpty() && dest.trimmed() == loggedExt;
-    };
-
     if (hasExt && hasNum && ext != num) {
         SelectContactNumberDialog dlg(c, this);
         if (dlg.exec() == QDialog::Accepted) {
             QString chosen = dlg.selectedNumber();
             if (!chosen.isEmpty()) {
-                if (isSelfExtension(chosen)) {
+                if (SipManager::isSelfExtension(chosen)) {
                     QMessageBox::warning(this, "Ligação Não Permitida",
                         QString("Não é possível realizar uma ligação para o ramal '%1', pois ele está atualmente logado na sua conta SIP.").arg(chosen));
                     return;
@@ -432,7 +423,7 @@ void ContactsWidget::initiateContactCall(const ContactInfo &c) {
     }
 
     QString target = hasExt ? ext : num;
-    if (isSelfExtension(target)) {
+    if (SipManager::isSelfExtension(target)) {
         QMessageBox::warning(this, "Ligação Não Permitida",
             QString("Não é possível realizar uma ligação para o ramal '%1', pois ele está atualmente logado na sua conta SIP.").arg(target));
         return;

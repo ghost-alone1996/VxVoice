@@ -316,10 +316,55 @@ void SipManager::shutdown() {
     qInfo() << "[SipManager] Subsistema PJSIP finalizado com sucesso.";
 }
 
+bool SipManager::isSelfExtension(const QString &destination) {
+    QString dest = destination.trimmed();
+    if (dest.isEmpty()) return false;
+
+    auto defAcc = SettingsManager::instance().defaultAccount();
+    if (!defAcc.isEnabled || defAcc.username.trimmed().isEmpty()) {
+        return false;
+    }
+
+    QString loggedUser = defAcc.username.trimmed();
+    if (dest.compare(loggedUser, Qt::CaseInsensitive) == 0) {
+        return true;
+    }
+
+    QString destDigits;
+    for (QChar ch : dest) {
+        if (ch.isDigit()) destDigits.append(ch);
+    }
+    QString loggedDigits;
+    for (QChar ch : loggedUser) {
+        if (ch.isDigit()) loggedDigits.append(ch);
+    }
+
+    if (destDigits.isEmpty() || loggedDigits.isEmpty()) {
+        return false;
+    }
+    if (destDigits == loggedDigits) {
+        return true;
+    }
+    // Suporte a contas com prefixo de tenant (ex: usuário 1021511 e ramal salvo 1511)
+    if (destDigits.length() >= 3 && loggedDigits.endsWith(destDigits)) {
+        return true;
+    }
+    if (loggedDigits.length() >= 3 && destDigits.endsWith(loggedDigits)) {
+        return true;
+    }
+    return false;
+}
+
 void SipManager::makeCall(const QString &destination) {
     ensurePjThread();
     QString dest = destination.trimmed();
     if (dest.isEmpty()) return;
+
+    if (isSelfExtension(dest)) {
+        qWarning() << "[SipManager] Ligação bloqueada: destino é o próprio ramal logado:" << dest;
+        emit callStateChanged("", CallState::Disconnected, "Não é possível ligar para o próprio ramal");
+        return;
+    }
 
     if (m_presence == UserPresence::Offline) {
         qWarning() << "[SipManager] Não é possível ligar em modo Offline.";

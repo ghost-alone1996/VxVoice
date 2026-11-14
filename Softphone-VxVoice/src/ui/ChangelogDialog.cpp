@@ -56,10 +56,9 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Principais Melhorias e Correções da Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
-        "<li><b>🟢 Status de Registro na Inicialização:</b> O status de registro configurado em <i>Configurações &gt; Gerais</i> não altera o status atual ao salvar e é aplicado exclusivamente quando o VxVoice inicia junto com o Sistema Operacional.</li><br>"
-        "<li><b>📋 Histórico sem Duplicidade:</b> Correção do bug que gravava múltiplos registros para a mesma chamada no Histórico.</li><br>"
-        "<li><b>🛡 Proteção ao Ligar para o Próprio Ramal:</b> Impede ligar pela agenda de Contatos para o mesmo ramal que está atualmente logado na conta SIP, exibindo um aviso.</li><br>"
-        "<li><b>🪟 Contas SIP &amp; Temas:</b> Ajuste proporcional das colunas da janela Contas SIP e manutenção dos 4 temas oficiais (<i>Dark</i>, <i>Light</i>, <i>Purple</i> e <i>Red</i>).</li>"
+        "<li><b>🛡 Bloqueio de Ligação para o Próprio Ramal:</b> Correção do erro que fechava o aplicativo e bloqueio definitivo ao tentar ligar para o ramal logado na Conta SIP (inclusive com prefixo de tenant), tanto em Contatos quanto no Discador.</li><br>"
+        "<li><b>📐 Proporção da Tela de Seleção de Contato:</b> A janela que pergunta entre Ramal SIP e Telefone agora se ajusta automaticamente ao conteúdo sem cortar textos.</li><br>"
+        "<li><b>📋 Histórico sem Duplicidade:</b> Registro único por chamada no Histórico.</li>"
         "</ul>"
     ).arg(SettingsManager::APP_VERSION);
 

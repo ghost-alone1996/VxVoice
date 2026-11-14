@@ -75,6 +75,7 @@ public:
     void shutdown();
 
     // Telephony Actions
+    static bool isSelfExtension(const QString &destination);
     void makeCall(const QString &destination);
     void answerCall(const QString &callId);
     void hangupCall(const QString &callId);

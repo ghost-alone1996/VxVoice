@@ -4,6 +4,13 @@ Registro completo de evolução, correções e melhorias do **VxVoice Enterprise
 
 ---
 
+## [v2.0.4] — 2026-11-13
+### Correções de Bugs
+- **Contatos & Discador — Bloqueio de Ligação para o Próprio Ramal**: Implementado `SipManager::isSelfExtension()` com suporte a correspondência exata e por sufixo (ex: conta SIP `1021511` e ramal `1511`), impedindo que o VxVoice tente ligar para o próprio ramal e feche inesperadamente, exibindo janela de aviso clara.
+- **Seleção de Ramal/Telefone (`SelectContactNumberDialog`)**: Removido tamanho fixo restritivo e aplicado `QLayout::SetMinAndMaxSize` + `adjustSize()` para ajustar a proporção da janela automaticamente ao conteúdo sem cortes de texto.
+
+---
+
 ## [v2.0.3] — 2026-11-13
 ### Correções de Bugs
 - **Status de Registro (Configurações > Geral)**: Ao selecionar ou salvar o Status de Registro em Configurações, o status atual em execução não é mais alterado imediatamente; a configuração passa a ser aplicada somente quando o VxVoice inicia junto com o Sistema Operacional (`--autostart`).

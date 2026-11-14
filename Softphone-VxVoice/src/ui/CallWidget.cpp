@@ -4,6 +4,7 @@
 #include "IconHelper.h"
 #include "SelectContactNumberDialog.h"
 #include <QInputDialog>
+#include <QMessageBox>
 #include <QDateTime>
 #include <QShortcut>
 #include <QKeySequence>
@@ -534,6 +535,12 @@ void CallWidget::onCallButtonClicked() {
 
     QString num = currentNumber();
     if (num.isEmpty()) return;
+
+    if (SipManager::isSelfExtension(num)) {
+        QMessageBox::warning(this, "Ligação Não Permitida",
+            QString("Não é possível realizar uma ligação para o ramal '%1', pois ele está atualmente logado na sua conta SIP.").arg(num));
+        return;
+    }
 
     m_remoteNumber = num;
     m_remoteName = ContactsManager::instance().findContactNameByNumber(num);

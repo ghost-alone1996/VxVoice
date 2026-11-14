@@ -623,12 +623,10 @@ QWidget* SettingsDialog::createAboutTab() {
     auto txtChangelog = new QTextEdit(widget);
     txtChangelog->setReadOnly(true);
     txtChangelog->setHtml(
-        "<b>Novidades e Correções (v2.0.3):</b><br>"
+        "<b>Novidades e Correções (v2.0.4):</b><br>"
         "<ul>"
-        "<li><b>Status de Registro na Inicialização:</b> O status configurado em Geral agora não altera o status atual ao salvar e é aplicado somente quando o VxVoice inicia junto com o Sistema Operacional.</li>"
-        "<li><b>Histórico sem Duplicidade:</b> Correção de múltiplos registros para uma única chamada no Histórico.</li>"
-        "<li><b>Proteção em Contatos:</b> Bloqueio com aviso ao tentar ligar para o próprio ramal atualmente logado na conta SIP.</li>"
-        "<li><b>Contas SIP e Temas:</b> Ajuste proporcional das colunas na janela Contas SIP e manutenção dos temas oficiais (Dark, Light, Purple e Red).</li>"
+        "<li><b>Bloqueio de Ligação para o Próprio Ramal:</b> Correção do fechamento inesperado e bloqueio definitivo ao tentar ligar para o mesmo ramal logado na Conta SIP (incluindo contas com prefixo de tenant, como usuário 1021511 e ramal 1511), tanto pela aba Contatos quanto pelo discador.</li>"
+        "<li><b>Proporção da Janela de Escolha de Número:</b> Ajuste dinâmico ao conteúdo na janela que exibe Ramal SIP e Telefone do contato, evitando cortes no texto informativo.</li>"
         "</ul>"
     );
 
