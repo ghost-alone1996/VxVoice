@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 3.0.3
+    VERSION 3.0.4
     LANGUAGES CXX
     DESCRIPTION "VxVOICE - Enterprise SIP Softphone Client (PJSIP Backend)"
 )

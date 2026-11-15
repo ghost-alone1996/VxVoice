@@ -4,6 +4,13 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 
 ---
 
+## [v3.0.4] — 2026-11-15
+
+### Fixed (Correções de Bugs)
+- **Busca de Atualização Linux (`UpdateManager`)**: Corrigida a consulta ao GitHub para não exibir versões exclusivas do Windows (ex.: `v3.0.1` com apenas `.msi`) como versão mais recente no Linux; quando a Release não possui pacote Linux (`.deb`/`.sh`), o atualizador consulta `tags` e `CMakeLists.txt` no branch `main` e resolve diretamente a URL do pacote Linux correspondente (`.deb` ou `.sh` universal).
+
+---
+
 ## [v3.0.3] — 2026-11-15
 
 ### Added (Novas Funcionalidades)

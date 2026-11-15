@@ -43,7 +43,7 @@ class SettingsManager : public QObject {
     Q_OBJECT
 
 public:
-    static constexpr const char* APP_VERSION = "3.0.3";
+    static constexpr const char* APP_VERSION = "3.0.4";
 
     static SettingsManager& instance();
 

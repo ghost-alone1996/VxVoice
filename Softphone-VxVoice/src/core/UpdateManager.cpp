@@ -16,7 +16,7 @@
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "3.0.3"
+#define VXVOICE_VERSION "3.0.4"
 #endif
 
 namespace {
@@ -28,7 +28,7 @@ constexpr const char* GITHUB_RAW_CMAKE     = "https://raw.githubusercontent.com/
 
 QNetworkRequest makeGithubRequest(const QString &url, bool isApi = true) {
     QNetworkRequest req{QUrl(url)};
-    req.setHeader(QNetworkRequest::UserAgentHeader, "VxVoice-Softphone-Updater/3.0.3");
+    req.setHeader(QNetworkRequest::UserAgentHeader, "VxVoice-Softphone-Updater/3.0.4");
     if (isApi) {
         req.setRawHeader("Accept", "application/vnd.github+json");
     }
@@ -173,24 +173,17 @@ void UpdateManager::fetchGithubLatestRelease() {
                 }
 
                 QString remoteVer = stripVPrefix(tagName);
-                fetchGithubMainCommit(remoteVer, body);
-                return;
+                // Se a Release mais recente do GitHub não possuir o instalador da plataforma atual
+                // (ex.: release apenas Windows .msi), consulta tags e CMakeLists.txt para obter a versão Linux mais recente.
+                if (!m_downloadAssetUrl.isEmpty()) {
+                    fetchGithubMainCommit(remoteVer, body);
+                    return;
+                }
             }
         }
 
-        // Sem release publicada ainda (404) ou erro de API: consulta tags e CMakeLists.txt no branch main
-        if (httpStatus == 404 || reply->error() == QNetworkReply::ContentNotFoundError) {
-            fetchGithubTagsAndMain();
-            return;
-        }
-
-        // Caso ocorra erro de rede (sem internet, DNS, etc.), tenta informar claramente
-        if (reply->error() != QNetworkReply::NoError) {
-            qWarning() << "[UpdateManager] Erro ao consultar GitHub Releases:" << reply->errorString();
-            fetchGithubTagsAndMain();
-        } else {
-            fetchGithubTagsAndMain();
-        }
+        // Sem release compatível para esta plataforma ou erro de API: consulta tags e CMakeLists.txt no branch main
+        fetchGithubTagsAndMain();
     });
 }
 
@@ -249,6 +242,16 @@ void UpdateManager::fetchGithubTagsAndMain() {
             } else if (!cmakeVer.isEmpty() && !bestTagVer.isEmpty()) {
                 remoteVer = (compareVersions(cmakeVer, bestTagVer) >= 0) ? cmakeVer : bestTagVer;
             }
+
+#ifndef Q_OS_WIN
+            if (m_downloadAssetUrl.isEmpty() && !remoteVer.isEmpty()) {
+                m_downloadAssetName = isDebInstallation()
+                    ? QString("vxvoice-%1-Linux.deb").arg(remoteVer)
+                    : QString("vxvoice-%1-Linux-Installer.sh").arg(remoteVer);
+                m_downloadAssetUrl = QString("https://raw.githubusercontent.com/ghost-alone1996/VxVoice/main/%1")
+                    .arg(m_downloadAssetName);
+            }
+#endif
 
             fetchGithubMainCommit(remoteVer, QString());
         });

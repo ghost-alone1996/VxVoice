@@ -66,6 +66,7 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Novidades e Correções — Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
+        "<li><b>🔄 Correção na Busca de Atualizações Linux (v3.0.4):</b> Corrigido o <i>UpdateManager</i> para ignorar releases exclusivas do Windows (<code>.msi</code>) quando não houver pacote Linux (<code>.deb</code>/<code>.sh</code>), consultando diretamente as tags e o <code>CMakeLists.txt</code> para detectar e baixar a versão Linux mais recente.</li><br>"
         "<li><b>🎨 Temas Cinnamon Light &amp; Dark (v3.0.3):</b> Adicionados dois novos temas inspirados na interface Cinnamon (Mint-Y Light e Mint-Y Dark).</li><br>"
         "<li><b>📐 Proporção da Janela &amp; Cabeçalho (v3.0.3):</b> Janela principal ampliada horizontalmente (<code>360×560 px</code>) com ajuste proporcional dos botões do cabeçalho e reorganização da aba Contatos (filtro e <i>+ Adicionar</i> abaixo da busca).</li><br>"
         "<li><b>🏷 Identidade VxVOICE &amp; Auto-Update Linux (v3.0.3):</b> Nome exibido atualizado para <b>VxVOICE</b> e detecção automática de instalação <code>.deb</code> vs universal <code>.sh</code> na busca de atualizações no GitHub.</li><br>"

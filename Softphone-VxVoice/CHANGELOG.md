@@ -4,6 +4,12 @@ Registro completo de evolução, correções e melhorias do **VxVoice Enterprise
 
 ---
 
+## [v3.0.4] — 2026-11-15
+### Fixed (Correções de Bugs)
+- **Busca de Atualização Linux (`UpdateManager`)**: Corrigido o fluxo de verificação no GitHub para ignorar releases exclusivas do Windows (`.msi`) sem pacote Linux e consultar `tags`/`CMakeLists.txt` + URL direta do pacote Linux (`.deb` ou `.sh`).
+
+---
+
 ## [v3.0.3] — 2026-11-15
 ### Added (Novas Funcionalidades)
 - **Temas Cinnamon Light & Dark**: Adicionados temas Mint-Y Light e Mint-Y Dark no `ThemeManager`, Configurações e System Tray.
