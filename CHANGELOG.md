@@ -4,6 +4,21 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 
 ---
 
+## [v3.0.2] — 2026-11-15
+
+### Added (Novas Funcionalidades)
+- **Instalador Universal Linux Self-Extracting (`vxvoice-3.0.2-Linux-Installer.sh`)**: Gerado script shell autônomo com payload embutido, detecção automática de gerenciador de pacotes (`apt`, `dnf`, `pacman`, `zypper`) para dependências de runtime (Qt6/ALSA), instalação de binário, ícones, sons e atalho `.desktop`.
+- **Empacotamento Portátil de Bibliotecas PJSIP**: Bibliotecas compartilhadas do PJSIP (`libpjsua2.so.2` e dependências `libpj*.so.2`) embarcadas em `/usr/lib/vxvoice` com `RPATH` (`$ORIGIN/../lib/vxvoice`) no binário Linux.
+
+### Changed (Melhorias)
+- **Script `build_linux_zip.sh`**: Atualizado para extrair dinamicamente a versão SemVer do `CMakeLists.txt` e gerar tanto o pacote `vxvoice-3.0.2-Linux-Installer.zip` quanto o instalador universal `vxvoice-3.0.2-Linux-Installer.sh`.
+- **Metadados do Pacote `.deb` (`CMakeLists.txt`)**: Adicionada dependência de runtime ALSA (`libasound2t64 | libasound2`), instalação automática dos arquivos de áudio em `/usr/share/vxvoice/sounds` e atualização do `ChangelogDialog` para `v3.0.2`.
+
+### Fixed (Correções de Bugs)
+- **Portabilidade de Runtime no Linux**: Corrigida a dependência implícita de bibliotecas PJSIP instaladas globalmente no host ao distribuir pacotes `.deb` e `.sh` para outras máquinas Linux.
+
+---
+
 ## [v3.0.1] — 2026-11-14
 
 ### Melhorias

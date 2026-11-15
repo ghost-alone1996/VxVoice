@@ -66,6 +66,7 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Novidades e Correções — Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
+        "<li><b>🐧 Empacotamento e Portabilidade Linux (v3.0.2):</b> Build nativo Linux atualizado para a última versão com bibliotecas PJSIP embarcadas via <code>RPATH</code> (<code>/usr/lib/vxvoice</code>), pacote <code>.deb</code> e instalador universal <code>.sh</code> compatível com Debian/Ubuntu, Fedora/RHEL, Arch e openSUSE.</li><br>"
         "<li><b>📐 Janela Principal Mais Compacta (v3.0.1):</b> Proporção padrão e mínima da janela principal reduzidas em definitivo em 15% (<code>306×551 px</code>) com ajuste proporcional do discador.</li><br>"
         "<li><b>ℹ Aba Sobre Atualizada (v3.0.1):</b> Substituído o campo <i>Empresa</i> por <i>Autor: Leonardo Machado da Silva</i>.</li><br>"
         "<li><b>🎧 Tela Dedicada do Reprodutor Interno (v3.0.0):</b> Ao reproduzir uma gravação (pelo Histórico ou pela aba Gravação), uma janela dedicada do reprodutor é aberta com barra de progresso, tempo, botões <i>Reproduzir/Pausar</i>, <i>Parar</i> e <i>Abrir Pasta da Gravação</i>.</li><br>"

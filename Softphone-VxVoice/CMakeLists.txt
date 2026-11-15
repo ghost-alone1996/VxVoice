@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(VxVoice
-    VERSION 3.0.1
+    VERSION 3.0.2
     LANGUAGES CXX
     DESCRIPTION "VxVoice - Enterprise SIP Softphone Client (PJSIP Backend)"
 )
@@ -190,6 +190,35 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 if(UNIX AND NOT APPLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        INSTALL_RPATH "$ORIGIN/../lib/vxvoice"
+        BUILD_WITH_INSTALL_RPATH FALSE
+    )
+
+    # Instalação das bibliotecas compartilhadas do PJSIP para portabilidade entre distros
+    foreach(_pjlib
+        libpjsua2.so.2 libpj.so.2 libpjsua.so.2 libpjsip-simple.so.2
+        libpjsip.so.2 libpjmedia.so.2 libpjnath.so.2 libpjlib-util.so.2
+        libpjsip-ua.so.2 libpjmedia-audiodev.so.2 libpjmedia-codec.so.2
+        libpjmedia-videodev.so.2 libsrtp.so.2 libresample.so.2
+        libspeex.so.2 libwebrtc.so.2 libgsmcodec.so.2 libilbccodec.so.2
+        libg7221codec.so.2
+    )
+        if(EXISTS "/lib/${_pjlib}")
+            install(FILES "/lib/${_pjlib}" DESTINATION "lib/vxvoice")
+        elseif(EXISTS "/usr/local/lib/${_pjlib}")
+            install(FILES "/usr/local/lib/${_pjlib}" DESTINATION "lib/vxvoice")
+        endif()
+    endforeach()
+
+    # Instalação dos áudios padrão do softphone
+    file(GLOB VXVOICE_SOUNDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/sounds/*.wav")
+    if(VXVOICE_SOUNDS)
+        install(FILES ${VXVOICE_SOUNDS}
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/vxvoice/sounds
+        )
+    endif()
+
     # Instalação do arquivo de atalho desktop corporativo
     install(FILES resources/vxvoice.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
@@ -231,7 +260,7 @@ if(UNIX AND NOT APPLE)
     set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF) # Definido explícito para compatibilidade ampla
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.31), libqt6widgets6t64 | libqt6widgets6, libqt6network6t64 | libqt6network6, libqt6gui6t64 | libqt6gui6, libqt6core6t64 | libqt6core6")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.31), libasound2t64 | libasound2, libqt6widgets6t64 | libqt6widgets6, libqt6network6t64 | libqt6network6, libqt6gui6t64 | libqt6gui6, libqt6core6t64 | libqt6core6")
     set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "VxVoice Softphone Corporativo SIP de alta fidelidade desenvolvido em C++ e Qt6 com backend PJSIP.")
     set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
         "${CMAKE_CURRENT_SOURCE_DIR}/resources/debian/prerm"

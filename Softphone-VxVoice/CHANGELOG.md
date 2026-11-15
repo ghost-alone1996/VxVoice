@@ -4,6 +4,19 @@ Registro completo de evolução, correções e melhorias do **VxVoice Enterprise
 
 ---
 
+## [v3.0.2] — 2026-11-15
+### Added (Novas Funcionalidades)
+- **Build & Distribuição Linux a partir da v3.0.1**: Geração completa da release Linux (`vxvoice-3.0.2-Linux.deb`, `vxvoice-3.0.2-Linux-Installer.sh` e `vxvoice-3.0.2-Linux-Installer.zip`).
+- **Bibliotecas PJSIP Embarcadas**: Empacotamento automático das bibliotecas compartilhadas `libpj*.so.2` em `/usr/lib/vxvoice` com `RPATH` (`$ORIGIN/../lib/vxvoice`).
+
+### Changed (Melhorias)
+- **Instalador Universal Linux (`build_linux_zip.sh`)**: Leitura dinâmica da versão no `CMakeLists.txt`, suporte multi-distro (`apt`, `dnf`, `pacman`, `zypper`) e geração de instalador self-extracting `.sh` além do `.zip`.
+
+### Fixed (Correções de Bugs)
+- **Dependências `.deb` e Áudios**: Inclusão de `libasound2t64 | libasound2` nas dependências do pacote Debian e instalação dos arquivos `.wav` em `/usr/share/vxvoice/sounds`.
+
+---
+
 ## [v2.0.4] — 2026-11-13
 ### Correções de Bugs
 - **Contatos & Discador — Bloqueio de Ligação para o Próprio Ramal**: Implementado `SipManager::isSelfExtension()` com suporte a correspondência exata e por sufixo (ex: conta SIP `1021511` e ramal `1511`), impedindo que o VxVoice tente ligar para o próprio ramal e feche inesperadamente, exibindo janela de aviso clara.
