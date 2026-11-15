@@ -14,8 +14,8 @@ int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
     // Application metadata
-    QApplication::setApplicationName("VxVoice");
-    QApplication::setApplicationDisplayName("VxVoice");
+    QApplication::setApplicationName("VxVOICE");
+    QApplication::setApplicationDisplayName("VxVOICE");
     QApplication::setDesktopFileName("vxvoice");
     QApplication::setOrganizationName("VxVoiceCorp");
     QApplication::setOrganizationDomain("vxvoice.corp");

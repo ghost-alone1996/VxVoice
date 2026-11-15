@@ -16,7 +16,7 @@
 #include <QDebug>
 
 #ifndef VXVOICE_VERSION
-#define VXVOICE_VERSION "3.0.2"
+#define VXVOICE_VERSION "3.0.3"
 #endif
 
 namespace {
@@ -28,7 +28,7 @@ constexpr const char* GITHUB_RAW_CMAKE     = "https://raw.githubusercontent.com/
 
 QNetworkRequest makeGithubRequest(const QString &url, bool isApi = true) {
     QNetworkRequest req{QUrl(url)};
-    req.setHeader(QNetworkRequest::UserAgentHeader, "VxVoice-Softphone-Updater/3.0.2");
+    req.setHeader(QNetworkRequest::UserAgentHeader, "VxVoice-Softphone-Updater/3.0.3");
     if (isApi) {
         req.setRawHeader("Accept", "application/vnd.github+json");
     }
@@ -160,7 +160,7 @@ void UpdateManager::fetchGithubLatestRelease() {
 #ifdef Q_OS_WIN
                 const QString targetExt = ".msi";
 #else
-                const QString targetExt = ".deb";
+                const QString targetExt = isDebInstallation() ? ".deb" : ".sh";
 #endif
                 for (const auto &assetVal : assets) {
                     QJsonObject asset = assetVal.toObject();
@@ -345,15 +345,19 @@ void UpdateManager::applyUpdate() {
 #ifdef Q_OS_WIN
             emit updateProgress(85, "Iniciando instalador Windows (.msi)...");
             if (QProcess::startDetached("msiexec", {"/i", QDir::toNativeSeparators(targetFile), "/passive"})) {
-                emit updateProgress(100, "Instalador iniciado! Encerrando VxVoice para concluir...");
-                emit updateCompleted(true, "Instalador .msi iniciado com sucesso. O VxVoice será atualizado.");
+                emit updateProgress(100, "Instalador iniciado! Encerrando VxVOICE para concluir...");
+                emit updateCompleted(true, "Instalador .msi iniciado com sucesso. O VxVOICE será atualizado.");
                 QTimer::singleShot(500, []() { QCoreApplication::quit(); });
             } else {
                 emit updateProgress(0, "Falha ao executar msiexec.");
                 emit updateCompleted(false, "Execute manualmente o instalador em: " + targetFile);
             }
 #else
-            installLinuxDebPackage(targetFile);
+            if (targetFile.endsWith(".sh", Qt::CaseInsensitive)) {
+                installLinuxShPackage(targetFile);
+            } else {
+                installLinuxDebPackage(targetFile);
+            }
 #endif
         });
         return;
@@ -379,9 +383,12 @@ void UpdateManager::applyUpdate() {
             this, [this, process](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
         process->deleteLater();
 
-        emit updateProgress(45, "Localizando ou gerando pacote Debian de instalação...");
+        const bool useDeb = isDebInstallation();
+        emit updateProgress(45, useDeb
+            ? "Localizando ou gerando pacote Debian (.deb) de instalação..."
+            : "Localizando ou gerando instalador universal Linux (.sh)...");
 
-        QString debPath;
+        QString pkgPath;
         QStringList searchDirs = {
             m_repoPath,
             m_repoPath + "/Softphone-VxVoice/build",
@@ -389,17 +396,19 @@ void UpdateManager::applyUpdate() {
             QFileInfo(m_repoPath).dir().absolutePath()
         };
 
-        QString expectedName = QString("vxvoice-%1-Linux.deb").arg(m_gitVersion);
+        QString expectedName = useDeb
+            ? QString("vxvoice-%1-Linux.deb").arg(m_gitVersion)
+            : QString("vxvoice-%1-Linux-Installer.sh").arg(m_gitVersion);
         for (const auto &sdir : searchDirs) {
             QDir d(sdir);
             if (!d.exists()) continue;
             if (QFile::exists(d.filePath(expectedName))) {
-                debPath = d.filePath(expectedName);
+                pkgPath = d.filePath(expectedName);
                 break;
             }
         }
 
-        if (debPath.isEmpty()) {
+        if (pkgPath.isEmpty()) {
             // Tenta compilar e empacotar o código recém-sincronizado do GitHub
             QString buildDir = m_repoPath + "/Softphone-VxVoice/build";
             if (QDir(buildDir).exists()) {
@@ -407,45 +416,79 @@ void UpdateManager::applyUpdate() {
                 auto buildProc = new QProcess(this);
                 buildProc->setWorkingDirectory(buildDir);
                 connect(buildProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                        this, [this, buildProc, buildDir](int bCode, QProcess::ExitStatus bStatus) {
+                        this, [this, buildProc, buildDir, useDeb](int bCode, QProcess::ExitStatus bStatus) {
                     buildProc->deleteLater();
                     if (bStatus == QProcess::NormalExit && bCode == 0) {
-                        QDir bd(buildDir);
-                        auto debFiles = bd.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
-                        if (!debFiles.isEmpty()) {
-                            installLinuxDebPackage(debFiles.first().absoluteFilePath());
-                            return;
+                        if (useDeb) {
+                            QDir bd(buildDir);
+                            auto debFiles = bd.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
+                            if (!debFiles.isEmpty()) {
+                                installLinuxDebPackage(debFiles.first().absoluteFilePath());
+                                return;
+                            }
+                        } else {
+                            QDir rootDir(m_repoPath);
+                            auto shFiles = rootDir.entryInfoList({"vxvoice-*-Linux-Installer.sh"}, QDir::Files, QDir::Time);
+                            if (!shFiles.isEmpty()) {
+                                installLinuxShPackage(shFiles.first().absoluteFilePath());
+                                return;
+                            }
                         }
                     }
-                    emit updateProgress(0, "Erro ao gerar pacote .deb da nova versão.");
-                    emit updateCompleted(false, "Código sincronizado com o GitHub, mas não foi possível gerar o pacote .deb automaticamente.");
+                    emit updateProgress(0, useDeb ? "Erro ao gerar pacote .deb da nova versão." : "Erro ao gerar instalador .sh da nova versão.");
+                    emit updateCompleted(false, "Código sincronizado com o GitHub, mas não foi possível gerar o pacote de atualização automaticamente.");
                 });
-                buildProc->start("bash", {"-c", "cmake .. && make -j$(nproc) && cpack -G DEB"});
+                const QString buildCmd = useDeb
+                    ? "cmake .. && make -j$(nproc) && cpack -G DEB"
+                    : "cmake .. && make -j$(nproc) && bash ../build_linux_zip.sh";
+                buildProc->start("bash", {"-c", buildCmd});
                 return;
             }
 
+            const QStringList globFilter = useDeb ? QStringList{"*.deb"} : QStringList{"vxvoice-*-Linux-Installer.sh"};
             for (const auto &sdir : searchDirs) {
                 QDir d(sdir);
                 if (!d.exists()) continue;
-                auto debFiles = d.entryInfoList({"*.deb"}, QDir::Files, QDir::Time);
-                if (!debFiles.isEmpty()) {
-                    debPath = debFiles.first().absoluteFilePath();
+                auto pkgFiles = d.entryInfoList(globFilter, QDir::Files, QDir::Time);
+                if (!pkgFiles.isEmpty()) {
+                    pkgPath = pkgFiles.first().absoluteFilePath();
                     break;
                 }
             }
         }
 
-        if (debPath.isEmpty()) {
-            emit updateProgress(0, "Erro: Pacote .deb de instalação não encontrado.");
-            emit updateCompleted(false, "Nenhum pacote .deb de atualização encontrado.");
-            emit statusChanged("Erro: Pacote .deb não localizado.");
+        if (pkgPath.isEmpty()) {
+            emit updateProgress(0, useDeb ? "Erro: Pacote .deb de instalação não encontrado." : "Erro: Instalador universal .sh não encontrado.");
+            emit updateCompleted(false, useDeb ? "Nenhum pacote .deb de atualização encontrado." : "Nenhum instalador .sh de atualização encontrado.");
+            emit statusChanged("Erro: Pacote de atualização não localizado.");
             return;
         }
 
-        installLinuxDebPackage(debPath);
+        if (useDeb) {
+            installLinuxDebPackage(pkgPath);
+        } else {
+            installLinuxShPackage(pkgPath);
+        }
     });
 
     process->start("bash", {"-c", "git fetch origin --tags && git pull --rebase origin main"});
+}
+
+bool UpdateManager::isDebInstallation() const {
+#ifdef Q_OS_LINUX
+    if (QFile::exists("/var/lib/dpkg/info/vxvoice.list")) {
+        return true;
+    }
+    QProcess proc;
+    proc.start("dpkg-query", {"-W", "-f=${Status}", "vxvoice"});
+    if (proc.waitForFinished(1500) && proc.exitCode() == 0) {
+        const QString out = QString::fromUtf8(proc.readAllStandardOutput());
+        if (out.contains("install ok installed")) {
+            return true;
+        }
+    }
+#endif
+    return false;
 }
 
 void UpdateManager::installLinuxDebPackage(const QString &debPath) {
@@ -457,8 +500,8 @@ void UpdateManager::installLinuxDebPackage(const QString &debPath) {
                 this, [this, instProc, debPath](int instCode, QProcess::ExitStatus instStatus) {
             instProc->deleteLater();
             if (instStatus == QProcess::NormalExit && instCode == 0) {
-                emit updateProgress(100, "Instalação concluída com sucesso! Reiniciando o VxVoice...");
-                emit updateCompleted(true, QString("VxVoice atualizado com sucesso!\n\nPacote instalado: %1\n\nReiniciando para carregar a nova versão...")
+                emit updateProgress(100, "Instalação concluída com sucesso! Reiniciando o VxVOICE...");
+                emit updateCompleted(true, QString("VxVOICE atualizado com sucesso!\n\nPacote instalado: %1\n\nReiniciando para carregar a nova versão...")
                                      .arg(QFileInfo(debPath).fileName()));
                 emit statusChanged("Atualização e instalação concluídas. Reiniciando...");
                 restartApplication();
@@ -472,6 +515,37 @@ void UpdateManager::installLinuxDebPackage(const QString &debPath) {
     } else {
         emit updateProgress(100, "Atualização sincronizada.");
         emit updateCompleted(true, QString("Pacote pronto.\nInstale manualmente executando:\nsudo dpkg -i %1").arg(debPath));
+        emit statusChanged("Atualização pronta.");
+    }
+}
+
+void UpdateManager::installLinuxShPackage(const QString &shPath) {
+    QFile f(shPath);
+    f.setPermissions(f.permissions() | QFileDevice::ExeOwner | QFileDevice::ExeGroup | QFileDevice::ExeOther);
+
+    if (QFile::exists("/usr/bin/pkexec")) {
+        emit statusChanged("Instalando atualização universal (.sh) com privilégios de administrador...");
+        emit updateProgress(75, QString("Executando %1...").arg(QFileInfo(shPath).fileName()));
+        auto instProc = new QProcess(this);
+        connect(instProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, [this, instProc, shPath](int instCode, QProcess::ExitStatus instStatus) {
+            instProc->deleteLater();
+            if (instStatus == QProcess::NormalExit && instCode == 0) {
+                emit updateProgress(100, "Instalação concluída com sucesso! Reiniciando o VxVOICE...");
+                emit updateCompleted(true, QString("VxVOICE atualizado com sucesso!\n\nInstalador executado: %1\n\nReiniciando para carregar a nova versão...")
+                                     .arg(QFileInfo(shPath).fileName()));
+                emit statusChanged("Atualização e instalação concluídas. Reiniciando...");
+                restartApplication();
+            } else {
+                emit updateProgress(0, "A instalação foi cancelada ou falhou.");
+                emit updateCompleted(false, QString("Atualização cancelada ou com erro. Para instalar manualmente:\nsudo bash %1").arg(shPath));
+                emit statusChanged("Aguardando instalação do pacote.");
+            }
+        });
+        instProc->start("pkexec", {"bash", shPath});
+    } else {
+        emit updateProgress(100, "Instalador universal (.sh) pronto.");
+        emit updateCompleted(true, QString("Instalador pronto.\nExecute manualmente:\nsudo bash %1").arg(shPath));
         emit statusChanged("Atualização pronta.");
     }
 }

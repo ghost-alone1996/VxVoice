@@ -6,7 +6,7 @@
 
 ActiveCallDialog::ActiveCallDialog(QWidget *parent)
     : QDialog(parent) {
-    setWindowTitle("VxVoice - Chamada em Curso");
+    setWindowTitle("VxVOICE - Chamada em Curso");
     setWindowIcon(QIcon(":/icons/app_icon.png"));
     setMinimumSize(360, 320);
     resize(360, 340);

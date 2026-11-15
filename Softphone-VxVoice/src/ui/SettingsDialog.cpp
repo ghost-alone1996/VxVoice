@@ -136,10 +136,12 @@ QWidget* SettingsDialog::createGeneralTab() {
     ringtoneLayout->addWidget(m_comboRingtone, 1);
     ringtoneLayout->addWidget(m_btnPlayRingtone);
 
-    // Theme selector com os 7 temas VxVoice (modernos + clássicos Windows)
+    // Theme selector com os 9 temas VxVOICE (modernos, Cinnamon + clássicos Windows)
     m_comboTheme = new QComboBox(widget);
     m_comboTheme->addItem("🌑 Dark (Tons de azul escuro)", "Dark");
     m_comboTheme->addItem("☀️ Light (Tons de azul claro)", "Light");
+    m_comboTheme->addItem("🌿 Cinnamon Light (Linux Mint)", "CinnamonLight");
+    m_comboTheme->addItem("🌲 Cinnamon Dark (Linux Mint)", "CinnamonDark");
     m_comboTheme->addItem("🟣 Purple (Tons de roxo corporativo)", "Purple");
     m_comboTheme->addItem("🔴 Red (Tons de vermelho corporativo)", "Red");
     m_comboTheme->addItem("🖥 Windows 2000 (Clássico)", "Win2000");
@@ -147,7 +149,7 @@ QWidget* SettingsDialog::createGeneralTab() {
     m_comboTheme->addItem("💎 Windows 7 (Aero Glass)", "Win7");
 
     formLayout->addRow("Ringtone de Chamada:", ringtoneLayout);
-    formLayout->addRow("Temas VxVoice:", m_comboTheme);
+    formLayout->addRow("Temas VxVOICE:", m_comboTheme);
 
     layout->addLayout(formLayout);
     layout->addStretch();
@@ -536,7 +538,7 @@ QWidget* SettingsDialog::createAboutTab() {
     layout->setContentsMargins(16, 16, 16, 16);
     layout->setSpacing(8);
 
-    m_lblAboutTitle = new QLabel("<b>VxVoice</b>", widget);
+    m_lblAboutTitle = new QLabel("<b>VxVOICE</b>", widget);
     auto updateAboutTitleColor = [this](ThemeManager::Theme t) {
         if (!m_lblAboutTitle) return;
         const QString color = ThemeManager::isLightTheme(t) ? "#000000" : "#FFFFFF";
@@ -825,7 +827,7 @@ void SettingsDialog::onCheckGitUpdates() {
 }
 
 void SettingsDialog::onApplyGitUpdate() {
-    auto confirm = QMessageBox::question(this, "Atualizar VxVoice",
+    auto confirm = QMessageBox::question(this, "Atualizar VxVOICE",
         "Deseja iniciar a atualização do software agora?\n\nO aplicativo irá instalar o novo pacote e reiniciar automaticamente na nova versão, exibindo as novidades e melhorias.",
         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 

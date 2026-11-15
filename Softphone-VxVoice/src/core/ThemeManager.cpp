@@ -31,6 +31,10 @@ void ThemeManager::setTheme(Theme theme) {
         path = ":/styles/winxp.qss";
     } else if (theme == Theme::Win7) {
         path = ":/styles/win7.qss";
+    } else if (theme == Theme::CinnamonLight) {
+        path = ":/styles/cinnamon_light.qss";
+    } else if (theme == Theme::CinnamonDark) {
+        path = ":/styles/cinnamon_dark.qss";
     }
 
     QString qss = loadStyleSheet(path);
@@ -169,6 +173,34 @@ void ThemeManager::setTheme(Theme theme) {
             win7Palette.setColor(QPalette::Highlight, QColor("#3399FF"));
             win7Palette.setColor(QPalette::HighlightedText, Qt::white);
             qApp->setPalette(win7Palette);
+        } else if (theme == Theme::CinnamonLight) {
+            QPalette cLightPalette;
+            cLightPalette.setColor(QPalette::Window, QColor("#F5F5F5"));
+            cLightPalette.setColor(QPalette::WindowText, QColor("#2E3436"));
+            cLightPalette.setColor(QPalette::Base, Qt::white);
+            cLightPalette.setColor(QPalette::AlternateBase, QColor("#EBEBEB"));
+            cLightPalette.setColor(QPalette::ToolTipBase, Qt::white);
+            cLightPalette.setColor(QPalette::ToolTipText, QColor("#2E3436"));
+            cLightPalette.setColor(QPalette::Text, QColor("#2E3436"));
+            cLightPalette.setColor(QPalette::Button, QColor("#ECECEC"));
+            cLightPalette.setColor(QPalette::ButtonText, QColor("#2E3436"));
+            cLightPalette.setColor(QPalette::Highlight, QColor("#5D9B47"));
+            cLightPalette.setColor(QPalette::HighlightedText, Qt::white);
+            qApp->setPalette(cLightPalette);
+        } else if (theme == Theme::CinnamonDark) {
+            QPalette cDarkPalette;
+            cDarkPalette.setColor(QPalette::Window, QColor("#2F2F2F"));
+            cDarkPalette.setColor(QPalette::WindowText, QColor("#EAEAEA"));
+            cDarkPalette.setColor(QPalette::Base, QColor("#212121"));
+            cDarkPalette.setColor(QPalette::AlternateBase, QColor("#3A3A3A"));
+            cDarkPalette.setColor(QPalette::ToolTipBase, QColor("#353535"));
+            cDarkPalette.setColor(QPalette::ToolTipText, Qt::white);
+            cDarkPalette.setColor(QPalette::Text, QColor("#EAEAEA"));
+            cDarkPalette.setColor(QPalette::Button, QColor("#3A3A3A"));
+            cDarkPalette.setColor(QPalette::ButtonText, QColor("#EAEAEA"));
+            cDarkPalette.setColor(QPalette::Highlight, QColor("#78B159"));
+            cDarkPalette.setColor(QPalette::HighlightedText, Qt::white);
+            qApp->setPalette(cDarkPalette);
         }
 
         if (!qss.isEmpty()) {
@@ -184,13 +216,15 @@ ThemeManager::Theme ThemeManager::currentTheme() const {
 
 void ThemeManager::toggleTheme() {
     switch (m_currentTheme) {
-    case Theme::Dark:    setTheme(Theme::Light); break;
-    case Theme::Light:   setTheme(Theme::Purple); break;
-    case Theme::Purple:  setTheme(Theme::Red); break;
-    case Theme::Red:     setTheme(Theme::Win2000); break;
-    case Theme::Win2000: setTheme(Theme::WinXP); break;
-    case Theme::WinXP:   setTheme(Theme::Win7); break;
-    case Theme::Win7:    setTheme(Theme::Dark); break;
+    case Theme::Dark:          setTheme(Theme::Light); break;
+    case Theme::Light:         setTheme(Theme::Purple); break;
+    case Theme::Purple:        setTheme(Theme::Red); break;
+    case Theme::Red:           setTheme(Theme::Win2000); break;
+    case Theme::Win2000:       setTheme(Theme::WinXP); break;
+    case Theme::WinXP:         setTheme(Theme::Win7); break;
+    case Theme::Win7:          setTheme(Theme::CinnamonLight); break;
+    case Theme::CinnamonLight: setTheme(Theme::CinnamonDark); break;
+    case Theme::CinnamonDark:  setTheme(Theme::Dark); break;
     }
 }
 
@@ -198,31 +232,36 @@ bool ThemeManager::isLightTheme(Theme theme) {
     return theme == Theme::Light ||
            theme == Theme::Win2000 ||
            theme == Theme::WinXP ||
-           theme == Theme::Win7;
+           theme == Theme::Win7 ||
+           theme == Theme::CinnamonLight;
 }
 
 QString ThemeManager::themeName(Theme theme) const {
     switch (theme) {
-    case Theme::Dark:    return "Dark (Azul Escuro)";
-    case Theme::Light:   return "Light (Azul Claro)";
-    case Theme::Purple:  return "Purple (Roxo Corporativo)";
-    case Theme::Red:     return "Red (Vermelho Corporativo)";
-    case Theme::Win2000: return "Windows 2000 (Clássico)";
-    case Theme::WinXP:   return "Windows XP (Luna)";
-    case Theme::Win7:    return "Windows 7 (Aero)";
+    case Theme::Dark:          return "Dark (Azul Escuro)";
+    case Theme::Light:         return "Light (Azul Claro)";
+    case Theme::Purple:        return "Purple (Roxo Corporativo)";
+    case Theme::Red:           return "Red (Vermelho Corporativo)";
+    case Theme::Win2000:       return "Windows 2000 (Clássico)";
+    case Theme::WinXP:         return "Windows XP (Luna)";
+    case Theme::Win7:          return "Windows 7 (Aero)";
+    case Theme::CinnamonLight: return "Cinnamon Light (Mint-Y)";
+    case Theme::CinnamonDark:  return "Cinnamon Dark (Mint-Y)";
     }
     return "Purple (Roxo Corporativo)";
 }
 
 QString ThemeManager::themeToString(Theme theme) {
     switch (theme) {
-    case Theme::Dark:    return "Dark";
-    case Theme::Light:   return "Light";
-    case Theme::Purple:  return "Purple";
-    case Theme::Red:     return "Red";
-    case Theme::Win2000: return "Win2000";
-    case Theme::WinXP:   return "WinXP";
-    case Theme::Win7:    return "Win7";
+    case Theme::Dark:          return "Dark";
+    case Theme::Light:         return "Light";
+    case Theme::Purple:        return "Purple";
+    case Theme::Red:           return "Red";
+    case Theme::Win2000:       return "Win2000";
+    case Theme::WinXP:         return "WinXP";
+    case Theme::Win7:          return "Win7";
+    case Theme::CinnamonLight: return "CinnamonLight";
+    case Theme::CinnamonDark:  return "CinnamonDark";
     }
     return "Purple";
 }
@@ -235,6 +274,8 @@ ThemeManager::Theme ThemeManager::themeFromString(const QString &themeStr) {
     if (t == "win2000") return Theme::Win2000;
     if (t == "winxp") return Theme::WinXP;
     if (t == "win7") return Theme::Win7;
+    if (t == "cinnamonlight" || t == "cinnamon_light" || t == "cinnamon light") return Theme::CinnamonLight;
+    if (t == "cinnamondark" || t == "cinnamon_dark" || t == "cinnamon dark") return Theme::CinnamonDark;
     return Theme::Purple;
 }
 

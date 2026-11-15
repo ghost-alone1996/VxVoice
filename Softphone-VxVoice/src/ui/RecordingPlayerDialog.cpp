@@ -15,7 +15,7 @@
 
 RecordingPlayerDialog::RecordingPlayerDialog(QWidget *parent)
     : QDialog(parent) {
-    setWindowTitle("VxVoice — Reprodutor de Gravação");
+    setWindowTitle("VxVOICE — Reprodutor de Gravação");
     setWindowIcon(QIcon(":/icons/app_icon.png"));
     setModal(false);
     setMinimumWidth(430);

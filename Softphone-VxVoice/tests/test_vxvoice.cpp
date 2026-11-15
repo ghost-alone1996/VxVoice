@@ -17,7 +17,9 @@ private slots:
             ThemeManager::Theme::Red,
             ThemeManager::Theme::Win2000,
             ThemeManager::Theme::WinXP,
-            ThemeManager::Theme::Win7
+            ThemeManager::Theme::Win7,
+            ThemeManager::Theme::CinnamonLight,
+            ThemeManager::Theme::CinnamonDark
         };
 
         for (auto t : themes) {
@@ -26,6 +28,8 @@ private slots:
             QCOMPARE(ThemeManager::themeFromString(str), t);
             QVERIFY(!ThemeManager::instance().themeName(t).isEmpty());
         }
+        QVERIFY(ThemeManager::isLightTheme(ThemeManager::Theme::CinnamonLight));
+        QVERIFY(!ThemeManager::isLightTheme(ThemeManager::Theme::CinnamonDark));
     }
 
     void testThemePersistence() {

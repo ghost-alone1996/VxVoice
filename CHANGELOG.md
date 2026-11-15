@@ -4,6 +4,19 @@ Todas as alterações notáveis deste projeto estão documentadas neste arquivo 
 
 ---
 
+## [v3.0.3] — 2026-11-15
+
+### Added (Novas Funcionalidades)
+- **Temas Cinnamon Light e Cinnamon Dark**: Dois novos temas baseados na interface Cinnamon (Mint-Y Light e Mint-Y Dark) integrados ao `ThemeManager`, menu do System Tray e Configurações.
+
+### Changed (Melhorias)
+- **Identidade Visual VxVOICE**: Nome exibido renomeado para **VxVOICE** em todas as janelas, diálogos, notificações, System Tray e atalho `.desktop`.
+- **Proporção da Janela Principal & Cabeçalho (`MainWindow`)**: Janela principal ampliada horizontalmente (`360×560 px`, mínimo `345×540 px`) com ajuste proporcional do seletor de status e botões do cabeçalho (Contas SIP, Configurações e Sair).
+- **Aba Contatos (`ContactsWidget`)**: Campo de pesquisa em largura total na linha superior, com o filtro de empresa e o botão **+ Adicionar** posicionados logo abaixo.
+- **Atualização Automática Linux (`UpdateManager`)**: Detecção automática do método de instalação no Linux — busca e aplica pacotes `.deb` quando instalado via Debian/APT, ou instalador universal `.sh` quando instalado fora do `dpkg`.
+
+---
+
 ## [v3.0.2] — 2026-11-15
 
 ### Added (Novas Funcionalidades)

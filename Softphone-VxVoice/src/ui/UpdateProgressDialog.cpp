@@ -9,7 +9,7 @@
 
 UpdateProgressDialog::UpdateProgressDialog(QWidget *parent)
     : QDialog(parent) {
-    setWindowTitle("Atualização de Software — VxVoice");
+    setWindowTitle("Atualização de Software — VxVOICE");
     setWindowIcon(QIcon(":/icons/app_icon.png"));
     setModal(true);
     setMinimumSize(480, 230);
@@ -32,7 +32,7 @@ void UpdateProgressDialog::setupUi() {
     m_lblTitle = new QLabel("🔄 Atualização de Software em Andamento...", card);
     m_lblTitle->setStyleSheet("font-size: 15px; font-weight: bold; background: transparent; color: #2980B9;");
 
-    m_lblStatus = new QLabel("Iniciando processo de atualização do VxVoice...", card);
+    m_lblStatus = new QLabel("Iniciando processo de atualização do VxVOICE...", card);
     m_lblStatus->setWordWrap(true);
     m_lblStatus->setStyleSheet(
         QString("font-size: 13px; color: %1; background: transparent;")

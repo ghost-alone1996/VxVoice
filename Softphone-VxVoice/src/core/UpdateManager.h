@@ -47,7 +47,9 @@ private:
     void fetchGithubTagsAndMain();
     void fetchGithubMainCommit(const QString &detectedVersion, const QString &releaseNotes);
     void finalizeUpdateCheck(const QString &remoteVer, const QString &changelog);
+    bool isDebInstallation() const;
     void installLinuxDebPackage(const QString &debPath);
+    void installLinuxShPackage(const QString &shPath);
 
     QNetworkAccessManager *m_nam{nullptr};
     bool m_isChecking{false};

@@ -9,13 +9,15 @@ class ThemeManager : public QObject {
 
 public:
     enum class Theme {
-        Dark,    // Tons de azul escuro
-        Light,   // Tons de azul claro
-        Purple,  // Tons de roxo (VxVoice)
-        Red,     // Tons de vermelho
-        Win2000, // Clássico Windows 2000
-        WinXP,   // Clássico Windows XP Luna
-        Win7,    // Clássico Windows 7 Aero
+        Dark,          // Tons de azul escuro
+        Light,         // Tons de azul claro
+        Purple,        // Tons de roxo (VxVOICE)
+        Red,           // Tons de vermelho
+        Win2000,       // Clássico Windows 2000
+        WinXP,         // Clássico Windows XP Luna
+        Win7,          // Clássico Windows 7 Aero
+        CinnamonLight, // Cinnamon Light (Linux Mint)
+        CinnamonDark,  // Cinnamon Dark (Linux Mint)
         VxVoice = Purple
     };
     Q_ENUM(Theme)

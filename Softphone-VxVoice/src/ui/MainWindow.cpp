@@ -46,16 +46,16 @@ MainWindow::MainWindow(QWidget *parent)
     // Notificação e janela de atualização automática ao abrir o aplicativo
     connect(&UpdateManager::instance(), &UpdateManager::updateAvailable, this, [this](const QString &ver, const QString &log) {
         if (m_trayIcon && m_trayIcon->isVisible()) {
-            m_trayIcon->showMessage("Atualização VxVoice",
+            m_trayIcon->showMessage("Atualização VxVOICE",
                 QString("Nova versão v%1 disponível no GitHub!").arg(ver),
                 QSystemTrayIcon::Information, 6000);
         }
 
         if (UpdateManager::instance().isSilentCheck()) {
             QMessageBox msgBox(this);
-            msgBox.setWindowTitle("Atualização Disponível — VxVoice");
+            msgBox.setWindowTitle("Atualização Disponível — VxVOICE");
             msgBox.setIcon(QMessageBox::Information);
-            msgBox.setText(QString("<b>Uma nova versão do VxVoice está disponível no GitHub!</b>"));
+            msgBox.setText(QString("<b>Uma nova versão do VxVOICE está disponível no GitHub!</b>"));
             msgBox.setInformativeText(
                 QString("Versão atual instalada: <b>v%1</b><br>"
                         "Nova versão disponível: <b>v%2</b><br><br>"
@@ -102,9 +102,9 @@ MainWindow::MainWindow(QWidget *parent)
                 auto acc = SettingsManager::instance().defaultAccount();
                 QString ramal = !acc.username.isEmpty() ? acc.username : "";
                 QString msg = !ramal.isEmpty()
-                    ? QString("O VxVoice está em execução em segundo plano com o ramal %1 disponível.").arg(ramal)
-                    : "O VxVoice está em execução em segundo plano com o serviço disponível.";
-                m_trayIcon->showMessage("VxVoice Softphone", msg, QSystemTrayIcon::Information, 5000);
+                    ? QString("O VxVOICE está em execução em segundo plano com o ramal %1 disponível.").arg(ramal)
+                    : "O VxVOICE está em execução em segundo plano com o serviço disponível.";
+                m_trayIcon->showMessage("VxVOICE Softphone", msg, QSystemTrayIcon::Information, 5000);
             }
         });
     }
@@ -120,17 +120,17 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setupUi() {
-    setWindowTitle("VxVoice");
+    setWindowTitle("VxVOICE");
 
-    // Proporção padrão reduzida em definitivo em 15% (360x648 -> 306x551) mantendo o softphone compacto
-    int targetW = 306;
-    int targetH = 551;
+    // Proporção padrão ajustada horizontalmente para acomodar cabeçalho, abas e discador sem cortes
+    int targetW = 360;
+    int targetH = 560;
     if (QScreen *scr = QApplication::primaryScreen()) {
         QRect avail = scr->availableGeometry();
         targetW = qMin(targetW, avail.width() - 40);
         targetH = qMin(targetH, avail.height() - 40);
     }
-    setMinimumSize(298, qMin(535, targetH));
+    setMinimumSize(345, qMin(540, targetH));
     resize(targetW, targetH);
 
     auto centralWidget = new QWidget(this);
@@ -152,30 +152,30 @@ void MainWindow::setupUi() {
 
     // Status SIP com bolinhas coloridas nítidas (Verde, Vermelho, Cinza)
     m_comboPresence = new QComboBox(m_headerFrame);
-    m_comboPresence->addItem(IconHelper::createStatusDot(QColor("#2ECC71"), 14), "Disponível");
-    m_comboPresence->addItem(IconHelper::createStatusDot(QColor("#E74C3C"), 14), "Não Perturbe");
-    m_comboPresence->addItem(IconHelper::createStatusDot(QColor("#95A5A6"), 14), "Offline");
-    m_comboPresence->setIconSize(QSize(14, 14));
-    m_comboPresence->setMinimumWidth(135);
-    m_comboPresence->setFixedHeight(32);
+    m_comboPresence->addItem(IconHelper::createStatusDot(QColor("#2ECC71"), 13), "Disponível");
+    m_comboPresence->addItem(IconHelper::createStatusDot(QColor("#E74C3C"), 13), "Não Perturbe");
+    m_comboPresence->addItem(IconHelper::createStatusDot(QColor("#95A5A6"), 13), "Offline");
+    m_comboPresence->setIconSize(QSize(13, 13));
+    m_comboPresence->setMinimumWidth(138);
+    m_comboPresence->setFixedHeight(30);
     m_comboPresence->setToolTip("Alterar Status de Presença SIP");
     connect(m_comboPresence, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &MainWindow::onPresenceIndexChanged);
 
     // Botão Contas com ícone de bonequinho / usuário
     m_btnAccounts = new QPushButton(m_headerFrame);
-    m_btnAccounts->setIcon(IconHelper::createUserIcon(QColor("#F5EEF8"), 20));
-    m_btnAccounts->setIconSize(QSize(20, 20));
-    m_btnAccounts->setFixedSize(36, 32);
+    m_btnAccounts->setIcon(IconHelper::createUserIcon(QColor("#F5EEF8"), 18));
+    m_btnAccounts->setIconSize(QSize(18, 18));
+    m_btnAccounts->setFixedSize(34, 30);
     m_btnAccounts->setToolTip("Gerenciador de Contas SIP");
     m_btnAccounts->setCursor(Qt::PointingHandCursor);
     connect(m_btnAccounts, &QPushButton::clicked, this, &MainWindow::onOpenAccountsDialog);
 
     // Botão Configurações com engrenagem nítida
     m_btnSettings = new QPushButton(m_headerFrame);
-    m_btnSettings->setIcon(IconHelper::createSettingsIcon(QColor("#F5EEF8"), 18));
-    m_btnSettings->setIconSize(QSize(18, 18));
-    m_btnSettings->setFixedSize(36, 32);
+    m_btnSettings->setIcon(IconHelper::createSettingsIcon(QColor("#F5EEF8"), 17));
+    m_btnSettings->setIconSize(QSize(17, 17));
+    m_btnSettings->setFixedSize(34, 30);
     m_btnSettings->setToolTip("Preferências e Configurações");
     m_btnSettings->setCursor(Qt::PointingHandCursor);
     connect(m_btnSettings, &QPushButton::clicked, this, &MainWindow::onOpenSettingsDialog);
@@ -183,8 +183,9 @@ void MainWindow::setupUi() {
     // Botão vermelho de Sair definitivo
     m_btnExit = new QPushButton("Sair", m_headerFrame);
     m_btnExit->setObjectName("exitButton");
-    m_btnExit->setFixedHeight(32);
-    m_btnExit->setToolTip("Encerrar VxVoice e finalizar todos os processos");
+    m_btnExit->setFixedHeight(30);
+    m_btnExit->setMinimumWidth(56);
+    m_btnExit->setToolTip("Encerrar VxVOICE e finalizar todos os processos");
     m_btnExit->setCursor(Qt::PointingHandCursor);
     connect(m_btnExit, &QPushButton::clicked, this, &MainWindow::onQuitApplication);
 
@@ -255,10 +256,10 @@ void MainWindow::updateVisorAccount() {
 void MainWindow::setupTrayIcon() {
     QIcon icon(":/icons/app_icon.png");
     m_trayIcon = new QSystemTrayIcon(icon, this);
-    m_trayIcon->setToolTip("VxVoice Softphone");
+    m_trayIcon->setToolTip("VxVOICE Softphone");
 
     m_trayMenu = new QMenu(this);
-    auto actionOpen = m_trayMenu->addAction("Abrir VxVoice");
+    auto actionOpen = m_trayMenu->addAction("Abrir VxVOICE");
     connect(actionOpen, &QAction::triggered, this, [this]() {
         showNormal();
         activateWindow();
@@ -275,9 +276,11 @@ void MainWindow::setupTrayIcon() {
         QString settingKey;
     };
     const ThemeEntry themes[] = {
-        {"Roxo Corporativo (VxVoice)", ThemeManager::Theme::Purple, "Purple"},
+        {"Roxo Corporativo (VxVOICE)", ThemeManager::Theme::Purple, "Purple"},
         {"Escuro (Dark)", ThemeManager::Theme::Dark, "Dark"},
         {"Claro (Light)", ThemeManager::Theme::Light, "Light"},
+        {"Cinnamon Light (Mint-Y)", ThemeManager::Theme::CinnamonLight, "CinnamonLight"},
+        {"Cinnamon Dark (Mint-Y)", ThemeManager::Theme::CinnamonDark, "CinnamonDark"},
         {"Vermelho (Red)", ThemeManager::Theme::Red, "Red"},
         {"Windows 2000 (Clássico)", ThemeManager::Theme::Win2000, "Win2000"},
         {"Windows XP (Luna)", ThemeManager::Theme::WinXP, "WinXP"},
@@ -452,7 +455,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         event->ignore();
         hide();
         if (m_trayIcon && m_trayIcon->isVisible()) {
-            m_trayIcon->showMessage("VxVoice em segundo plano",
+            m_trayIcon->showMessage("VxVOICE em segundo plano",
                                     "O aplicativo continua em execução na bandeja do sistema.",
                                     QSystemTrayIcon::Information, 1500);
         }
@@ -497,10 +500,10 @@ void MainWindow::onRegistrationStateChanged(SipManager::RegistrationState state,
         auto acc = SettingsManager::instance().defaultAccount();
         QString ramal = !acc.username.isEmpty() ? acc.username : "";
         QString msg = !ramal.isEmpty()
-            ? QString("O VxVoice está em execução em segundo plano com o ramal %1 disponível.").arg(ramal)
-            : "O VxVoice está em execução em segundo plano com o serviço disponível.";
+            ? QString("O VxVOICE está em execução em segundo plano com o ramal %1 disponível.").arg(ramal)
+            : "O VxVOICE está em execução em segundo plano com o serviço disponível.";
         if (m_trayIcon && m_trayIcon->isVisible()) {
-            m_trayIcon->showMessage("VxVoice Softphone", msg, QSystemTrayIcon::Information, 5000);
+            m_trayIcon->showMessage("VxVOICE Softphone", msg, QSystemTrayIcon::Information, 5000);
         }
     }
 }

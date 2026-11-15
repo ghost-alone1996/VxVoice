@@ -7,6 +7,8 @@
         <file>styles/win2000.qss</file>
         <file>styles/winxp.qss</file>
         <file>styles/win7.qss</file>
+        <file>styles/cinnamon_light.qss</file>
+        <file>styles/cinnamon_dark.qss</file>
         <file>icons/app_icon.png</file>
         <file>sounds/ringtone_1.wav</file>
         <file>sounds/ringtone_2.wav</file>

@@ -226,12 +226,15 @@ void ContactsWidget::setupUi() {
     mainLayout->setContentsMargins(8, 8, 8, 8);
     mainLayout->setSpacing(6);
 
-    // Filter Bar: Search Box + Company Filter + Add Button
-    auto filterLayout = new QHBoxLayout();
+    // Filter Bar: Campo de pesquisa em cima, filtro por empresa e botão Adicionar embaixo
     m_searchEdit = new QLineEdit(this);
     m_searchEdit->setPlaceholderText("🔍 Buscar contato...");
     m_searchEdit->setClearButtonEnabled(true);
     connect(m_searchEdit, &QLineEdit::textChanged, this, &ContactsWidget::onSearchTextChanged);
+    mainLayout->addWidget(m_searchEdit);
+
+    auto filterActionsLayout = new QHBoxLayout();
+    filterActionsLayout->setSpacing(6);
 
     m_comboCompanyFilter = new QComboBox(this);
     m_comboCompanyFilter->addItem("Todas as Empresas");
@@ -243,10 +246,9 @@ void ContactsWidget::setupUi() {
     m_btnAddContact->setToolTip("Cadastrar novo contato corporativo");
     connect(m_btnAddContact, &QPushButton::clicked, this, &ContactsWidget::onAddContactClicked);
 
-    filterLayout->addWidget(m_searchEdit, 2);
-    filterLayout->addWidget(m_comboCompanyFilter, 1);
-    filterLayout->addWidget(m_btnAddContact);
-    mainLayout->addLayout(filterLayout);
+    filterActionsLayout->addWidget(m_comboCompanyFilter, 1);
+    filterActionsLayout->addWidget(m_btnAddContact);
+    mainLayout->addLayout(filterActionsLayout);
 
     // Table & Model
     m_sourceModel = new QStandardItemModel(this);

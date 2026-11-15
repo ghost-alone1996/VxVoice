@@ -378,7 +378,7 @@ bool SettingsManager::applySystemAutostart(bool enable) {
             out << "[Desktop Entry]\n";
             out << "Type=Application\n";
             out << "Version=1.0\n";
-            out << "Name=VxVoice\n";
+            out << "Name=VxVOICE\n";
             out << "Comment=Enterprise SIP Softphone Client\n";
             if (startMinimized()) {
                 out << "Exec=" << appPath << " --autostart --minimized\n";

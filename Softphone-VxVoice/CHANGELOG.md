@@ -4,6 +4,17 @@ Registro completo de evolução, correções e melhorias do **VxVoice Enterprise
 
 ---
 
+## [v3.0.3] — 2026-11-15
+### Added (Novas Funcionalidades)
+- **Temas Cinnamon Light & Dark**: Adicionados temas Mint-Y Light e Mint-Y Dark no `ThemeManager`, Configurações e System Tray.
+
+### Changed (Melhorias)
+- **Identidade VxVOICE**: Nome exibido alterado para **VxVOICE** em toda a interface e atalho `.desktop`.
+- **Proporção da Janela, Cabeçalho e Aba Contatos**: Janela principal ajustada para `360×560 px`, botões do cabeçalho proporcionais e filtro/`+ Adicionar` posicionados abaixo do campo de pesquisa em Contatos.
+- **Auto-Update Linux (`.deb` vs `.sh`)**: `UpdateManager` identifica se a instalação é `.deb` ou universal `.sh` e busca o artefato correspondente no GitHub.
+
+---
+
 ## [v3.0.2] — 2026-11-15
 ### Added (Novas Funcionalidades)
 - **Build & Distribuição Linux a partir da v3.0.1**: Geração completa da release Linux (`vxvoice-3.0.2-Linux.deb`, `vxvoice-3.0.2-Linux-Installer.sh` e `vxvoice-3.0.2-Linux-Installer.zip`).

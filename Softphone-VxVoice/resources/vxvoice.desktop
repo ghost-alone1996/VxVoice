@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=VxVoice
+Name=VxVOICE
 GenericName=SIP Softphone
 Comment=Enterprise SIP Softphone Client with PJSIP and Qt6
 Exec=VxVoice %u

@@ -10,7 +10,7 @@
 
 ChangelogDialog::ChangelogDialog(QWidget *parent)
     : QDialog(parent) {
-    setWindowTitle("VxVoice — Novidades e Correções");
+    setWindowTitle("VxVOICE — Novidades e Correções");
     setWindowIcon(QIcon(":/icons/app_icon.png"));
     setModal(true);
     setMinimumSize(540, 440);
@@ -37,7 +37,7 @@ void ChangelogDialog::setupUi() {
     const QString browserBg = isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.35)";
     const QString browserText = isLight ? "#0F172A" : "#E2E8F0";
 
-    auto lblTitle = new QLabel(QString("✨ VxVoice v%1").arg(SettingsManager::APP_VERSION), headerCard);
+    auto lblTitle = new QLabel(QString("✨ VxVOICE v%1").arg(SettingsManager::APP_VERSION), headerCard);
     lblTitle->setStyleSheet(QString("font-size: 18px; font-weight: bold; color: %1; background: transparent;").arg(titleColor));
 
     auto lblSub = new QLabel("Aplicativo atualizado com sucesso! Confira as novidades e correções:", headerCard);
@@ -66,6 +66,9 @@ void ChangelogDialog::setupUi() {
     QString html = QString(
         "<h3 style='margin-top: 0;'>Novidades e Correções — Versão %1:</h3>"
         "<ul style='margin-left: -15px;'>"
+        "<li><b>🎨 Temas Cinnamon Light &amp; Dark (v3.0.3):</b> Adicionados dois novos temas inspirados na interface Cinnamon (Mint-Y Light e Mint-Y Dark).</li><br>"
+        "<li><b>📐 Proporção da Janela &amp; Cabeçalho (v3.0.3):</b> Janela principal ampliada horizontalmente (<code>360×560 px</code>) com ajuste proporcional dos botões do cabeçalho e reorganização da aba Contatos (filtro e <i>+ Adicionar</i> abaixo da busca).</li><br>"
+        "<li><b>🏷 Identidade VxVOICE &amp; Auto-Update Linux (v3.0.3):</b> Nome exibido atualizado para <b>VxVOICE</b> e detecção automática de instalação <code>.deb</code> vs universal <code>.sh</code> na busca de atualizações no GitHub.</li><br>"
         "<li><b>🐧 Empacotamento e Portabilidade Linux (v3.0.2):</b> Build nativo Linux atualizado para a última versão com bibliotecas PJSIP embarcadas via <code>RPATH</code> (<code>/usr/lib/vxvoice</code>), pacote <code>.deb</code> e instalador universal <code>.sh</code> compatível com Debian/Ubuntu, Fedora/RHEL, Arch e openSUSE.</li><br>"
         "<li><b>📐 Janela Principal Mais Compacta (v3.0.1):</b> Proporção padrão e mínima da janela principal reduzidas em definitivo em 15% (<code>306×551 px</code>) com ajuste proporcional do discador.</li><br>"
         "<li><b>ℹ Aba Sobre Atualizada (v3.0.1):</b> Substituído o campo <i>Empresa</i> por <i>Autor: Leonardo Machado da Silva</i>.</li><br>"
