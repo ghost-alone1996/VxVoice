@@ -4,13 +4,13 @@
            Name="VxVoice Enterprise Softphone"
            Language="1046"
            Codepage="1252"
-           Version="3.0.1"
+           Version="3.0.4"
            Manufacturer="VxNET Comunicações e Telecomunicações"
            UpgradeCode="A5D19302-7B4F-4E89-9A52-87F95A34DC7A">
 
     <Package Id="*"
              Keywords="Installer,MSI,SIP,Softphone,VoIP,VxVoice"
-             Description="VxVoice Enterprise Softphone v3.0.1"
+             Description="VxVoice Enterprise Softphone v3.0.4"
              Comments="Softphone Corporativo SIP (Qt 6 + PJSIP) - VxNET Telecomunicações"
              Manufacturer="VxNET Comunicações e Telecomunicações"
              InstallerVersion="300"
@@ -69,7 +69,7 @@
             <RegistryValue Root="HKCR" Key="tel\shell\open\command" Type="string" Value="&quot;[INSTALLFOLDER]VxVoice.exe&quot; &quot;%1&quot;" />
 
             <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="InstallDir" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
-            <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Version" Type="string" Value="3.0.1" />
+            <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Version" Type="string" Value="3.0.4" />
             <RegistryValue Root="HKLM" Key="Software\VxNET\VxVoice" Name="Publisher" Type="string" Value="VxNET Comunicações e Telecomunicações" />
           </Component>
 
